@@ -517,6 +517,7 @@ svg{display:block;max-width:100%}
   border:1px solid var(--rule-2);cursor:pointer;
 }
 .setswitch input{margin:0}
+.teamnames{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:4px 0 16px}
 .tiergrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;max-width:360px}
 .tierhead{font-size:11.5px;color:var(--ink-3)}
 .tiergrid input[readonly]{background:var(--surface-2);color:var(--ink-3)}
@@ -904,6 +905,13 @@ function stints(id){
 }
 const TEAMS=['Team 1','Team 2','Team 3','Team 4','Team 5','Inactive'];
 const teamOf=id=>(state.settings.teams||{})[id]||'';
+/* Teams keep a fixed internal key ("Team 1") and carry a display name on top.
+   Renaming therefore never breaks saved assignments or filters. */
+const teamLabel=t=>{
+  if(!t) return 'No team';
+  const n=((state.settings.teamNames||{})[t]||'').trim();
+  return n||t;
+};
 function stintName(id,st){ return (st&&st.name) || state.settings.names[id] || ('Agent '+id); }
 /* Whoever holds the code at the report's most recent date. */
 function currentStint(id){
@@ -2273,13 +2281,13 @@ function renderFilters(){
   $('#btnTeams').textContent = (!f.teams||tSel===teamOpts.length) ? 'All teams' : `${tSel} of ${teamOpts.length} teams`;
   $('#teamDrop').innerHTML=
     `<div class="bar"><button class="linkish" data-tall="1">Select all</button><button class="linkish" data-tall="0">Clear</button></div>`+
-    teamOpts.map(t=>`<label class="row"><input type="checkbox" value="${esc(t)}"${(!f.teams||f.teams.has(t))?' checked':''}><span>${t?esc(t):'No team'} <span style="color:var(--ink-3)">${counts[t]||0}</span></span></label>`).join('');
+    teamOpts.map(t=>`<label class="row"><input type="checkbox" value="${esc(t)}"${(!f.teams||f.teams.has(t))?' checked':''}><span>${esc(teamLabel(t))} <span style="color:var(--ink-3)">${counts[t]||0}</span></span></label>`).join('');
 
   const sel=f.agents?f.agents.size:ags.length;
   $('#btnAgents').textContent = (!f.agents||sel===ags.length) ? `All BDEs (${ags.length})` : `${sel} of ${ags.length} BDEs`;
   $('#agentDrop').innerHTML=
     `<div class="bar"><button class="linkish" data-all="1">Select all</button><button class="linkish" data-all="0">Clear</button></div>`+
-    ags.map(a=>`<label class="row"><input type="checkbox" value="${esc(a)}"${(!f.agents||f.agents.has(a))?' checked':''}><span>${esc(agentName(a))} <span style="color:var(--ink-3)">#${esc(a)}${teamOf(a)?' \u00b7 '+esc(teamOf(a)):''}</span></span></label>`).join('');
+    ags.map(a=>`<label class="row"><input type="checkbox" value="${esc(a)}"${(!f.agents||f.agents.has(a))?' checked':''}><span>${esc(agentName(a))} <span style="color:var(--ink-3)">#${esc(a)}${teamOf(a)?' \u00b7 '+esc(teamLabel(teamOf(a))):''}</span></span></label>`).join('');
 }
 
 function renderTotals(rows,keys){
@@ -3170,6 +3178,12 @@ function readEmployment(wrap){
     if(sel.value) teams[sel.dataset.empTeam]=sel.value;
   });
   state.settings.teams=teams;
+  const names=Object.assign({},state.settings.teamNames||{});
+  wrap.querySelectorAll('[data-team-name]').forEach(inp=>{
+    const v=inp.value.trim();
+    if(v) names[inp.dataset.teamName]=v; else delete names[inp.dataset.teamName];
+  });
+  state.settings.teamNames=names;
   state.settings.employment=acc;
   // Keep names in step so anything still reading them agrees.
   for(const id in acc){
@@ -3271,6 +3285,10 @@ function openSettings(){
       `:''}
       <h4 class="seth"><span class="emo">&#128101;</span>Each BDE
         <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
+      <div class="teamnames">
+        ${TEAMS.filter(t=>t!=='Inactive').map(t=>`<div class="field"><label for="tn-${esc(t.replace(/\s/g,''))}">${esc(t)} name</label>
+          <input type="text" id="tn-${esc(t.replace(/\s/g,''))}" data-team-name="${esc(t)}" value="${esc((state.settings.teamNames||{})[t]||'')}" placeholder="${esc(t)}"></div>`).join('')}
+      </div>
       ${ags.length?`<div class="sethead"><span>Agent</span><span>Person</span><span>Started</span><span>Team</span></div>
       <div class="setlist" id="empList">${ags.map(a=>{
         const x=(state.settings.employment[a]&&state.settings.employment[a][0])||{n:state.settings.names[a]||'',s:''};
@@ -3280,7 +3298,7 @@ function openSettings(){
           <input type="date" data-emp-start="${esc(a)}|0" value="${esc(x.s||'')}">
           <select data-emp-team="${esc(a)}">
             <option value="">No team</option>
-            ${TEAMS.map(t=>`<option value="${esc(t)}"${teamOf(a)===t?' selected':''}>${esc(t)}</option>`).join('')}
+            ${TEAMS.map(t=>`<option value="${esc(t)}"${teamOf(a)===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
           </select>
         </div>`;
       }).join('')}</div>`:'<p class="setnote">Upload a report to set up your BDE list.</p>'}
@@ -3373,6 +3391,7 @@ function openSettings(){
                niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}};
         state.filters=Object.assign({},DEFAULT_FILTERS);
         state.openAgent=null;
+        seedLondonEast();   // the team is a baseline, not data, so it survives a reset
         close(); render(); toast('All data reset');
       });
     }
@@ -3665,9 +3684,34 @@ function initReveal(){
   });
 })();
 
+/* London East, set up once. After it has been applied it is never applied
+   again, so anything later changed in Settings stays changed. Start dates
+   already entered are kept. */
+const LONDON_EAST={'101':'Eram','102':'Esiri','119':'Yaqoob','121':'Tahawar','123':'Muhaad',
+  '127':'Mamnur','129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie',
+  '147':'Darius','149':'Jagdish'};
+function seedLondonEast(){
+  const S=state.settings;
+  if(S.seededLondonEast) return;
+  S.teamNames=Object.assign({},S.teamNames||{},{'Team 1':'London East'});
+  S.teams=Object.assign({},S.teams||{});
+  S.names=Object.assign({},S.names||{});
+  S.employment=Object.assign({},S.employment||{});
+  for(const [id,name] of Object.entries(LONDON_EAST)){
+    S.teams[id]='Team 1';
+    S.names[id]=name;
+    const cur=(S.employment[id]&&S.employment[id][0])||{};
+    S.employment[id]=[{n:name,s:cur.s||'',e:''}];
+  }
+  S.seededLondonEast=true;
+  clearStints();
+  store.set(K_SET,JSON.stringify(S));
+}
+
 /* boot */
 initTheme();
 load();
+seedLondonEast();
 if(state.rows.length) reconcileFilters();
 // Put the saved toggles and search box back where the user left them.
 (function syncControls(){
