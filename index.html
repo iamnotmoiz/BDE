@@ -1,0 +1,3687 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BDE Performance — Service Innovation Group</title>
+<style>
+:root{
+  --ground:#E9ECE7;
+  --surface:#FFFFFF;
+  --surface-2:#F4F6F2;
+  --ink:#17201C;
+  --ink-2:#576059;
+  --ink-3:#8B938C;
+  --rule:#D2D8D0;
+  --rule-2:#E3E7E1;
+  --reg:#20574A;
+  --ver:#3C5F92;
+  --act:#7B3F72;
+  --warn:#A83232;
+  --s-good:#2E6B57;
+  --s-mid:#C89A3C;
+  --s-none:#DFE4DD;
+  --ease:cubic-bezier(.22,.8,.3,1);
+  --good:#2F7A4F;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --shadow:0 1px 2px rgba(23,32,28,.06),0 8px 24px -16px rgba(23,32,28,.28);
+  --shadow-hover:0 1px 2px rgba(23,32,28,.05),0 14px 30px -24px rgba(23,32,28,.35);
+  --shadow-card:0 10px 24px -18px rgba(23,32,28,.5);
+  --shadow-accent:0 6px 16px -8px rgba(32,87,74,.7);
+  --bar:rgba(233,236,231,.94);
+  --hover:rgba(23,32,28,.06);
+  --scrim:rgba(23,32,28,.36);
+  --on-accent:#FFFFFF;
+  --on-danger:#FFFFFF;
+  --accent-hi:#17423A;
+  --amber:#C08A1E;
+  --tip-bg:#17201C;  --tip-fg:#FFFFFF;
+  --hit-bg:#E6F1EA;  --near-bg:#FAF1DE;  --near-fg:#8A6212;  --miss-bg:#F8EBEB;
+  --danger-bd:#E4C7C7; --danger-bg:#FBF0F0; --danger-hi:#8E2A2A;
+  --open-bg:#F0F4EF; --detail-bg:#F7F9F6; --drag-bg:#F1F6F1; --fix-bg:#F8E7E7;
+  color-scheme:light;
+}
+
+/* Dark theme. Accents are lightened so they keep their contrast against a
+   dark ground, and anything that sat on white is re-based rather than
+   inverted, which would have muddied the greens. */
+:root[data-theme="dark"]{
+  --ground:#111613;
+  --surface:#191F1C;
+  --surface-2:#212925;
+  --ink:#E7EDE8;
+  --ink-2:#A6B1AA;
+  --ink-3:#7B867F;
+  --rule:#313B36;
+  --rule-2:#272F2B;
+  --reg:#4FB295;
+  --ver:#7CA6E0;
+  --act:#C98CBE;
+  --warn:#EC8686;
+  --good:#5FBE8C;
+  --s-good:#3C8E72;
+  --s-mid:#BE9647;
+  --s-none:#313B36;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px -16px rgba(0,0,0,.8);
+  --shadow-hover:0 1px 2px rgba(0,0,0,.45),0 14px 30px -24px rgba(0,0,0,.9);
+  --shadow-card:0 10px 24px -18px rgba(0,0,0,.9);
+  --shadow-accent:0 6px 16px -8px rgba(79,178,149,.45);
+  --bar:rgba(17,22,19,.94);
+  --hover:rgba(231,237,232,.08);
+  --scrim:rgba(0,0,0,.6);
+  --on-accent:#0E1512;
+  --on-danger:#2A1413;
+  --accent-hi:#67C4A9;
+  --amber:#D9A94A;
+  --tip-bg:#2B3531;  --tip-fg:#F2F6F3;
+  --hit-bg:#1D3A2C;  --near-bg:#3A3120;  --near-fg:#E0BC70;  --miss-bg:#3B2626;
+  --danger-bd:#5A3636; --danger-bg:#2E1E1E; --danger-hi:#C96A6A;
+  --open-bg:#212B26; --detail-bg:#1D2421; --drag-bg:#1C2A24; --fix-bg:#3B2626;
+  color-scheme:dark;
+}
+:root[data-theme="dark"] .logo path{stroke:var(--on-accent)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--reg);outline-offset:2px}
+
+/* ---------- motion ----------
+   Everything here is decoration: the reveal starts visible and is only
+   hidden once the observer confirms it can animate, so content is never
+   trapped invisible if scripting or IntersectionObserver is unavailable. */
+@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.js-reveal{opacity:0;transform:translateY(10px)}
+.js-reveal.in{animation:riseIn .5s var(--ease) forwards}
+.topbar-in>*{animation:fadeIn .45s var(--ease) both}
+.brand{animation-delay:.02s}
+.topbar-actions{animation-delay:.08s}
+.secnav{animation-delay:.12s}
+
+.panel{transition:box-shadow .25s var(--ease),border-color .25s var(--ease)}
+.panel:hover{box-shadow:var(--shadow-hover)}
+.tot{transition:background .18s var(--ease)}
+.tot:hover{background:var(--surface-2)}
+.tot .v{transition:transform .25s var(--ease)}
+.tot:hover .v{transform:translateY(-1px)}
+
+.btn,.secnav button,.seg button{transition:background .15s var(--ease),color .15s var(--ease),
+  border-color .15s var(--ease),transform .12s var(--ease),box-shadow .15s var(--ease)}
+.btn:active,.secnav button:active,.seg button:active{transform:translateY(1px)}
+.btn-primary:hover{box-shadow:var(--shadow-accent)}
+.secnav button:hover{transform:translateY(-1px)}
+
+tbody tr{transition:background .14s var(--ease)}
+tbody tr.glitch td{background:var(--miss-bg);color:var(--warn)}
+tbody tr.glitch td .bizid{color:var(--warn);opacity:.8}
+tbody tr.glitch:hover td{background:var(--miss-bg)}
+tbody tr[data-agent],tbody tr[data-sal]{cursor:pointer}
+tbody tr[data-agent]:hover,tbody tr[data-sal]:hover{background:var(--surface-2)}
+tr.detail>td{animation:fadeIn .3s var(--ease) both}
+.mbar .fill{transition:width .5s var(--ease)}
+.pill{transition:transform .15s var(--ease),filter .15s var(--ease)}
+tbody tr:hover .pill{transform:scale(1.04)}
+
+.sm{transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease)}
+.sm:hover{transform:translateY(-2px);border-color:var(--rule);
+  box-shadow:var(--shadow-card)}
+
+/* Stacked outcome bar: hovering one segment dims the others. */
+.stack{overflow:visible}
+.stack .seg rect{transition:opacity .18s var(--ease)}
+.stack:hover .seg rect{opacity:.35}
+.stack .seg:hover rect{opacity:1}
+.stack .seg{cursor:default}
+
+.linknum,.linkish{transition:color .15s var(--ease)}
+.modal{animation:riseIn .28s var(--ease) both}
+.scrim{animation:fadeIn .2s var(--ease) both}
+.toast{animation:riseIn .28s var(--ease) both}
+.dropdown{animation:riseIn .18s var(--ease) both}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .js-reveal{opacity:1!important;transform:none!important}
+}
+
+/* ---------- header ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--bar);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-in{
+  max-width:1320px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:10px 16px;flex-wrap:nowrap;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto;margin-right:auto;order:1}
+.logo{flex:none;display:block;width:30px;height:30px;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+@keyframes logoPulse{0%{transform:scale(1)}40%{transform:scale(.86)}100%{transform:scale(1)}}
+.logo.pulse{animation:logoPulse .32s var(--ease)}
+.logo svg{width:30px;height:30px;display:block}
+.logo rect{fill:var(--reg)}
+.logo path{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
+.brandtext{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.brandtext b{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brandtext small{font-size:11.5px;color:var(--ink-2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+
+.topbar-actions{display:flex;align-items:center;gap:8px;order:3;flex:none}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+.dot.mem{background:var(--amber)}
+.fileinfo{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--rule-2);border-radius:8px;
+  padding:10px 12px;margin-bottom:16px}
+
+.btn{
+  border:1px solid var(--rule);background:var(--surface);
+  border-radius:7px;padding:8px 14px;font-size:13.5px;font-weight:500;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:border-color .12s ease,background .12s ease;
+}
+.btn:hover{border-color:var(--ink-3);background:var(--surface-2)}
+.btn-primary{background:var(--reg);border-color:var(--reg);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+.btn-quiet{border-color:transparent;background:transparent;padding:8px 10px}
+.btn-quiet:hover{background:var(--hover);border-color:transparent}
+.btn-danger{color:var(--warn);border-color:var(--danger-bd)}
+.btn-danger:hover{background:var(--danger-bg);border-color:var(--warn)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.act svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.act.iconly{padding:8px 10px}
+/* The Audit button swaps icon and wording when the audit is open. */
+#btnAudit .when-open{display:none}
+#btnAudit.is-open .when-open{display:inline-block}
+#btnAudit.is-open .when-closed{display:none}
+#btnAudit svg.when-open{display:none}
+#btnAudit.is-open svg.when-open{display:block}
+/* Icon-only buttons show their name on hover and on keyboard focus.
+   Placed below the button, since the bar sits at the very top of the page. */
+.hovername{position:relative}
+.hovername::after{
+  content:attr(data-name);
+  position:absolute;top:calc(100% + 8px);right:0;
+  padding:6px 10px;border-radius:7px;white-space:nowrap;
+  background:var(--tip-bg);color:var(--tip-fg);
+  font-size:12px;font-weight:500;line-height:1.2;
+  opacity:0;transform:translateY(-3px);pointer-events:none;
+  transition:opacity .14s var(--ease),transform .14s var(--ease);
+  box-shadow:var(--shadow);z-index:60;
+}
+.hovername:hover::after,.hovername:focus-visible::after{opacity:1;transform:none}
+/* One icon shows at a time: the moon while light, the sun while dark. */
+.ico-sun{display:none}
+:root[data-theme="dark"] .ico-sun{display:block}
+:root[data-theme="dark"] .ico-moon{display:none}
+.themebtn{margin-left:10px}
+.themebtn svg{transition:transform .3s var(--ease)}
+.themebtn:hover svg{transform:rotate(-18deg)}
+/* A quiet confirmation that a change was stored. */
+.savestate{
+  margin-left:auto;margin-right:8px;font-size:12px;color:var(--good);
+  opacity:0;transform:translateY(2px);transition:opacity .25s var(--ease),transform .25s var(--ease);
+}
+.savestate.on{opacity:1;transform:none}
+
+/* section nav */
+.secnav{
+  order:2;flex:1 1 auto;min-width:0;
+  display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.secnav::-webkit-scrollbar{display:none}
+.secnav button{
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  border:1px solid transparent;background:transparent;border-radius:7px;
+  padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink-2);
+  transition:background .12s ease,color .12s ease;
+}
+.secnav button svg{width:15px;height:15px;flex:none;fill:none;
+  stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.secnav button span{white-space:nowrap}
+.secnav button[data-go="sec-summary"] svg{fill:currentColor;stroke:none;opacity:.9}
+.secnav button:hover{background:var(--hover);color:var(--ink)}
+.secnav button[aria-current="true"]{background:var(--reg);color:var(--on-accent)}
+
+/* Everything stays on one line. As width is lost the bar sheds text in
+   order of how often each control is used, never wrapping to a second row. */
+
+/* 1. Action buttons lose their labels first: least-used controls. */
+@media (max-width:1180px){
+  #btnAudit:not(.is-open) .lbl{display:none}
+  #btnAudit:not(.is-open){padding:8px 10px}
+}
+/* 2. Inactive nav buttons collapse to icons; the current section keeps its
+      label so you can still see where you are. */
+@media (max-width:900px){
+  .topbar-in{padding:10px 16px;gap:8px}
+  .brandtext small{display:none}
+  .brandtext b{font-size:16px}
+  .secnav button span{display:none}
+  .secnav button[aria-current="true"] span{display:inline}
+  .secnav button{padding:7px 10px}
+  .secnav button[aria-current="true"]{padding:7px 12px}
+}
+/* 3. Phone: every nav button is an icon, and the name shortens to a monogram. */
+@media (max-width:560px){
+  .topbar-in{padding:9px 12px;gap:6px}
+  .brandtext b{font-size:0}
+  .brandtext b::after{content:"SIG";font-size:16px}
+  .secnav button[aria-current="true"] span{display:none}
+  .secnav{gap:1px}
+  .secnav button,.secnav button[aria-current="true"]{padding:7px 9px}
+  .logo,.logo svg{width:26px;height:26px}
+}
+/* 4. Very narrow: drop the wordmark, keep the logo. */
+@media (max-width:380px){
+  .brandtext{display:none}
+}
+
+/* ---------- layout ---------- */
+main{max-width:1320px;margin:0 auto;padding:0 24px 80px}
+.panel{
+  background:var(--surface);border:1px solid var(--rule);border-radius:12px;
+  margin-top:22px;overflow:hidden;
+}
+.panel-head{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:16px 20px;border-bottom:1px solid var(--rule-2);
+}
+.panel-head h2{
+  font-family:var(--serif);font-size:17px;font-weight:600;margin:0;letter-spacing:-.005em;
+}
+.panel-head .hint{font-size:12.5px;color:var(--ink-3);margin-right:auto}
+.panel-body{padding:20px}
+
+/* ---------- filters ---------- */
+.filters{
+  display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
+  padding:14px 20px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:12px;margin-top:22px;
+}
+.field{display:flex;flex-direction:column;gap:4px;position:relative}
+.field label{font-size:11.5px;color:var(--ink-3);letter-spacing:.01em}
+select,input[type=text],input[type=number],input[type=search],input[type=date]{
+  font:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);color:var(--ink);min-width:96px;
+}
+input[type=date]{
+  font-variant-numeric:tabular-nums;min-width:0;width:100%;
+  appearance:none;-webkit-appearance:none;
+}
+input[type=date]::-webkit-datetime-edit{padding:0;color:var(--ink)}
+input[type=date]:invalid::-webkit-datetime-edit,
+input[type=date]:not(:focus):placeholder-shown::-webkit-datetime-edit{color:var(--ink-3)}
+input[type=date]::-webkit-calendar-picker-indicator{
+  opacity:.45;cursor:pointer;padding:0;margin-left:2px;
+}
+input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:.8}
+input[type=date]:hover{border-color:var(--ink-3)}
+input[type=search]{min-width:200px}
+.spacer{margin-left:auto}
+
+.dropdown{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:30;
+  background:var(--surface);border:1px solid var(--rule);border-radius:9px;
+  box-shadow:var(--shadow);padding:10px;width:250px;max-height:320px;overflow:auto;
+}
+.dropdown .row{display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:13.5px}
+.dropdown .row input{margin:0}
+.dropdown .bar{display:flex;gap:8px;padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid var(--rule-2)}
+.linkish{background:none;border:none;padding:0;font-size:12.5px;color:var(--reg);text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- totals strip ---------- */
+.totals{
+  display:grid;gap:1px;background:var(--rule-2);
+  grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+}
+.tot{background:var(--surface);padding:18px 20px}
+.tot .k{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:9px}
+.tot .v{font-size:34px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin-top:6px}
+.tot .s{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+@media(max-width:560px){
+  .totals{grid-template-columns:1fr}
+  .tot{padding:14px 16px}
+  .tot .v{font-size:28px}
+}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--rule-2);white-space:nowrap}
+thead th{
+  position:sticky;top:0;background:var(--surface-2);z-index:2;
+  font-size:11.5px;font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none;
+  border-bottom:1px solid var(--rule);
+}
+thead th.no-sort{cursor:default}
+thead th span.arrow{color:var(--ink-3);font-size:9px;margin-left:3px}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr.open{background:var(--open-bg)}
+td.r,th.r{text-align:right}
+.rank{color:var(--ink-3);width:34px}
+.rank.medal{font-size:17px;line-height:1;text-align:center;padding-left:8px}
+tbody tr:hover .rank.medal{transform:scale(1.12)}
+.rank.medal{display:table-cell;transition:transform .18s var(--ease)}
+.emo{
+  margin-right:7px;font-size:14px;line-height:1;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+.panel-head h2 .emo{font-size:16px;margin-right:9px}
+.tot .ind-v{font-size:22px;line-height:1.25;font-family:var(--serif);letter-spacing:-.01em;
+  margin-top:8px;overflow-wrap:anywhere}
+.emo.big{
+  font-size:22px;line-height:1;margin-right:0;flex:none;
+  transition:transform .22s var(--ease);
+}
+.tot:hover .emo.big{transform:scale(1.12) rotate(-4deg)}
+.agentcell{font-weight:600}
+.agentcell small{display:block;font-weight:400;color:var(--ink-3);font-size:11.5px}
+.mbar{position:relative;min-width:96px}
+.mbar .track{height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin-top:4px}
+.mbar .fill{height:100%;border-radius:3px}
+.pct{color:var(--ink-3);font-size:12px;margin-left:5px}
+.pill{
+  display:inline-block;padding:2px 8px;border-radius:11px;font-size:11.5px;
+  font-weight:600;font-variant-numeric:tabular-nums;
+}
+.pill.hit{background:var(--hit-bg);color:var(--good)}
+.pill.near{background:var(--near-bg);color:var(--near-fg)}
+.pill.miss{background:var(--miss-bg);color:var(--warn)}
+.pill.none{background:var(--surface-2);color:var(--ink-3)}
+
+/* ---------- drawer row ---------- */
+tr.detail td{background:var(--detail-bg);padding:0;border-bottom:1px solid var(--rule)}
+.drawer{padding:18px 20px;display:grid;grid-template-columns:1.25fr 1fr;gap:26px}
+@media(max-width:860px){.drawer{grid-template-columns:1fr}}
+.drawer h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px}
+.statgrid div span{display:block}
+.statgrid .sk{font-size:11.5px;color:var(--ink-3)}
+.statgrid .sv{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- charts ---------- */
+svg{display:block;max-width:100%}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block;flex:none}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.seg button{border:none;background:var(--surface);padding:6px 13px;font-size:13px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed=true]{background:var(--reg);color:var(--on-accent)}
+
+.smallmults{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.sm{border:1px solid var(--rule-2);border-radius:10px;padding:14px 15px 12px;background:var(--surface)}
+.sm .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.sm .h b{font-size:13.5px;font-weight:600}
+.smfoot{display:flex;justify-content:space-between;gap:10px;margin-top:8px;
+  font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule-2);padding-top:8px}
+.smfoot b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* charts + hover readout */
+.chart{position:relative}
+.chart .hit{cursor:crosshair}
+.chart .guide{transition:opacity .1s ease;pointer-events:none}
+.chart .tip{
+  position:absolute;top:0;z-index:5;pointer-events:none;
+  background:var(--tip-bg);color:var(--tip-fg);border-radius:7px;padding:8px 10px;
+  font-size:12px;line-height:1.45;white-space:nowrap;box-shadow:var(--shadow);
+}
+.chart .tip[hidden]{display:none}
+.chart .tip strong{display:block;font-weight:600;margin-bottom:4px;font-size:12.5px}
+.chart .tip .tr{display:flex;align-items:center;gap:7px}
+.chart .tip .tr i{width:8px;height:8px;border-radius:2px;flex:none}
+.chart .tip .tr b{margin-left:auto;padding-left:14px;font-variant-numeric:tabular-nums;font-weight:600}
+@media (prefers-reduced-motion:reduce){.chart .guide{transition:none}}
+
+/* ---------- empty / modal ---------- */
+.empty{
+  margin-top:22px;border:1.5px dashed var(--rule);border-radius:14px;background:var(--surface);
+  padding:64px 32px;text-align:center;
+}
+.empty.drag{border-color:var(--reg);background:var(--drag-bg)}
+.empty h2{font-family:var(--serif);font-size:26px;margin:0 0 8px;font-weight:600}
+.empty p{margin:0 auto 22px;max-width:52ch;color:var(--ink-2);font-size:14.5px}
+.empty .note{font-size:12.5px;color:var(--ink-3);margin-top:20px;margin-bottom:0}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow:auto}
+.modal{background:var(--surface);border-radius:13px;width:100%;max-width:720px;box-shadow:var(--shadow)}
+.modal.wide{max-width:920px}
+.linknum{
+  border:none;background:none;padding:0;font:inherit;font-variant-numeric:tabular-nums;
+  color:var(--reg);font-weight:600;text-decoration:underline;text-underline-offset:3px;
+  text-decoration-thickness:1px;
+}
+.linknum:hover{color:var(--ink)}
+.bizname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bizid{display:block;color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.fixid{color:var(--ink);letter-spacing:.04em;margin-top:4px}
+.sheetcount{border-bottom:1px dotted var(--ink-3);cursor:help}
+.fixinput{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;letter-spacing:.04em;text-transform:uppercase;
+  padding:5px 7px;min-width:160px;width:170px;
+}
+.fixinput::placeholder{text-transform:none;letter-spacing:0;color:var(--ink-3)}
+.fixtag{
+  margin-left:6px;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink-3);border:1px solid var(--rule);border-radius:8px;padding:1px 5px;
+}
+.fixid .fix{
+  color:var(--warn);background:var(--fix-bg);border-radius:3px;
+  padding:1px 2px;margin:0 -1px;font-weight:700;
+}
+.modal header{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--rule-2)}
+.modal header h3{font-family:var(--serif);font-size:18px;margin:0;font-weight:600;margin-right:auto}
+/* In Settings the theme toggle sits beside the title, so the title gives up
+   its push and the saved indicator takes over pushing Close to the right. */
+.modal.settings header h3{margin-right:0}
+.modal .body{padding:22px}
+.modal footer{padding:14px 22px;border-top:1px solid var(--rule-2);display:flex;gap:8px;justify-content:flex-end}
+.modal .body p{margin-top:0;color:var(--ink-2);font-size:13.5px}
+.modal.confirm{max-width:440px}
+.modal.confirm .body{padding:24px 24px 4px}
+.modal.confirm h3{font-family:var(--serif);font-size:19px;font-weight:600;margin:0 0 8px}
+.modal.confirm .body p{font-size:14px;line-height:1.55;margin-bottom:18px}
+.btn-danger-solid{background:var(--warn);border-color:var(--warn);color:var(--on-danger)}
+.btn-danger-solid:hover{background:var(--danger-hi);border-color:var(--danger-hi)}
+.setrow{display:grid;grid-template-columns:52px 1fr 140px 120px;gap:9px;align-items:center;margin-bottom:8px}
+.setrow input[type=date]{font-size:12.5px;padding:7px 6px}
+.setrow select{font-size:12.5px;padding:7px 6px;min-width:0;width:100%}
+.setrow .id{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.setrow input{width:100%;min-width:0}
+.setlist{max-height:320px;overflow:auto;padding-right:4px;margin-top:6px}
+.seth{font-size:12px;font-weight:600;color:var(--ink-3);margin:20px 0 10px;
+  padding-bottom:6px;border-bottom:1px solid var(--rule-2)}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.setnote{font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.55}
+.setmore{margin-top:16px;border:1px solid var(--rule-2);border-radius:8px;padding:10px 12px}
+.setmore summary{font-size:13px;font-weight:500;cursor:pointer}
+.setswitch{
+  display:flex;align-items:center;gap:9px;font-size:13.5px;
+  margin:12px 0 4px;padding:9px 11px;border-radius:8px;background:var(--surface-2);
+  border:1px solid var(--rule-2);cursor:pointer;
+}
+.setswitch input{margin:0}
+.tiergrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;max-width:360px}
+.tierhead{font-size:11.5px;color:var(--ink-3)}
+.tiergrid input[readonly]{background:var(--surface-2);color:var(--ink-3)}
+
+/* Info icon: the long explanations live in here rather than on the page. */
+.info{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;margin-left:5px;
+  border:1px solid var(--rule);color:var(--ink-3);background:var(--surface);
+  font-style:normal;font-size:9.5px;font-weight:700;line-height:1;cursor:help;
+  vertical-align:middle;position:relative;transition:border-color .15s var(--ease),color .15s var(--ease);
+}
+.info:hover,.info:focus{border-color:var(--reg);color:var(--reg);outline:none}
+.info::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(3px);
+  width:min(280px,70vw);padding:9px 11px;border-radius:8px;
+  background:var(--tip-bg);color:var(--tip-fg);font-size:11.5px;font-weight:400;line-height:1.5;
+  letter-spacing:0;text-align:left;white-space:normal;
+  opacity:0;pointer-events:none;transition:opacity .15s var(--ease),transform .15s var(--ease);
+  z-index:20;box-shadow:var(--shadow);
+}
+.info:hover::after,.info:focus::after{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Near the top of the panel the tooltip would be clipped, so it drops below. */
+.setgrid .field:first-child .info::after,.seth .info::after{bottom:auto;top:calc(100% + 8px)}
+.seth{display:flex;align-items:center;gap:0}
+.seth .emo{font-size:14px;margin-right:8px}
+.setmore summary .emo{font-size:14px;margin-right:8px}
+.setmore summary{display:flex;align-items:center}
+.setmore .setgrid{margin-top:12px}
+.sethead{display:grid;grid-template-columns:52px 1fr 140px 120px;gap:9px;font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
+  background:var(--tip-bg);color:var(--tip-fg);padding:11px 18px;border-radius:8px;font-size:13.5px;
+  box-shadow:var(--shadow);max-width:min(90vw,520px);
+}
+.toast.err{background:var(--warn)}
+.hidden{display:none!important}
+.foot{max-width:1320px;margin:0 auto;padding:26px 24px 0;font-size:12px;color:var(--ink-3);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 28 28"><rect width="28" height="28" rx="7"/><path d="M8 19.5V15M14 19.5V9.5M20 19.5v-7"/></svg>
+      </span>
+      <span class="brandtext">
+        <b>Service Innovation Group</b>
+        <small>Amazon Business &mdash; BDE performance</small>
+      </span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn act" id="btnAudit" aria-label="Audit against CRM">
+        <svg class="when-closed" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5h1.5a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H6"/><rect x="6" y="1.5" width="4" height="2.2" rx=".6"/><path d="M6.2 8.6l1.2 1.2 2.4-2.6"/></svg>
+        <svg class="when-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        <span class="lbl when-closed">Audit</span>
+        <span class="lbl when-open">Close</span>
+      </button>
+      <button class="btn act iconly hovername" id="btnSettings" data-name="Settings" aria-label="Settings">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.1"/><path d="M12.9 9.7a1 1 0 0 0 .2 1.1l.04.04a1.16 1.16 0 1 1-1.64 1.64l-.04-.04a1 1 0 0 0-1.1-.2 1 1 0 0 0-.61.92v.11a1.16 1.16 0 0 1-2.32 0v-.06a1 1 0 0 0-.66-.92 1 1 0 0 0-1.1.2l-.04.04a1.16 1.16 0 1 1-1.64-1.64l.04-.04a1 1 0 0 0 .2-1.1 1 1 0 0 0-.92-.61h-.11a1.16 1.16 0 0 1 0-2.32h.06a1 1 0 0 0 .92-.66 1 1 0 0 0-.2-1.1l-.04-.04a1.16 1.16 0 1 1 1.64-1.64l.04.04a1 1 0 0 0 1.1.2h.05a1 1 0 0 0 .61-.92v-.11a1.16 1.16 0 0 1 2.32 0v.06a1 1 0 0 0 .61.92 1 1 0 0 0 1.1-.2l.04-.04a1.16 1.16 0 1 1 1.64 1.64l-.04.04a1 1 0 0 0-.2 1.1v.05a1 1 0 0 0 .92.61h.11a1.16 1.16 0 0 1 0 2.32h-.06a1 1 0 0 0-.92.61z"/></svg>
+      </button>
+      <button class="btn btn-primary act iconly hovername" id="btnUpload" data-name="Upload AB report" aria-label="Upload AB report">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.8 5.7 8 2.5l3.2 3.2"/><path d="M2.5 10.5v2.2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2.2"/></svg>
+      </button>
+    </div>
+
+    <nav class="secnav hidden" id="secnav" aria-label="Jump to section">
+      <button data-go="sec-summary"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg><span>Summary</span></button>
+      <button data-go="sec-league"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 14V7M8 14V2.5M11.5 14v-4.5"/><path d="M1.5 14.5h13"/></svg><span>Leaderboard</span></button>
+      <button data-go="sec-trend"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 11.5 5.5 6l3 3 5.5-7"/><path d="M1.5 14.5h13"/></svg><span>Graphs</span></button>
+      <button data-go="sec-spend"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6 8h3.5M6.6 11.2h4M9.6 11.2c-2 0-3-1-3-2.8V6.9c0-1.3.9-2.2 2.2-2.2 1 0 1.7.4 2.1 1"/></svg><span>Spend</span></button>
+      <button data-go="sec-industry" class="hidden"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 14.5h13M2.5 14.5V7l3.5 2.2V7l3.5 2.2V3.5h4v11"/></svg><span>Industry</span></button>
+      <button data-go="sec-salary"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><circle cx="8" cy="8" r="2"/><path d="M4 8h.01M12 8h.01"/></svg><span>Salaries</span></button>
+      <button data-go="sec-data"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M6 6.5v7"/></svg><span>Data</span></button>
+    </nav>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.tsv" class="hidden">
+<input type="file" id="crmInput" accept=".csv,.xlsx,.xlsm,.tsv,.numbers" class="hidden">
+
+<main>
+  <!-- empty state -->
+  <section class="empty" id="emptyState">
+    <h2>No report loaded yet</h2>
+    <p>Upload an Amazon Business activations export to see how each BDE is performing week by week. Drop the file anywhere on this page, or use the button below.</p>
+    <button class="btn btn-primary" id="btnUpload2">Upload report</button>
+    <p class="note">CSV and Excel both work. Everything is read and stored on this device only &mdash; no file, row or figure is ever sent anywhere.</p>
+  </section>
+
+  <div id="audit" class="hidden">
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="emo">🔍</span>Audit against the CRM</h2>
+        <span class="hint" id="auditHint">Checks every business signed up in the CRM against the AB report, to find sign-ups the AB report has missed.</span>
+        <select id="crmAgent" title="Which agent's CRM report this is. Matching only looks at this agent's businesses."></select>
+        <button class="btn" id="btnCrm">Upload CRM report</button>
+      </div>
+      <div class="panel-body" id="auditBody"></div>
+    </section>
+  </div>
+
+  <div id="dash" class="hidden">
+    <!-- filters -->
+    <div class="filters">
+      <div class="field">
+        <label for="wkFrom">Week from</label>
+        <select id="wkFrom"></select>
+      </div>
+      <div class="field">
+        <label for="wkTo">Week to</label>
+        <select id="wkTo"></select>
+      </div>
+      <div class="field">
+        <label for="btnAgents">BDEs</label>
+        <button class="btn" id="btnAgents" aria-expanded="false">All BDEs</button>
+        <div class="dropdown hidden" id="agentDrop"></div>
+      </div>
+      <div class="field">
+        <label for="btnTeams">Teams</label>
+        <button class="btn" id="btnTeams" aria-expanded="false">All teams</button>
+        <div class="dropdown hidden" id="teamDrop"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="field">
+        <label for="btnReset">&nbsp;</label>
+        <button class="btn btn-quiet" id="btnReset">Reset filters</button>
+      </div>
+    </div>
+
+    <!-- totals -->
+    <section class="panel" id="sec-summary">
+      <div class="totals" id="totals"></div>
+    </section>
+    <p id="postWarn" style="margin:8px 2px 0;font-size:12.5px;color:var(--warn)"></p>
+
+    <!-- league table -->
+    <section class="panel" id="sec-league">
+      <div class="panel-head">
+        <h2><span class="emo">🏆</span>League table</h2>
+        <span class="hint" id="leagueHint"></span>
+      </div>
+      <div class="tablewrap"><table id="leagueTable"></table></div>
+    </section>
+
+    <!-- trend -->
+    <section class="panel" id="sec-trend">
+      <div class="panel-head">
+        <h2><span class="emo">📈</span>Registrations over time</h2>
+        <span class="hint" id="trendHint"></span>
+        <div class="seg" id="grainSeg">
+          <button data-k="week" aria-pressed="true">By week</button>
+          <button data-k="day" aria-pressed="false">By day</button>
+        </div>
+        <div class="seg" id="trendMode">
+          <button data-k="team" aria-pressed="true">Whole team</button>
+          <button data-k="agent" aria-pressed="false">Per BDE</button>
+        </div>
+      </div>
+      <div class="panel-body" id="trendBody"></div>
+    </section>
+
+    <!-- quality -->
+    <section class="panel" id="sec-spend">
+      <div class="panel-head">
+        <h2><span class="emo">💷</span>From registration to spend</h2>
+        <span class="hint">Where each BDE's registrations end up: earning commission, spending below the line, or never spending at all.</span>
+      </div>
+      <div class="panel-body" id="qualityBody"></div>
+    </section>
+
+    <!-- industry: only once a CRM report is loaded -->
+    <section class="panel hidden" id="sec-industry">
+      <div class="panel-head">
+        <h2><span class="emo">&#127981;</span>Industry</h2>
+        <span class="hint" id="industryHint"></span>
+      </div>
+      <div class="panel-body" id="industryBody"></div>
+    </section>
+
+    <!-- salaries -->
+    <section class="panel" id="sec-salary">
+      <div class="panel-head">
+        <h2><span class="emo">💰</span>Salaries</h2>
+        <span class="hint" id="salaryHint"></span>
+        <div class="seg" id="salaryMonths">
+          <button data-k="6" aria-pressed="true">Last 6</button>
+          <button data-k="12" aria-pressed="false">Last 12</button>
+          <button data-k="0" aria-pressed="false">All</button>
+        </div>
+      </div>
+      <div class="tablewrap"><table id="salaryTable"></table></div>
+      <div class="panel-body" id="salaryNote" style="padding-top:14px"></div>
+    </section>
+
+    <!-- detail -->
+    <section class="panel" id="sec-data">
+      <div class="panel-head">
+        <h2><span class="emo">🏪</span>Registered businesses</h2>
+        <span class="hint" id="detailHint"></span>
+        <input type="search" id="search" placeholder="Search business or postcode">
+      </div>
+      <div class="tablewrap"><table id="detailTable"></table></div>
+      <div class="panel-body" id="detailMore" style="padding-top:14px"></div>
+    </section>
+  </div>
+</main>
+
+<p class="foot" id="foot"></p>
+
+<script>
+"use strict";
+
+/* =======================================================================
+   Storage — device-local only. Nothing here touches the network.
+   ======================================================================= */
+const K_DATA='sig_ab_rows_v7', K_SET='sig_ab_settings_v7', K_META='sig_ab_meta_v7', K_VIEW='sig_ab_view_v7', K_CRM='sig_ab_crm_v1', K_FIX='sig_ab_idfix_v1', K_THEME='sig_ab_theme_v1';
+let persistent=true;
+const mem={};
+const store={
+  get(k){
+    if(persistent){ try{ return localStorage.getItem(k); }catch(e){ persistent=false; } }
+    return k in mem ? mem[k] : null;
+  },
+  set(k,v){
+    if(persistent){
+      try{ localStorage.setItem(k,v); return true; }
+      catch(e){
+        if(e && (e.name==='QuotaExceededError'||e.code===22)){ mem[k]=v; return 'quota'; }
+        persistent=false;
+      }
+    }
+    mem[k]=v; return false;
+  },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} delete mem[k]; }
+};
+(function probe(){ try{ localStorage.setItem('__p','1'); localStorage.removeItem('__p'); }catch(e){ persistent=false; } })();
+
+/* =======================================================================
+   Row shape — stored as flat arrays to keep the saved payload small.
+   ======================================================================= */
+const F={WEEK:0,YEAR:1,AGENT:2,NAME:3,POST:4,REGD:5,ACTD:6,OPS:7,MU:8,CAMP:9,GID:10};
+const NF=11;
+
+const state={
+  rows:[], meta:null,
+  settings:{names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,
+    opsCurrency:true,commMin:40,actBasis:'activation',
+    comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
+      tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},
+    salaryOn:true, baseSalary:40000, periodStartDay:25, payDay:5,
+    tax:{personalAllowance:12570,taperFrom:100000,higherFrom:50270,additionalFrom:125140,
+         basicRate:20,higherRate:40,additionalRate:45,
+         niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}},
+  filters:{wFrom:null,wTo:null,agents:null,teams:null,q:''},
+  sort:{key:'reg',dir:-1},
+  trendMode:'team', grain:'week', drawerGrain:'week', openAgent:null, openSalary:null, salaryMonths:6, detailLimit:60,
+  view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
+  auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
+  salarySort:{key:'total',dir:-1}
+};
+
+/* =======================================================================
+   Helpers
+   ======================================================================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=new Intl.NumberFormat('en-GB');
+const fmt=n=>nf.format(Math.round(n||0));
+const fmt1=n=>nf.format(Math.round((n||0)*10)/10);
+function fmtOps(n){ return '£'+nf.format(Math.round(n||0)); }
+const pct=(a,b)=>b>0?Math.round(a/b*1000)/10:0;
+const norm=s=>String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,'');
+const yes=v=>{const s=String(v==null?'':v).trim().toUpperCase();return (s==='Y'||s==='YES'||s==='1'||s==='TRUE')?1:0;};
+function toast(msg,isErr){
+  const old=$('.toast'); if(old) old.remove();
+  const d=document.createElement('div');
+  d.className='toast'+(isErr?' err':''); d.textContent=msg;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),isErr?7000:3800);
+}
+const wkKey=r=>r[F.YEAR]*100+r[F.WEEK];
+const wkLabel=k=>'W'+String(k%100).padStart(2,'0');
+const wkLabelFull=k=>'W'+String(k%100).padStart(2,'0')+' \u00b7 '+Math.floor(k/100);
+const dayLabel=k=>new Date(k).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const dayLabelFull=k=>new Date(k).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const label=(k,g)=>g==='day'?dayLabel(k):wkLabel(k);
+const labelFull=(k,g)=>g==='day'?dayLabelFull(k):wkLabelFull(k);
+function commMin(){ const v=Number(state.settings.commMin); return isNaN(v)?40:v; }
+/* Two different numbers that are easy to confuse: commMin() is the spend a
+   customer must reach to qualify (£40); COMMISSION_PER is what the BDE is
+   paid for each one that does (£25). The rate is a constant rather than a
+   setting, so an old stored value cannot override it. */
+const COMMISSION_PER=25;
+/* Which week an activation belongs to:
+   'activation'   - the week the customer actually spent (default)
+   'registration' - the week the business signed up, however much later it spent */
+const byRegBasis=()=>state.settings.actBasis==='registration';
+/* Salaries and commission amounts are hidden unless unlocked by clicking the
+   logo five times. The unlock lives in memory only and is never saved, so the
+   page always opens locked: safe to show someone without checking first. */
+let salaryUnlocked=false;
+const salaryOn=()=>salaryUnlocked;
+const commRate=()=>COMMISSION_PER;
+
+/* ---------- commission rules ----------
+   Which rule applies is fixed by the date the business REGISTERED, not when it
+   spent: anything registered before the cutover stays on the old rule for
+   life, even if it activates afterwards.
+     Old rule: spend >= the qualifying amount (£40) earns a flat £25, provided
+               the business activates within oldMonths (3) of registering.
+     New rule: a tiered amount by spend, provided the business activates
+               within newMonths (1) of registering.
+   Outside its window an activation earns nothing, however much is spent. */
+const DEFAULT_TIERS=[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}];
+function commCfg(){
+  const c=state.settings.comm||{};
+  return {
+    cutover:c.cutover||'2026-10-05',
+    oldMonths:Number.isFinite(+c.oldMonths)&&c.oldMonths!==''?+c.oldMonths:3,
+    newMonths:Number.isFinite(+c.newMonths)&&c.newMonths!==''?+c.newMonths:1,
+    testAll:!!c.testAll,
+    tiers:(Array.isArray(c.tiers)&&c.tiers.length?c.tiers:DEFAULT_TIERS)
+      .map(t=>({from:+t.from||0,amt:+t.amt||0})).sort((a,b)=>a.from-b.from)
+  };
+}
+/* The last day of a window of n calendar months from t, inclusive. A month
+   from 31 January is 28 or 29 February, not 3 March. */
+function windowEnd(t,n){
+  const d=new Date(t); d.setHours(0,0,0,0);
+  const day=d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth()+n);
+  const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  d.setDate(Math.min(day,last));
+  return d.getTime()+86400000-1;
+}
+function tierFor(ops,tiers){
+  let amt=0;
+  for(const t of tiers) if(ops>=t.from) amt=t.amt;
+  return amt;
+}
+/* forceNew applies the new rule regardless of registration date, for the
+   "what if" view of past salaries. */
+function commissionFor(r,forceNew){
+  const reg=r[F.REGD], act=r[F.ACTD], ops=r[F.OPS]||0;
+  // Without both dates the window cannot be checked, so nothing is claimed.
+  if(!reg||!act||act<0) return {ok:false,amt:0,rule:null,why:'no date'};
+  const c=commCfg();
+  const cut=new Date(c.cutover+'T00:00:00').getTime();
+  const isNew=forceNew||reg>=cut;
+  const months=isNew?c.newMonths:c.oldMonths;
+  if(act>windowEnd(reg,months)) return {ok:false,amt:0,rule:isNew?'new':'old',why:'late'};
+  if(isNew){
+    const amt=tierFor(ops,c.tiers);
+    return {ok:amt>0,amt,rule:'new',why:amt>0?'':'low'};
+  }
+  const ok=ops>=commMin();
+  return {ok,amt:ok?COMMISSION_PER:0,rule:'old',why:ok?'':'low'};
+}
+const qualifies=r=>commissionFor(r).ok;
+/* An agent code is a seat, not a person: staff leave and the code is reused.
+   Each agent therefore has a list of employment periods. Commission belongs
+   to whoever held the code when the business both registered AND spent, so a
+   new starter never inherits the previous holder's back catalogue, and
+   activations falling in a gap between staff belong to nobody. */
+let _stints=null;
+function clearStints(){ _stints=null; }
+function stints(id){
+  if(!_stints) _stints={};
+  if(_stints[id]) return _stints[id];
+  const raw=(state.settings.employment||{})[id]||[];
+  let out=raw.map((x,i)=>({
+    i, name:(x.n||'').trim(), rawS:x.s||'', rawE:x.e||'',
+    start:x.s?new Date(x.s+'T00:00:00').getTime():-Infinity,
+    end:x.e?new Date(x.e+'T23:59:59.999').getTime():Infinity
+  })).sort((a,b)=>a.start-b.start);
+  if(!out.length) out=[{i:0,name:(state.settings.names[id]||'').trim(),rawS:'',rawE:'',start:-Infinity,end:Infinity}];
+  _stints[id]=out;
+  return out;
+}
+const TEAMS=['Team 1','Team 2','Team 3','Team 4','Team 5','Inactive'];
+const teamOf=id=>(state.settings.teams||{})[id]||'';
+function stintName(id,st){ return (st&&st.name) || state.settings.names[id] || ('Agent '+id); }
+/* Whoever holds the code at the report's most recent date. */
+function currentStint(id){
+  const at=state.asAt||Date.now(), l=stints(id);
+  return l.find(s=>at>=s.start&&at<=s.end) || l[l.length-1];
+}
+function agentName(id){ return stintName(id,currentStint(id)); }
+function stintLabel(st){
+  if(!st||(st.start===-Infinity&&st.end===Infinity)) return '';
+  const f=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+  if(st.start===-Infinity) return 'until '+f(st.end);
+  return f(st.start)+(st.end===Infinity?' to now':' to '+f(st.end));
+}
+/* The employment period that earns commission for a row, or null when nobody
+   does: both the registration and the spend must fall inside one period. */
+function stintFor(id,r){
+  for(const s of stints(id)){
+    if(r[F.REGD]>=s.start&&r[F.REGD]<=s.end&&r[F.ACTD]>=s.start&&r[F.ACTD]<=s.end) return s;
+  }
+  return null;
+}
+const midnight=t=>{ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+/* Base salary is a whole calendar month, 1st to month end, unlike commission
+   which runs 25th to 24th. A part month is paid for the working days actually
+   worked out of the working days in that month: someone starting on 17 August
+   2026 works 11 of the month's 21 working days. */
+function monthWorkingDays(k,st){
+  const y=Math.floor(k/100), m=k%100-1;
+  const lo=st&&st.start!==-Infinity?midnight(st.start):-Infinity;
+  const hi=st&&st.end!==Infinity?midnight(st.end):Infinity;
+  let total=0, worked=0;
+  const d=new Date(y,m,1);
+  while(d.getMonth()===m){
+    const w=d.getDay();
+    if(w>=1&&w<=5){
+      total++;
+      const t=d.getTime();
+      if(t>=lo&&t<=hi) worked++;
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return {worked,total};
+}
+function monthName(k){
+  return new Date(Math.floor(k/100),k%100-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+}
+/* Targets are expressed per working day. A BDE is expected to bring in
+   `agentTarget` signups on each Monday-to-Friday day in the period. */
+function agentTarget(id){
+  const t=state.settings.targets[id];
+  return (t===''||t==null||isNaN(t)) ? Number(state.settings.dailyTarget)||0 : Number(t);
+}
+const weeklyTarget=id=>agentTarget(id)*5;
+/* A BDE's target is judged on the days they actually worked: of the days they
+   signed anyone up at all, on how many did they reach the daily target?
+   Days with no activity count neither way, so holidays, days off and a
+   mid-month start no longer drag the figure down. */
+function dayHitStats(rows){
+  const per=new Map();
+  for(const r of rows){
+    if(!r[F.POST]) continue;
+    const d=dayKey(r);
+    if(!d) continue;
+    const id=r[F.AGENT];
+    if(!per.has(id)) per.set(id,new Map());
+    const m=per.get(id);
+    m.set(d,(m.get(d)||0)+1);
+  }
+  let active=0, hit=0;
+  for(const [id,m] of per){
+    const t=agentTarget(id)||0;
+    for(const c of m.values()){
+      active++;
+      if(t&&c>=t) hit++;
+    }
+  }
+  return {active,hit,pct:active?hit/active*100:null};
+}
+
+/* ---------- dates ----------
+   The export is inconsistent: dates arrive as 28/08/2026 12:42 (day first),
+   7/14/26 11:03 (month first), ISO strings, or bare Excel serial numbers.
+   Cells formatted as a duration in Excel (mm:ss.0) lose their date entirely
+   in CSV, so those are reported rather than guessed at. */
+
+/* Excel stores a date as days since 1899-12-30. Read the parts in UTC so a
+   timezone offset cannot shift the result onto the previous day. */
+function excelSerial(n){
+  if(!(isFinite(n)&&n>20000&&n<80000)) return null;
+  const d=new Date(Math.round((n-25569)*86400000));
+  if(isNaN(d)) return null;
+  return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes());
+}
+const DMY_RE=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})(?:[ ,T]+(\d{1,2}):(\d{2}))?/;
+
+/* Work out whether this file writes day-first or month-first, by looking for
+   values where a component is over 12 and can therefore only be a day. The
+   export is not consistent between files, so this is read per file rather
+   than fixed. Day-first is the assumption when nothing settles it. */
+const DATE_ORDER='dmy';
+function detectDateOrder(matrix,idx){
+  let dFirst=0,mFirst=0;
+  const cols=[idx.regd,idx.actd].filter(i=>i!==undefined);
+  for(let i=1;i<matrix.length;i++){
+    const row=matrix[i]; if(!row) continue;
+    for(const c of cols){
+      const m=String(row[c]==null?'':row[c]).trim().match(DMY_RE);
+      if(!m) continue;
+      const a=+m[1], b=+m[2];
+      if(a>12&&b<=12) dFirst++;
+      else if(b>12&&a<=12) mFirst++;
+    }
+  }
+  return {
+    order: mFirst>dFirst ? 'mdy' : 'dmy',
+    dFirst, mFirst,
+    mixed: dFirst>0 && mFirst>0,
+    evidence: dFirst+mFirst
+  };
+}
+
+function parseDate(v,order){
+  order=order||DATE_ORDER;
+  if(v==null||v==='') return null;
+  if(typeof v==='number') return excelSerial(v);
+  const s=String(v).trim();
+  if(!s) return null;
+  // A bare number is an Excel serial that lost its formatting on the way out.
+  if(/^\d+(\.\d+)?$/.test(s)) return excelSerial(Number(s));
+  // ISO first: unambiguous.
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0));
+  m=s.match(DMY_RE);
+  if(m){
+    let a=+m[1], b=+m[2], y=+m[3];
+    if(y<100) y+= y<70?2000:1900;
+    let day,mon;
+    if(a>12&&b<=12){ day=a; mon=b; }          // only one reading is possible
+    else if(b>12&&a<=12){ mon=a; day=b; }
+    else if(order==='mdy'){ mon=a; day=b; }   // ambiguous: follow the file
+    else { day=a; mon=b; }
+    if(mon<1||mon>12||day<1||day>31) return null;
+    const d=new Date(y,mon-1,day,+(m[4]||0),+(m[5]||0));
+    // Reject rollovers such as 31/02, which JavaScript would silently accept.
+    if(d.getMonth()!==mon-1||d.getDate()!==day) return null;
+    return d;
+  }
+  // "46:31.7" and similar: a time with no date attached. Not recoverable.
+  return null;
+}
+function isoWeek(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dn=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-dn);
+  const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  return {w:Math.ceil(((t-y0)/86400000+1)/7), y:t.getUTCFullYear()};
+}
+
+/* =======================================================================
+   File reading — CSV and XLSX, both parsed in this page.
+   ======================================================================= */
+function parseCSV(text,delim){
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  if(!delim) delim = (text.split('\n')[0].split('\t').length > text.split('\n')[0].split(',').length) ? '\t' : ',';
+  const out=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; }
+      else cell+=c;
+    }else{
+      if(c==='"') q=true;
+      else if(c===delim){ row.push(cell); cell=''; }
+      else if(c==='\n'){ row.push(cell); out.push(row); row=[]; cell=''; }
+      else if(c!=='\r') cell+=c;
+    }
+  }
+  if(cell!==''||row.length){ row.push(cell); out.push(row); }
+  return out.filter(r=>r.some(v=>String(v).trim()!==''));
+}
+
+/* Minimal ZIP reader using the browser's own inflate. */
+async function unzip(buf){
+  const dv=new DataView(buf), u8=new Uint8Array(buf);
+  let eo=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-66000);i--){
+    if(dv.getUint32(i,true)===0x06054b50){ eo=i; break; }
+  }
+  if(eo<0) throw new Error('That file is not a readable Excel workbook.');
+  const n=dv.getUint16(eo+10,true);
+  let p=dv.getUint32(eo+16,true);
+  const files={};
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true);
+    const csize=dv.getUint32(p+20,true);
+    const fnl=dv.getUint16(p+28,true), efl=dv.getUint16(p+30,true), fcl=dv.getUint16(p+32,true);
+    const lho=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u8.subarray(p+46,p+46+fnl));
+    const lfnl=dv.getUint16(lho+26,true), lefl=dv.getUint16(lho+28,true);
+    const ds=lho+30+lfnl+lefl;
+    const raw=u8.subarray(ds,ds+csize);
+    files[name]={method,raw};
+    p+=46+fnl+efl+fcl;
+  }
+  const out={};
+  for(const name in files){
+    if(!/^(xl\/|docProps)/.test(name)) continue;
+    const f=files[name];
+    if(f.method===0){ out[name]=new TextDecoder().decode(f.raw); }
+    else if(f.method===8){
+      if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open .xlsx files. Save the report as CSV and upload that instead.');
+      const rs=new Blob([f.raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      out[name]=await new Response(rs).text();
+    }
+  }
+  return out;
+}
+function colIdx(ref){
+  let n=0;
+  for(let i=0;i<ref.length;i++){
+    const c=ref.charCodeAt(i);
+    if(c<65||c>90) break;
+    n=n*26+(c-64);
+  }
+  return n-1;
+}
+function sheetMatrix(P,xml,shared){
+  const doc=P.parseFromString(xml,'application/xml');
+  const rows=[];
+  const rEls=doc.getElementsByTagName('row');
+  for(let i=0;i<rEls.length;i++){
+    const cells=rEls[i].getElementsByTagName('c');
+    const arr=[];
+    for(let j=0;j<cells.length;j++){
+      const c=cells[j];
+      const ref=c.getAttribute('r')||'';
+      const ci=ref?colIdx(ref):j;
+      const t=c.getAttribute('t');
+      let val='';
+      if(t==='inlineStr'){
+        const ts=c.getElementsByTagName('t');
+        for(let k=0;k<ts.length;k++) val+=ts[k].textContent;
+      }else{
+        const v=c.getElementsByTagName('v')[0];
+        if(v){
+          if(t==='s') val=shared[+v.textContent]||'';
+          else if(t==='b') val=(v.textContent==='1')?'TRUE':'FALSE';
+          else { const num=Number(v.textContent); val=isNaN(num)?v.textContent:num; }
+        }
+      }
+      arr[ci]=val;
+    }
+    for(let k=0;k<arr.length;k++) if(arr[k]===undefined) arr[k]='';
+    if(arr.some(v=>String(v).trim()!=='')) rows.push(arr);
+  }
+  return rows;
+}
+/* Every worksheet in the workbook, in the order the workbook lists them.
+   The CRM export splits first visits and revisits across two sheets. */
+async function parseXLSXSheets(buf){
+  const files=await unzip(buf);
+  const P=new DOMParser();
+  let shared=[];
+  const ss=files['xl/sharedStrings.xml'];
+  if(ss){
+    const doc=P.parseFromString(ss,'application/xml');
+    shared=Array.from(doc.getElementsByTagName('si')).map(si=>{
+      const ts=si.getElementsByTagName('t');
+      let s=''; for(let i=0;i<ts.length;i++) s+=ts[i].textContent;
+      return s;
+    });
+  }
+  const rels={};
+  const rl=files['xl/_rels/workbook.xml.rels'];
+  if(rl){
+    const d=P.parseFromString(rl,'application/xml');
+    const els=d.getElementsByTagName('Relationship');
+    for(let i=0;i<els.length;i++) rels[els[i].getAttribute('Id')]=els[i].getAttribute('Target')||'';
+  }
+  const listed=[];
+  const wb=files['xl/workbook.xml'];
+  if(wb){
+    const d=P.parseFromString(wb,'application/xml');
+    const els=d.getElementsByTagName('sheet');
+    for(let i=0;i<els.length;i++){
+      const el=els[i];
+      const rid=el.getAttribute('r:id')||
+        el.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+      let t=rels[rid]||'';
+      if(t){ t=t.replace(/^\//,''); if(!/^xl\//.test(t)) t='xl/'+t; }
+      listed.push({name:el.getAttribute('name')||('Sheet '+(i+1)),path:t});
+    }
+  }
+  let sheets=listed.filter(o=>files[o.path]);
+  if(!sheets.length){
+    sheets=Object.keys(files)
+      .filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k))
+      .sort((a,b)=>(+a.match(/(\d+)/)[1])-(+b.match(/(\d+)/)[1]))
+      .map((k,i)=>({name:'Sheet '+(i+1),path:k}));
+  }
+  if(!sheets.length) throw new Error('No worksheet found in that workbook.');
+  return sheets.map(o=>({name:o.name,matrix:sheetMatrix(P,files[o.path],shared)}));
+}
+async function parseXLSX(buf){
+  return (await parseXLSXSheets(buf))[0].matrix;
+}
+
+/* =======================================================================
+   Column mapping + row building
+   ======================================================================= */
+const HMAP={
+  weeknum:'week', week:'week', weeknumber:'week',
+  groupid:'gid', businessname:'name', business:'name',
+  postalcode:'post', postcode:'post', zip:'post',
+  registereddate:'regd', registrationdate:'regd', regdate:'regd',
+  activationdate:'actd',
+  agentid:'agent', agent:'agent', bdeid:'agent',
+  landingrefmarker:'ref',
+  totalnetops:'ops', netops:'ops',
+  ismultiuser:'mu', multiuser:'mu'
+};
+function campaignFrom(ref){
+  if(!ref) return '';
+  const parts=String(ref).split('_');
+  const ai=parts.findIndex(p=>/^agent/i.test(p));
+  if(ai>0) return parts[ai-1];
+  return parts.length>2?parts[parts.length-2]:'';
+}
+function buildRows(matrix){
+  if(!matrix.length) throw new Error('That file has no rows in it.');
+  const header=matrix[0].map(norm);
+  const idx={};
+  header.forEach((h,i)=>{ const key=HMAP[h]; if(key && idx[key]===undefined) idx[key]=i; });
+  if(idx.agent===undefined) throw new Error("No agent_id column found. Check the export includes the standard Amazon Business columns.");
+
+  const g=(r,k)=>idx[k]===undefined?'':r[idx[k]];
+  const dt=detectDateOrder(matrix,idx);
+  const out=[]; let skipped=0, undated=0;
+  for(let i=1;i<matrix.length;i++){
+    const r=matrix[i];
+    const agent=String(g(r,'agent')).trim();
+    if(!agent){ skipped++; continue; }
+
+    const regd=parseDate(g(r,'regd'),dt.order);
+    let week=parseInt(g(r,'week'),10);
+    let year=regd?regd.getFullYear():new Date().getFullYear();
+    if(regd){ const iw=isoWeek(regd); if(isNaN(week)) week=iw.w; year=iw.y; }
+    if(isNaN(week)){ skipped++; continue; }
+
+    // Any non-blank activation_date counts as an activation. If the value is
+    // not a parseable date we still count it, storing -1 so it reads as
+    // activated but carries no date to place on a timeline.
+    const actdRaw=String(g(r,'actd')==null?'':g(r,'actd')).trim();
+    const actd=parseDate(actdRaw,dt.order);
+    if(actdRaw&&!actd) undated++;
+    const opsRaw=g(r,'ops');
+    const ops=(opsRaw===''||opsRaw==null)?0:(Number(String(opsRaw).replace(/[^0-9.\-]/g,''))||0);
+
+    const row=new Array(NF).fill(0);
+    row[F.WEEK]=week;
+    row[F.YEAR]=year;
+    row[F.AGENT]=agent;
+    row[F.NAME]=String(g(r,'name')||'').trim();
+    row[F.POST]=String(g(r,'post')||'').trim().toUpperCase();
+    row[F.REGD]=regd?regd.getTime():0;
+    row[F.ACTD]=actd?actd.getTime():(actdRaw?-1:0);
+    row[F.OPS]=ops;
+    row[F.MU]=yes(g(r,'mu'));
+    row[F.CAMP]=campaignFrom(g(r,'ref'));
+    row[F.GID]=String(g(r,'gid')||'').trim();
+    out.push(row);
+  }
+  if(!out.length) throw new Error('No usable rows found. Every row needs an agent_id and a week or registration date.');
+  return {rows:out,skipped,dates:dt,undated};
+}
+
+async function handleFile(file){
+  try{
+    let matrix;
+    if(/\.(xlsx|xlsm)$/i.test(file.name)){
+      matrix=await parseXLSX(await file.arrayBuffer());
+    }else{
+      matrix=parseCSV(await file.text(), /\.tsv$/i.test(file.name)?'\t':null);
+    }
+    const {rows,skipped,dates,undated}=buildRows(matrix);
+
+    state.rows=rows;
+    state.meta={file:file.name,at:Date.now(),n:rows.length,
+      dateOrder:dates.order, dateEvidence:dates.evidence, dateMixed:dates.mixed, undated};
+    state.openAgent=null; state.detailLimit=60;
+    const adjusted=reconcileFilters();
+    saveView();
+
+    // Seed settings for any agent we haven't seen before.
+    for(const r of rows){
+      if(!(r[F.AGENT] in state.settings.targets)) state.settings.targets[r[F.AGENT]]='';
+    }
+    save();
+    render();
+    const q=$('#search'); if(q) q.value=state.filters.q;
+    let msg=fmt(rows.length)+' registrations loaded'+(skipped?' \u00b7 '+fmt(skipped)+' rows skipped':'');
+    msg+=' \u00b7 dates read as '+(dates.order==='dmy'?'day/month/year':'month/day/year');
+    if(filterCount()) msg+=' \u00b7 filters still applied';
+    if(adjusted.length) msg+=' ('+[...new Set(adjusted)].join(' and ')+' adjusted)';
+    toast(msg, dates.mixed);
+  }catch(err){
+    console.error(err);
+    toast(err.message||'That file could not be read.',true);
+  }
+}
+
+/* =======================================================================
+   Persistence
+   ======================================================================= */
+const DEFAULT_FILTERS={wFrom:null,wTo:null,agents:null,teams:null,q:''};
+/* Filters and view toggles survive a refresh and a new upload; only the
+   Reset filters button clears them. */
+function saveView(){
+  const f=state.filters;
+  store.set(K_VIEW,JSON.stringify({
+    wFrom:f.wFrom, wTo:f.wTo,
+    agents:f.agents?[...f.agents]:null,
+    teams:f.teams?[...f.teams]:null, q:f.q,
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
+  }));
+  paintFilterState();
+}
+function loadView(){
+  try{
+    const v=JSON.parse(store.get(K_VIEW)||'null');
+    if(!v) return;
+    state.filters={
+      wFrom:v.wFrom??null, wTo:v.wTo??null,
+      agents:Array.isArray(v.agents)?new Set(v.agents):null,
+      // v.team is the old single-select form, kept working for saved views.
+      teams:Array.isArray(v.teams)?new Set(v.teams):(v.team&&v.team!=='*'?new Set([v.team]):null),
+      q:v.q||''
+    };
+    if(v.sort&&SORTS[v.sort.key]) state.sort=v.sort;
+    if(v.grain==='day'||v.grain==='week') state.grain=v.grain;
+    if(v.trendMode==='team'||v.trendMode==='agent') state.trendMode=v.trendMode;
+    if([0,6,12].includes(v.salaryMonths)) state.salaryMonths=v.salaryMonths;
+    if(v.view==='audit'||v.view==='dashboard') state.view=v.view;
+    if(typeof v.auditTill==='string') state.auditTill=v.auditTill;
+    if(v.salarySort&&v.salarySort.key) state.salarySort=v.salarySort;
+    if(v.auditSort&&v.auditSort.dir) state.auditSort=v.auditSort;
+    if(v.drawerGrain==='day'||v.drawerGrain==='week') state.drawerGrain=v.drawerGrain;
+    if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
+    if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
+    if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
+  }catch(e){ console.warn('Saved filters could not be read',e); }
+}
+/* A restored filter may point at weeks or BDEs that a newly uploaded file does
+   not contain. Snap what we can, drop what we cannot, and say so. */
+function reconcileFilters(){
+  const f=state.filters, keys=weekKeys(), notes=[];
+  if(!keys.length){ f.wFrom=f.wTo=null; }
+  else{
+    const lo=keys[0], hi=keys[keys.length-1];
+    const snapUp=k=>keys.find(x=>x>=k);
+    const snapDown=k=>{ for(let i=keys.length-1;i>=0;i--) if(keys[i]<=k) return keys[i]; };
+    // A saved window with no overlap at all would collapse to a single week,
+    // which hides most of the file. Show everything instead.
+    if((f.wFrom!=null&&f.wFrom>hi)||(f.wTo!=null&&f.wTo<lo)){
+      f.wFrom=null; f.wTo=null; notes.push('week range');
+    }else{
+      if(f.wFrom!=null&&!keys.includes(f.wFrom)){
+        const v=f.wFrom<lo?lo:snapUp(f.wFrom);
+        if(v!==f.wFrom){ f.wFrom=v; notes.push('start week'); }
+      }
+      if(f.wTo!=null&&!keys.includes(f.wTo)){
+        const v=f.wTo>hi?hi:snapDown(f.wTo);
+        if(v!==f.wTo){ f.wTo=v; notes.push('end week'); }
+      }
+      if(f.wFrom!=null&&f.wTo!=null&&f.wFrom>f.wTo){ f.wFrom=lo; f.wTo=hi; }
+    }
+  }
+  if(f.agents){
+    const have=new Set(allAgents());
+    const keep=[...f.agents].filter(a=>have.has(a));
+    if(!keep.length){ f.agents=null; notes.push('BDE selection'); }
+    else if(keep.length!==f.agents.size){ f.agents=new Set(keep); notes.push('BDE selection'); }
+    else if(keep.length===have.size) f.agents=null;
+  }
+  return notes;
+}
+function filterCount(){
+  const f=state.filters, keys=weekKeys();
+  let n=0;
+  if(keys.length&&f.wFrom!=null&&f.wFrom!==keys[0]) n++;
+  if(keys.length&&f.wTo!=null&&f.wTo!==keys[keys.length-1]) n++;
+  if(f.agents) n++;
+  if(f.teams) n++;
+  if(f.q) n++;
+  return n;
+}
+function paintFilterState(){
+  const b=$('#btnReset'); if(!b) return;
+  const n=filterCount();
+  b.textContent = n ? `Reset filters (${n})` : 'Reset filters';
+  b.classList.toggle('btn-primary',n>0);
+  b.classList.toggle('btn-quiet',n===0);
+}
+function save(){
+  clearStints();
+  const res=store.set(K_DATA,JSON.stringify(state.rows));
+  store.set(K_SET,JSON.stringify(state.settings));
+  store.set(K_META,JSON.stringify(state.meta));
+  if(res==='quota'){
+    toast('This report is too large to keep on the device. It will work now but will not survive a refresh.',true);
+  }
+  state.quota = (res==='quota');
+  renderFoot();
+}
+function load(){
+  try{
+    const s=store.get(K_SET);
+    if(s){
+      const saved=JSON.parse(s);
+      delete saved.commissionPer;   // the rate is fixed in code, not stored
+      Object.assign(state.settings,saved);
+    }
+    const m=store.get(K_META); if(m) state.meta=JSON.parse(m);
+    const d=store.get(K_DATA); if(d) state.rows=JSON.parse(d)||[];
+    const c=store.get(K_CRM); if(c) state.crm=JSON.parse(c);
+    const fx=store.get(K_FIX); if(fx) state.fixes=JSON.parse(fx)||{};
+    loadView();
+  }catch(e){ console.warn('Stored data could not be read',e); }
+}
+/* The file details moved into Settings; here we only remember whether the
+   report was too big to keep on the device, so the footer can say so. */
+function fileSummary(){
+  if(!state.meta) return 'No report loaded.';
+  const d=new Date(state.meta.at);
+  const when=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+
+    ' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  return `${state.meta.file} \u00b7 ${fmt(state.meta.n||state.rows.length)} rows \u00b7 loaded ${when}`;
+}
+/* =======================================================================
+   CRM audit
+   -----------------------------------------------------------------------
+   The AB report occasionally omits businesses that were actually signed up.
+   The CRM export lists every visit, so comparing its Business IDs against
+   the AB report's group_id finds the ones that went missing.
+   ======================================================================= */
+/* Column matching is by substring on the normalised header, because the CRM
+   writes the Business ID column as a full question:
+   "Please enter the customer's Amazon Business ID as it appears in the
+   profile section of Business Settings". Matching the whole sentence would
+   break on any rewording or a curly apostrophe. */
+function crmCol(h){
+  const n=norm(h);
+  if(!n) return null;
+  if(n.includes('amazonbusinessid')||n==='businessid'||n==='groupid'||n==='bid') return 'id';
+  if(n.includes('missionstartdate')) return 'date';
+  if(n.includes('visitplandate')) return 'plan';
+  if(n.includes('poaname')||n==='poname'||n==='po') return 'po';
+  if(n.includes('sector')||n==='industry') return 'sector';
+  return null;
+}
+const cleanId=v=>String(v==null?'':v).trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+
+/* Day-first or month-first, judged from the date column of this file. */
+function crmDateOrder(sheets){
+  let d=0,m=0;
+  for(const sh of sheets){
+    for(const row of sh.matrix){
+      for(const cell of row){
+        const mm=String(cell==null?'':cell).trim().match(DMY_RE);
+        if(!mm) continue;
+        const x=+mm[1], y=+mm[2];
+        if(x>12&&y<=12) d++; else if(y>12&&x<=12) m++;
+      }
+    }
+  }
+  return m>d?'mdy':'dmy';
+}
+
+function buildCrm(sheets){
+  const order=crmDateOrder(sheets);
+  const seen=new Map();
+  const out=[];
+  let blank=0, dupes=0, used=[], undated=0, read=0, earliestPlan=0;
+  const sheetStats=[];
+  const blankSectors=[];   // sectors of sign-ups with no Business ID, kept for the industry counts
+
+  for(const sh of sheets){
+    const matrix=sh.matrix||[];
+    // The header is not always the first row of a sheet.
+    let hi=-1, idx={};
+    for(let i=0;i<Math.min(matrix.length,25);i++){
+      const cand={};
+      matrix[i].forEach((c,j)=>{ const k=crmCol(c); if(k&&cand[k]===undefined) cand[k]=j; });
+      if(cand.id!==undefined){ hi=i; idx=cand; break; }
+    }
+    if(hi<0){ sheetStats.push({name:sh.name,rows:Math.max(0,matrix.length-1),withId:0,blank:0,skipped:true}); continue; }
+    used.push(sh.name);
+    const st={name:sh.name,rows:0,withId:0,blank:0,skipped:false};
+    sheetStats.push(st);
+    for(let i=hi+1;i<matrix.length;i++){
+      const r=matrix[i]; if(!r) continue;
+      st.rows++; read++;
+      // The earliest planned visit sets where "Data from" starts. Every row
+      // counts toward that, including those without a Business ID.
+      const pd=idx.plan!==undefined?parseDate(r[idx.plan],order):null;
+      if(pd&&(!earliestPlan||pd.getTime()<earliestPlan)) earliestPlan=pd.getTime();
+      const id=cleanId(r[idx.id]);
+      const sector=idx.sector!==undefined?String(r[idx.sector]==null?'':r[idx.sector]).trim():'';
+      // No Business ID: nothing to match on, but it still counts as a sign-up
+      // when working out which sectors register most.
+      if(!id){ blank++; st.blank++; blankSectors.push(sector); continue; }
+      const po=String((idx.po!==undefined?r[idx.po]:'')||'').trim();
+      // missionStartDate is the sign-up date; visitPlanDate stands in if it is blank.
+      const dt=(idx.date!==undefined?parseDate(r[idx.date],order):null)||pd;
+      if(idx.date!==undefined&&!dt) undated++;
+      if(seen.has(id)){
+        const prev=seen.get(id);
+        prev.dupes++;
+        if(dt&&(!prev.date||dt.getTime()<prev.date)) prev.date=dt.getTime();
+        if(!prev.po&&po) prev.po=po;
+        if(!prev.sector&&sector) prev.sector=sector;
+        dupes++;
+        continue;
+      }
+      st.withId++;
+      const rec={id,po,sector,date:dt?dt.getTime():0,sheet:sh.name,dupes:0};
+      seen.set(id,rec); out.push(rec);
+    }
+  }
+  if(!used.length) throw new Error('No Business ID column found on any sheet. The CRM export needs the column that asks for the customer\u2019s Amazon Business ID.');
+  if(!out.length) throw new Error('No rows with a Business ID were found in that file.');
+  return {rows:out,blank,blankSectors,dupes,sheets:used,sheetStats,read,undated,earliestPlan,dateOrder:order};
+}
+
+/* Business IDs are typed in by hand on a phone, so 0/O and 1/I get confused.
+   When an ID is not found, try every combination of those swaps and see
+   whether one of them exists in the AB report. */
+const AMBIG={'0':'O','O':'0','1':'I','I':'1'};
+function idVariants(id){
+  const pos=[];
+  for(let i=0;i<id.length;i++) if(AMBIG[id[i]]) pos.push(i);
+  if(!pos.length||pos.length>12) return [];   // nothing to swap, or too ambiguous to enumerate
+  const out=[], n=1<<pos.length;
+  for(let mask=1;mask<n;mask++){              // mask 0 is the original, already tried
+    const a=id.split('');
+    for(let b=0;b<pos.length;b++) if(mask&(1<<b)) a[pos[b]]=AMBIG[a[pos[b]]];
+    out.push(a.join(''));
+  }
+  return out;
+}
+/* Mark the characters that had to change. */
+function diffId(from,to){
+  let h='';
+  for(let i=0;i<to.length;i++){
+    h += from[i]!==to[i] ? `<b class="fix">${esc(to[i])}</b>` : esc(to[i]);
+  }
+  return h;
+}
+
+/* The AB report indexed for one agent only. Matching across the whole file
+   would let a loose match pick up a similar-looking ID belonging to somebody
+   else, and credit this agent with another agent's business. */
+const RUN=5;
+function abIndexFor(agent){
+  const byId=new Map(), byRun=new Map();
+  for(const r of state.rows){
+    if(isGlitch(r)) continue;
+    if(agent && String(r[F.AGENT])!==String(agent)) continue;
+    const k=cleanId(r[F.GID]);
+    if(!k) continue;
+    if(!byId.has(k)) byId.set(k,r);
+    for(let i=0;i+RUN<=k.length;i++){
+      const run=k.slice(i,i+RUN);
+      let set=byRun.get(run);
+      if(!set){ set=new Set(); byRun.set(run,set); }
+      set.add(k);
+    }
+  }
+  return {byId,byRun};
+}
+/* The AB business sharing the most runs of RUN consecutive characters.
+   A tie is refused: a guess that could belong to either is worse than none. */
+function runMatch(idx,id){
+  const tally=new Map();
+  for(let i=0;i+RUN<=id.length;i++){
+    const set=idx.byRun.get(id.slice(i,i+RUN));
+    if(set) for(const c of set) tally.set(c,(tally.get(c)||0)+1);
+  }
+  if(!tally.size) return null;
+  let best=null, bestN=0, tied=false;
+  for(const [cand,n] of tally){
+    if(n>bestN){ best=cand; bestN=n; tied=false; }
+    else if(n===bestN) tied=true;
+  }
+  if(!best||tied) return null;
+  return {id:best,row:idx.byId.get(best),runs:bestN};
+}
+function auditAgent(){
+  const list=allAgents();
+  if(list.includes(state.auditAgent)) return state.auditAgent;
+  return list.includes('130')?'130':(list[0]||'');
+}
+/* The cutoff: CRM sign-ups after this date are not expected in the AB report
+   yet, so they are held back rather than counted as missing. */
+function auditTill(){
+  if(state.auditTill) return new Date(state.auditTill+'T23:59:59.999').getTime();
+  let asAt=0;
+  for(const r of state.rows) if(!isGlitch(r)&&r[F.REGD]>asAt) asAt=r[F.REGD];
+  return asAt||Date.now();
+}
+/* Match one CRM record to the AB report, trying each rule in turn:
+   exact, a correction you typed, a 0/O or 1/I swap, then a shared run of
+   RUN characters. The audit and the industry analysis both use this, so a
+   business matched in one is matched the same way in the other. */
+function matchRec(idx,rec){
+  const hit=idx.byId.get(rec.id);
+  if(hit) return {id:rec.id,row:hit,manual:false,kind:'exact'};
+  const manual=cleanId((state.fixes||{})[rec.id]||'');
+  if(manual&&idx.byId.get(manual)) return {id:manual,row:idx.byId.get(manual),manual:true,kind:'yours'};
+  for(const v of idVariants(rec.id)){
+    const h=idx.byId.get(v);
+    if(h) return {id:v,row:h,manual:false,kind:'auto'};
+  }
+  const rm=runMatch(idx,rec.id);
+  if(rm) return {...rm,manual:false,kind:'run'};
+  return null;
+}
+/* The start of the range: a date you picked, otherwise the earliest planned
+   visit in the CRM report. */
+function auditFrom(){
+  if(state.auditFrom) return new Date(state.auditFrom+'T00:00:00').getTime();
+  const e=state.crm&&state.crm.earliestPlan;
+  if(e){ const d=new Date(e); d.setHours(0,0,0,0); return d.getTime(); }
+  let lo=0;
+  for(const r of (state.crm&&state.crm.rows)||[]) if(r.date&&(!lo||r.date<lo)) lo=r.date;
+  if(!lo) return -Infinity;
+  const d=new Date(lo); d.setHours(0,0,0,0); return d.getTime();
+}
+function auditResult(){
+  if(!state.crm) return null;
+  const agent=auditAgent();
+  const idx=abIndexFor(agent), till=auditTill(), from=auditFrom();
+  const found=[], corrected=[], missing=[], later=[], before=[];
+  /* Every AB business any CRM record points at, whatever its date. A business
+     visited on 31 August but registered in AB on 1 September is still in the
+     CRM, so claims are collected from every record, not just those in range. */
+  const claimed=new Set();
+  for(const rec of state.crm.rows){
+    const m=matchRec(idx,rec);
+    if(m) claimed.add(m.id);
+    if(rec.date&&rec.date<from){ before.push(rec); continue; }
+    if(rec.date&&rec.date>till){ later.push(rec); continue; }
+    if(!m) missing.push({...rec,near:null,manual:cleanId((state.fixes||{})[rec.id]||'')});
+    else if(m.kind==='exact') found.push({...rec,row:m.row});
+    else corrected.push({...rec,near:m,row:m.row});
+  }
+  /* The reverse check: this agent's AB businesses registered within the dates
+     that no CRM record matches. One row per Business ID; glitch rows excluded. */
+  const extra=[], seenAB=new Set();
+  let abInRange=0;
+  for(const r of state.rows){
+    if(isGlitch(r)) continue;
+    if(agent && String(r[F.AGENT])!==String(agent)) continue;
+    const k=cleanId(r[F.GID]);
+    if(!k||seenAB.has(k)) continue;
+    seenAB.add(k);
+    const t=r[F.REGD]||0;
+    if(t&&(t<from||t>till)) continue;
+    abInRange++;
+    if(!claimed.has(k)) extra.push({id:k,po:String(r[F.NAME]||''),date:t,row:r});
+  }
+  return {found,corrected,missing,later,before,extra,abInRange,from,till,agent,abCount:idx.byId.size};
+}
+
+/* =======================================================================
+   Industry
+   -----------------------------------------------------------------------
+   Two different questions, answered from two different sets of rows:
+   - which sectors sign up most: every CRM sign-up counts, including those
+     with no Business ID, since a sign-up happened either way;
+   - which sectors spend most: only sign-ups that can be matched to the AB
+     report, using exactly the audit's rules, since spend lives there.
+   ======================================================================= */
+function sectorLabel(raw){
+  const t=String(raw==null?'':raw).replace(/\s+/g,' ').trim();
+  if(!t) return 'Not stated';
+  // Tidy the casing so "retail" and "Retail" land in the same sector, leaving
+  // joining words lowercase: "Hair and Beauty", not "Hair And Beauty".
+  const small=new Set(['and','of','the','for','in','on','to','a','an','or','at','by']);
+  return t.toLowerCase().split(' ').map((w,i)=>
+    (i>0&&small.has(w)) ? w : w.replace(/(^|[\/&(-])([a-z])/g,(m,a,b)=>a+b.toUpperCase())
+  ).join(' ');
+}
+function industryData(){
+  if(!state.crm) return null;
+  const agent=auditAgent(), idx=abIndexFor(agent);
+  const map=new Map();
+  const get=raw=>{
+    const label=sectorLabel(raw), k=label.toLowerCase();
+    if(!map.has(k)) map.set(k,{label,signups:0,noId:0,matched:0,act:0,comm:0,spend:0,typo:0});
+    return map.get(k);
+  };
+  let any=false;
+  for(const rec of state.crm.rows){
+    if(rec.sector) any=true;
+    const g=get(rec.sector);
+    g.signups++;
+    const m=matchRec(idx,rec);
+    if(!m) continue;
+    g.matched++;
+    if(m.kind!=='exact') g.typo++;
+    const r=m.row, ops=r[F.OPS]||0;
+    if(r[F.ACTD]) g.act++;
+    if(qualifies(r)) g.comm++;
+    g.spend+=ops;
+  }
+  for(const sct of (state.crm.blankSectors||[])){
+    if(sct) any=true;
+    const g=get(sct); g.signups++; g.noId++;
+  }
+  const list=[...map.values()];
+  return {agent,sectors:list,hasSector:any,
+    totals:list.reduce((t,g)=>({signups:t.signups+g.signups,matched:t.matched+g.matched,
+      spend:t.spend+g.spend,act:t.act+g.act}),{signups:0,matched:0,spend:0,act:0})};
+}
+
+/* =======================================================================
+   Pay periods, tax and payslips
+   -----------------------------------------------------------------------
+   A commission period runs from the 25th of one month to the 24th of the
+   next, and is paid on the 5th of the month after that. An activation
+   belongs to the period containing its activation_date, not its
+   registration date, because that is the day the customer spent.
+   ======================================================================= */
+const money=n=>'£'+(n||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:0});
+const money2=n=>'£'+(n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+const startDay=()=>Math.min(28,Math.max(1,Number(state.settings.periodStartDay)||25));
+
+/* Period key is the year and month the period ENDS in. */
+function periodOf(ts){
+  if(!ts||ts<0) return 0;
+  const d=new Date(ts);
+  let y=d.getFullYear(), m=d.getMonth();
+  if(d.getDate()>=startDay()){ m+=1; if(m>11){ m=0; y+=1; } }
+  return y*100+(m+1);
+}
+function periodRange(key){
+  const y=Math.floor(key/100), m=key%100-1;
+  const sd=startDay();
+  return {
+    start:new Date(y,m-1,sd),
+    end:new Date(y,m,sd-1),
+    pay:new Date(y,m+1,Math.min(28,Math.max(1,Number(state.settings.payDay)||5)))
+  };
+}
+const dshort=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+function periodLabel(key){
+  return periodRange(key).end.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
+}
+function periodFull(key){
+  const r=periodRange(key);
+  return `${dshort(r.start)} to ${dshort(r.end)} ${r.end.getFullYear()}, paid ${dshort(r.pay)} ${r.pay.getFullYear()}`;
+}
+function periodsBetween(a,b){
+  const out=[];
+  let y=Math.floor(a/100), m=a%100;
+  while(y*100+m<=b){ out.push(y*100+m); m++; if(m>12){ m=1; y++; } }
+  return out;
+}
+
+/* Income tax and employee National Insurance for a single month, using one
+   twelfth of each annual threshold. This is an estimate: real PAYE is
+   cumulative across the year, and the rates are editable in Settings
+   because they change and differ by nation. */
+function payslipFor(monthGross){
+  const T=state.settings.tax, m=1/12;
+  const annual=monthGross*12;
+  let pa=T.personalAllowance;
+  if(annual>T.taperFrom) pa=Math.max(0,pa-(annual-T.taperFrom)/2);
+  const taxable=Math.max(0,monthGross-pa*m);
+  const basicW=Math.max(0,T.higherFrom-T.personalAllowance)*m;
+  const higherW=Math.max(0,T.additionalFrom-T.higherFrom)*m;
+  let tax=Math.min(taxable,basicW)*T.basicRate/100;
+  const t2=Math.max(0,taxable-basicW);
+  tax+=Math.min(t2,higherW)*T.higherRate/100;
+  tax+=Math.max(0,t2-higherW)*T.additionalRate/100;
+  const pt=T.niPrimary*m, uel=T.niUpper*m;
+  let ni=Math.min(Math.max(0,monthGross-pt),Math.max(0,uel-pt))*T.niMain/100;
+  ni+=Math.max(0,monthGross-uel)*T.niUpperRate/100;
+  return {gross:monthGross,tax,ni,net:monthGross-tax-ni};
+}
+function baseSalaryFor(id){
+  const v=state.settings.salaries[id];
+  return (v===''||v==null||isNaN(v)) ? (Number(state.settings.baseSalary)||0) : Number(v);
+}
+
+/* Qualifying activations per employment period, driven by activation_date so a
+   September spend counts in September however long ago it registered.
+
+   The report itself decides how far the periods run: the latest registration
+   is treated as "as at", so a file ending in week 36 knows it is September
+   and stops there.
+
+   Pay is worked out per person, not per agent code. A row only earns
+   commission for the person who held the code when it both registered and
+   spent; anything falling in a gap between staff earns nobody anything. */
+function salaryData(){
+  const rows = state.rows.filter(r=>!isGlitch(r)&&agentInView(r[F.AGENT]));
+
+  let asAt=0, lastAct=0, firstReg=Infinity;
+  for(const r of state.rows){
+    if(isGlitch(r)) continue;
+    if(r[F.REGD]>asAt) asAt=r[F.REGD];
+    if(r[F.REGD]&&r[F.REGD]<firstReg) firstReg=r[F.REGD];
+    if(r[F.ACTD]>lastAct) lastAct=r[F.ACTD];
+  }
+  if(!asAt) asAt=lastAct;
+  const current=periodOf(asAt);
+  const firstPeriod=isFinite(firstReg)?periodOf(firstReg):current;
+
+  const per=new Map();          // "agent#stint" -> Map(period -> counts)
+  const seats=[];               // one entry per person
+  const seatSeen=new Set();
+  let undated=0, beyond=0, unattributed=0, lo=Infinity;
+  const agents=new Set();
+
+  for(const r of rows){
+    const id=r[F.AGENT];
+    agents.add(id);
+    if(!r[F.ACTD]) continue;
+    if(r[F.ACTD]<0){ undated++; continue; }
+    const k=periodOf(r[F.ACTD]);
+    if(!k) continue;
+    if(current&&k>current){ beyond++; continue; }
+    const st=stintFor(id,r);
+    if(!st){ unattributed++; continue; }   // gap between staff, or before a start date
+    if(k<lo) lo=k;
+    const key=id+'#'+st.i;
+    if(!per.has(key)) per.set(key,new Map());
+    const mp=per.get(key);
+    if(!mp.has(k)) mp.set(k,{qual:0,act:0,ops:0,amt:0,rows:[]});
+    const c=mp.get(k);
+    c.act++; c.ops+=r[F.OPS];
+    // The what-if switch judges every activation by the new rule.
+    const cm=commissionFor(r,commCfg().testAll);
+    if(cm.ok){ c.qual++; c.amt+=cm.amt; c.rows.push(r); }
+  }
+  // Every employment period gets a row, even one with no activations at all.
+  for(const id of [...agents].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))){
+    for(const st of stints(id)){
+      const key=id+'#'+st.i;
+      if(seatSeen.has(key)) continue;
+      seatSeen.add(key);
+      seats.push({key,id,st});
+    }
+  }
+  if(!isFinite(lo)) lo=current;
+  lo=Math.min(lo,firstPeriod||lo);
+  const periods = current ? periodsBetween(Math.min(lo,current),current) : [];
+  return {periods,per,seats,undated,beyond,unattributed,current,asAt,
+    agents:[...agents].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))};
+}
+
+/* =======================================================================
+   Selection + aggregation
+   ======================================================================= */
+function weekKeys(){
+  const s=new Set(); for(const r of state.rows) if(!isGlitch(r)) s.add(wkKey(r));
+  return [...s].sort((a,b)=>a-b);
+}
+function allAgents(){
+  const s=new Set(); for(const r of state.rows) if(!isGlitch(r)) s.add(r[F.AGENT]);
+  return [...s].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+}
+function allCampaigns(){
+  const s=new Set(); for(const r of state.rows) if(r[F.CAMP]) s.add(r[F.CAMP]);
+  return [...s].sort();
+}
+/* The AB report sometimes contains rows whose business name is the form's
+   placeholder text, "Your Business Name". Those are glitches rather than real
+   sign-ups, so they are left out of every figure and only shown, flagged, in
+   the business list. Matching ignores case, spacing and punctuation. */
+const isGlitch=r=>norm(r[F.NAME])==='yourbusinessname';
+const glitchCount=()=>state.rows.reduce((n,r)=>n+(isGlitch(r)?1:0),0);
+
+/* One place decides whether a BDE is in view, so the league table, charts,
+   salaries and audit all agree. */
+function agentInView(id){
+  const f=state.filters;
+  if(f.agents && !f.agents.has(id)) return false;
+  if(f.teams && !f.teams.has(teamOf(id))) return false;
+  return true;
+}
+function filteredAll(){
+  const f=state.filters;
+  return state.rows.filter(r=>{
+    const k=wkKey(r);
+    if(f.wFrom!=null && k<f.wFrom) return false;
+    if(f.wTo!=null && k>f.wTo) return false;
+    return agentInView(r[F.AGENT]);
+  });
+}
+/* Every figure on the dashboard comes from here, so glitches never count. */
+function filtered(){ return filteredAll().filter(r=>!isGlitch(r)); }
+/* The selected week range as timestamps, Monday of the first week to the end
+   of Sunday of the last. */
+function rangeBounds(){
+  const keys=activeKeys();
+  if(!keys.length) return null;
+  const a=keys[0], b=keys[keys.length-1];
+  return [
+    isoMonday(Math.floor(a/100),a%100).getTime(),
+    isoMonday(Math.floor(b/100),b%100).getTime()+7*86400000-1
+  ];
+}
+/* Activations belong to the weeks they happened in, not the weeks the
+   business registered in. A customer who signed up in April and spent in
+   August is an August activation, so this looks at every row in the file
+   rather than only those registered inside the selected weeks. */
+function activationRows(){
+  const b=rangeBounds(); if(!b) return [];
+  const f=state.filters;
+  return state.rows.filter(r=>
+    !isGlitch(r) && r[F.ACTD]>0 && r[F.ACTD]>=b[0] && r[F.ACTD]<=b[1] && agentInView(r[F.AGENT])
+  );
+}
+function actAgg(rows){
+  const m=new Map();
+  for(const r of rows){
+    const id=r[F.AGENT];
+    if(!m.has(id)) m.set(id,{act:0,comm:0,ops:0});
+    const a=m.get(id);
+    a.act++; a.ops+=r[F.OPS];
+    if(qualifies(r)) a.comm++;
+  }
+  return m;
+}
+function blank(){
+  return {reg:0,act:0,actNoDate:0,ops:0,comm:0,actLow:0,dead:0,nopost:0,mu:0,weeks:new Set()};
+}
+function add(a,r){
+  // A registration is a postcode signed up under this agent. A row with no
+  // postcode is not a countable registration, so it feeds no metric at all.
+  if(!r[F.POST]){ a.nopost++; return a; }
+  a.reg++;
+  // An activation is any non-blank activation_date: the account bought.
+  if(r[F.ACTD]) a.act++;
+  if(r[F.ACTD]===-1) a.actNoDate++;
+  a.ops+=r[F.OPS];
+  // Three mutually exclusive outcomes that add back up to the registration count.
+  if(qualifies(r)) a.comm++;
+  else if(r[F.ACTD]) a.actLow++;
+  else a.dead++;
+  a.mu+=r[F.MU];
+  a.weeks.add(wkKey(r));
+  return a;
+}
+function byAgent(rows){
+  const m=new Map();
+  for(const r of rows){
+    const id=r[F.AGENT];
+    if(!m.has(id)) m.set(id,blank());
+    add(m.get(id),r);
+  }
+  return m;
+}
+function groupRows(rows){
+  const m=new Map();
+  for(const r of rows){
+    const id=r[F.AGENT];
+    let g=m.get(id); if(!g){ g=[]; m.set(id,g); }
+    g.push(r);
+  }
+  return m;
+}
+const dayKey=r=>r[F.REGD]?new Date(r[F.REGD]).setHours(0,0,0,0):0;
+const keyOf=(r,g)=>g==='day'?dayKey(r):wkKey(r);
+/* Bucket key for an arbitrary timestamp, used to place activations on the axis. */
+function keyOfTime(t,g){
+  if(!t||t<0) return 0;
+  if(g==='day') return new Date(t).setHours(0,0,0,0);
+  const iw=isoWeek(new Date(t));
+  return iw.y*100+iw.w;
+}
+/* Registrations sit on the date they registered; activations and the
+   commission they earn sit on the date the customer actually bought. */
+function trendSeries(rows,keys,g){
+  const idx=new Map(keys.map((k,i)=>[k,i]));
+  const reg=keys.map(()=>0), act=keys.map(()=>0), comm=keys.map(()=>0);
+  let offAxis=0, regOff=0;
+  for(const r of rows){
+    if(!r[F.POST]) continue;
+    const ri=idx.get(keyOf(r,g));
+    if(ri!==undefined) reg[ri]++; else regOff++;
+    if(!r[F.ACTD]) continue;
+    // Under the registration basis an activation sits on the week the
+    // business signed up, not the week it spent.
+    const ai=byRegBasis()?ri:idx.get(keyOfTime(r[F.ACTD],g));
+    if(ai===undefined){ offAxis++; continue; }
+    act[ai]++;
+    if(qualifies(r)) comm[ai]++;
+  }
+  return {reg,act,comm,offAxis,regOff};
+}
+/* The Monday of a given ISO week. */
+function isoMonday(year,week){
+  const jan4=new Date(year,0,4);
+  const dow=jan4.getDay()||7;
+  const mon1=new Date(year,0,4-(dow-1));
+  mon1.setHours(0,0,0,0);
+  return new Date(mon1.getTime()+(week-1)*7*86400000);
+}
+/* The trend axis follows the selected week range exactly: it starts at the
+   first week in the filter that has data and ends at the last. Activations
+   landing outside that window are reported rather than stretching the axis. */
+/* Every week in the selected filter range, including weeks with no
+   registrations, so the chart covers the period you asked for rather than
+   only the weeks that happen to contain data. */
+function rangeWeeks(){
+  const all=weekKeys();
+  if(!all.length) return [];
+  const f=state.filters;
+  const lo=f.wFrom!=null?f.wFrom:all[0];
+  const hi=f.wTo!=null?f.wTo:all[all.length-1];
+  if(lo>hi) return [];
+  const out=[];
+  let t=isoMonday(Math.floor(lo/100),lo%100).getTime();
+  const end=isoMonday(Math.floor(hi/100),hi%100).getTime();
+  while(t<=end){
+    const iw=isoWeek(new Date(t));
+    out.push(iw.y*100+iw.w);
+    t+=7*86400000;
+  }
+  return out.length?out:[lo];
+}
+function trendKeys(rows,g){
+  const keys=rangeWeeks();
+  if(!keys.length) return [];
+  if(g!=='day') return keys;
+  const first=keys[0], last=keys[keys.length-1];
+  const lo=isoMonday(Math.floor(first/100),first%100).getTime();
+  const hi=isoMonday(Math.floor(last/100),last%100).getTime()+6*86400000;
+  // Saturdays and Sundays are not worked, so they are left off the daily
+  // axis rather than drawn as a run of zeros between every working week.
+  const out=[];
+  for(let t=lo;t<=hi;t+=86400000){
+    const d=new Date(t); d.setHours(0,0,0,0);
+    const w=d.getDay();
+    if(w>=1&&w<=5) out.push(d.getTime());
+  }
+  return out;
+}
+function series(rows,keys,g){
+  const m=new Map(keys.map(k=>[k,blank()]));
+  for(const r of rows){
+    const b=m.get(keyOf(r,g||'week'));
+    if(b) add(b,r);
+  }
+  return keys.map(k=>m.get(k));
+}
+function activeKeys(){
+  const f=state.filters, all=weekKeys();
+  return all.filter(k=>(f.wFrom==null||k>=f.wFrom)&&(f.wTo==null||k<=f.wTo));
+}
+
+/* =======================================================================
+   SVG chart helpers
+   ======================================================================= */
+function niceMax(v){
+  if(v<=0) return 5;
+  const p=Math.pow(10,Math.floor(Math.log10(v)));
+  for(const s of [1,1.5,2,2.5,3,4,5,7.5,10]) if(v<=s*p) return s*p;
+  return 10*p;
+}
+/* One chart routine for both the team view and the per-BDE panels. Emits the
+   geometry it used as JSON so the hover handler can reuse it exactly. */
+function timeChart(keys,sets,g,opt){
+  opt=opt||{};
+  const W=opt.W||980, H=opt.H||300, L=opt.L??48, R=opt.R??16, T=14, B=opt.B??34;
+  if(!keys.length) return '<p style="color:var(--ink-3);font-size:13.5px">No data in this range.</p>';
+  const ticks=opt.ticks??4;
+  const max=niceMax(Math.max(1,...sets.flatMap(s=>s.vals),opt.target||0));
+  const iw=W-L-R, ih=H-T-B;
+  const n=keys.length;
+  const step=n>1?iw/(n-1):0;
+  const x=i=>n===1?L+iw/2:L+i*step;
+  const y=v=>T+ih-(v/max)*ih;
+  let gg='';
+  for(let i=0;i<=ticks;i++){
+    const v=max*i/ticks, yy=y(v);
+    gg+=`<line x1="${L}" x2="${W-R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--rule-2)" stroke-width="1"/>`;
+    gg+=`<text x="${L-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="${opt.small?9.5:11}" fill="var(--ink-3)">${fmt(v)}</text>`;
+  }
+  if(opt.target>0){
+    const ty=y(opt.target);
+    gg+=`<line x1="${L}" x2="${W-R}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="4 3" opacity=".7"/>`;
+  }
+  const lbl=Math.max(1,Math.ceil(n/(opt.small?4:14)));
+  keys.forEach((k,i)=>{ if(i%lbl===0||i===n-1)
+    gg+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="${opt.small?9.5:11}" fill="var(--ink-3)">${label(k,g)}</text>`;
+  });
+  sets.forEach((s,si)=>{
+    const pts=s.vals.map((v,i)=>x(i).toFixed(1)+' '+y(v).toFixed(1));
+    if(opt.area&&si===0){
+      gg+=`<path d="M${x(0).toFixed(1)} ${y(0).toFixed(1)} L${pts.join(' L')} L${x(n-1).toFixed(1)} ${y(0).toFixed(1)} Z" fill="${s.color}" opacity=".10"/>`;
+    }
+    gg+=`<path d="M${pts.join(' L')}" fill="none" stroke="${s.color}" stroke-width="${opt.small?1.8:2.2}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(n<=45&&!opt.small) s.vals.forEach((v,i)=>{
+      gg+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;
+    });
+  });
+  // hover furniture, moved by script rather than redrawn
+  gg+=`<g class="guide" opacity="0"><line y1="${T}" y2="${T+ih}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>`+
+      sets.map(s=>`<circle r="4" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`).join('')+`</g>`;
+  gg+=`<rect class="hit" x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  const meta={W,H,L,T,ih,max,step,n,g,
+    keys:keys.map(k=>labelFull(k,g)),
+    sets:sets.map(s=>({label:s.label,color:s.color,vals:s.vals})),
+    target:opt.target||0, note:opt.note||''};
+  return `<div class="chart" data-meta='${esc(JSON.stringify(meta))}'>`+
+    `<svg viewBox="0 0 ${W} ${H}" width="100%"${opt.small?'':` height="${H}"`} preserveAspectRatio="xMidYMid meet" style="display:block${opt.small?';height:auto':''}" role="img" aria-label="Registrations over time">${gg}</svg>`+
+    `<div class="tip" hidden></div></div>`;
+}
+/* Attach hover once per chart. Recomputes point positions from the emitted
+   geometry, so the guide always lands exactly on the drawn line. */
+function bindCharts(root){
+  root.querySelectorAll('.chart').forEach(el=>{
+    if(el.dataset.bound) return;
+    el.dataset.bound='1';
+    let m; try{ m=JSON.parse(el.dataset.meta); }catch(e){ return; }
+    const svg=el.querySelector('svg'), tip=el.querySelector('.tip'),
+          guide=el.querySelector('.guide'), line=guide&&guide.querySelector('line'),
+          dots=guide?[...guide.querySelectorAll('circle')]:[];
+    if(!svg||!guide) return;
+    const yOf=v=>m.T+m.ih-(v/m.max)*m.ih;
+    const show=(cx)=>{
+      const r=svg.getBoundingClientRect();
+      const vx=(cx-r.left)/r.width*m.W;
+      let i = m.n===1 ? 0 : Math.round((vx-m.L)/(m.step||1));
+      i=Math.max(0,Math.min(m.n-1,i));
+      const px=m.n===1?m.L+(m.W-m.L)/2:m.L+i*m.step;
+      guide.setAttribute('opacity','1');
+      line.setAttribute('x1',px); line.setAttribute('x2',px);
+      dots.forEach((d,si)=>{ d.setAttribute('cx',px); d.setAttribute('cy',yOf(m.sets[si].vals[i])); });
+      const rows=m.sets.map(s=>
+        `<span class="tr"><i style="background:${s.color}"></i>${esc(s.label)}<b>${fmt(s.vals[i])}</b></span>`).join('');
+      const tgt=m.target?`<span class="tr"><i style="background:var(--warn)"></i>Target<b>${fmt(m.target)}</b></span>`:'';
+      tip.innerHTML=`<strong>${esc(m.keys[i])}</strong>${rows}${tgt}`;
+      tip.hidden=false;
+      const frac=px/m.W;
+      tip.style.left=(frac*100)+'%';
+      tip.style.transform= frac>0.68 ? 'translate(-100%,0)' : (frac<0.12 ? 'translate(0,0)' : 'translate(-50%,0)');
+    };
+    const hide=()=>{ guide.setAttribute('opacity','0'); tip.hidden=true; };
+    el.addEventListener('mousemove',e=>show(e.clientX));
+    el.addEventListener('mouseleave',hide);
+    el.addEventListener('touchstart',e=>{ if(e.touches[0]) show(e.touches[0].clientX); },{passive:true});
+    el.addEventListener('touchmove',e=>{ if(e.touches[0]) show(e.touches[0].clientX); },{passive:true});
+    el.addEventListener('touchend',hide);
+  });
+}
+function miniBars(vals,keys,color,target,h,g){
+  const W=240,H=h||54,gap=vals.length>60?0.6:2;
+  if(!vals.length) return '';
+  const max=Math.max(1,...vals,target||0);
+  const bw=Math.max(1,(W-(vals.length-1)*gap)/vals.length);
+  let gg='';
+  vals.forEach((v,i)=>{
+    const bh=Math.max(v>0?1.5:0,(v/max)*H);
+    gg+=`<rect x="${(i*(bw+gap)).toFixed(2)}" y="${(H-bh).toFixed(2)}" width="${bw.toFixed(2)}" height="${bh.toFixed(2)}" rx="1" fill="${color}" opacity="${v?0.92:0.15}"><title>${labelFull(keys[i],g)}: ${fmt(v)}</title></rect>`;
+  });
+  if(target>0){
+    const ty=H-(target/max)*H;
+    gg+=`<line x1="0" x2="${W}" y1="${ty.toFixed(2)}" y2="${ty.toFixed(2)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".65"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">${gg}</svg>`;
+}
+function spark(vals,keys,color){
+  const W=88,H=22;
+  if(!vals.length) return '';
+  const max=Math.max(1,...vals);
+  const gap=1, bw=Math.max(1,(W-(vals.length-1)*gap)/vals.length);
+  let g='';
+  vals.forEach((v,i)=>{
+    const bh=Math.max(v>0?1:0,(v/max)*H);
+    g+=`<rect x="${(i*(bw+gap)).toFixed(2)}" y="${(H-bh).toFixed(2)}" width="${bw.toFixed(2)}" height="${bh.toFixed(2)}" fill="${color}" opacity="${v?0.85:0.16}"/>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none">${g}</svg>`;
+}
+function stackBar(parts,total,w){
+  const W=w||200,H=16,R=8;
+  const id='sb'+Math.random().toString(36).slice(2,8);
+  let g=`<clipPath id="${id}"><rect x="0" y="0" width="${W}" height="${H}" rx="${R}"/></clipPath>`;
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="${R}" fill="var(--surface-2)"/>`;
+  g+=`<g clip-path="url(#${id})">`;
+  let x=0;
+  for(const p of parts){
+    const pw=total>0?(p.v/total)*W:0;
+    if(pw>0.3){
+      const share=total>0?Math.round(p.v/total*100):0;
+      g+=`<g class="seg"><rect x="${x.toFixed(2)}" y="0" width="${pw.toFixed(2)}" height="${H}" fill="${p.c}">`+
+         `<title>${esc(p.k)}: ${fmt(p.v)} (${share}%)</title></rect>`;
+      if(pw>34) g+=`<text x="${(x+pw/2).toFixed(2)}" y="${H/2+3.5}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${p.t||'#fff'}" pointer-events="none">${share}%</text>`;
+      g+='</g>';
+    }
+    x+=pw;
+  }
+  g+='</g>';
+  return `<svg class="stack" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`;
+}
+
+/* =======================================================================
+   Rendering
+   ======================================================================= */
+function render(){
+  const has=state.rows.length>0;
+  const audit=state.view==='audit';
+  $('#audit').classList.toggle('hidden',!audit);
+  const ab=$('#btnAudit');
+  ab.setAttribute('aria-pressed',String(audit));
+  ab.classList.toggle('is-open',audit);
+  ab.classList.toggle('btn-primary',audit);
+  ab.setAttribute('aria-label',audit?'Close the audit and return to the dashboard':'Audit against CRM');
+  ab.title = audit ? 'Back to the dashboard' : 'Audit against CRM';
+  // The audit is its own page: no Settings, and no AB upload to confuse with the CRM one.
+  $('#btnSettings').classList.toggle('hidden',audit);
+  $('#emptyState').classList.toggle('hidden',has||audit);
+  $('#dash').classList.toggle('hidden',!has||audit);
+  $('#secnav').classList.toggle('hidden',!has||audit);
+  // The audit page has its own upload button; showing both invites confusion.
+  $('#btnUpload').classList.toggle('hidden',audit);
+  // The Salaries section and its nav button come and go together.
+  const salSec=document.getElementById('sec-salary');
+  if(salSec) salSec.classList.toggle('hidden',!salaryOn());
+  const salNav=document.querySelector('#secnav button[data-go="sec-salary"]');
+  if(salNav) salNav.classList.toggle('hidden',!salaryOn());
+  if(audit){ renderAudit(); paintFilterState(); measureStick(); initReveal(); return; }
+  renderFoot();
+  if(!has) return;
+  renderFilters();
+  const rows=filtered(), keys=activeKeys();
+  renderTotals(rows,keys);
+  renderLeague(rows,keys);
+  renderTrend(rows,keys);
+  renderQuality(rows);
+  renderIndustry();
+  if(salaryOn()) renderSalaries();
+  renderDetail(filteredAll());
+  paintFilterState();
+  measureStick(); markSection(); initReveal();
+}
+
+function renderFilters(){
+  const keys=weekKeys(), f=state.filters;
+  const opts=k=>keys.map(x=>`<option value="${x}"${x===k?' selected':''}>${wkLabelFull(x)}</option>`).join('');
+  $('#wkFrom').innerHTML=opts(f.wFrom==null?keys[0]:f.wFrom);
+  $('#wkTo').innerHTML=opts(f.wTo==null?keys[keys.length-1]:f.wTo);
+
+  const ags=allAgents();
+
+  // '' is the bucket for anyone not assigned to a team.
+  const teamOpts=[...TEAMS,''];
+  const counts={};
+  for(const a of ags){ const t=teamOf(a); counts[t]=(counts[t]||0)+1; }
+  const tSel=f.teams?f.teams.size:teamOpts.length;
+  $('#btnTeams').textContent = (!f.teams||tSel===teamOpts.length) ? 'All teams' : `${tSel} of ${teamOpts.length} teams`;
+  $('#teamDrop').innerHTML=
+    `<div class="bar"><button class="linkish" data-tall="1">Select all</button><button class="linkish" data-tall="0">Clear</button></div>`+
+    teamOpts.map(t=>`<label class="row"><input type="checkbox" value="${esc(t)}"${(!f.teams||f.teams.has(t))?' checked':''}><span>${t?esc(t):'No team'} <span style="color:var(--ink-3)">${counts[t]||0}</span></span></label>`).join('');
+
+  const sel=f.agents?f.agents.size:ags.length;
+  $('#btnAgents').textContent = (!f.agents||sel===ags.length) ? `All BDEs (${ags.length})` : `${sel} of ${ags.length} BDEs`;
+  $('#agentDrop').innerHTML=
+    `<div class="bar"><button class="linkish" data-all="1">Select all</button><button class="linkish" data-all="0">Clear</button></div>`+
+    ags.map(a=>`<label class="row"><input type="checkbox" value="${esc(a)}"${(!f.agents||f.agents.has(a))?' checked':''}><span>${esc(agentName(a))} <span style="color:var(--ink-3)">#${esc(a)}${teamOf(a)?' \u00b7 '+esc(teamOf(a)):''}</span></span></label>`).join('');
+}
+
+function renderTotals(rows,keys){
+  const t=blank(); for(const r of rows) add(t,r);
+  const win={act:0,comm:0,ops:0};
+  if(byRegBasis()){ win.act=t.act; win.comm=t.comm; win.ops=t.ops; }
+  else for(const r of activationRows()){ win.act++; win.ops+=r[F.OPS]; if(qualifies(r)) win.comm++; }
+  const nWeeks=keys.length||1;
+  const grp=groupRows(rows);
+  const ags=new Set(grp.keys());
+  const hits=dayHitStats(rows);
+  const html=[
+    {e:'\u{1F4DD}',k:'Registrations',c:'var(--reg)',v:fmt(t.reg),s:`${fmt1(hits.active?t.reg/hits.active:0)} per active day across ${ags.size} BDE${ags.size===1?'':'s'}`},
+    {e:'\u{26A1}',k:'Activations',c:'var(--act)',v:fmt(win.act),s:win.act?(byRegBasis()?'Registrations from these weeks that have since spent':'Customers who spent in these weeks, whenever they registered'):'Nothing filled in the activation_date column'},
+    {e:'\u{1F4B7}',k:'Commission qualified',c:'var(--ver)',v:fmt(win.comm),s:`Of those, the ones spending ${fmtOps(commMin())} or more`},
+    {e:'\u{1F3AF}',k:'Days on target',c:'var(--ink-3)',v:hits.pct==null?'—':Math.round(hits.pct)+'%',
+      s:hits.active?`${fmt(hits.hit)} of ${fmt(hits.active)} active day${hits.active===1?'':'s'} reached ${fmt1(state.settings.dailyTarget)} sign-ups`:'No activity in this range'}
+  ].map(x=>`<div class="tot"><div class="k"><span class="emo big">${x.e}</span>${x.k}</div><div class="v num" style="color:${x.c}">${x.v}</div><div class="s">${esc(x.s)}</div></div>`).join('');
+  $('#totals').innerHTML=html;
+  const w=$('#postWarn');
+  if(w){
+    const msgs=[];
+    const gl=filteredAll().filter(isGlitch).length;
+    if(gl) msgs.push(`${fmt(gl)} row${gl===1?'':'s'} named "Your Business Name" ${gl===1?'is a':'are'} glitch${gl===1?'':'es'} in the AB report and ${gl===1?'is':'are'} left out of every figure. ${gl===1?'It is':'They are'} flagged in red in Registered businesses.`);
+    if(t.nopost) msgs.push(`${fmt(t.nopost)} row${t.nopost===1?'':'s'} have no postcode, so they are not counted as registrations.`);
+    if(t.actNoDate) msgs.push(`${fmt(t.actNoDate)} activation${t.actNoDate===1?'':'s'} hold a value in activation_date that carries no date, such as a duration like 46:31.7. They still count as activations, but cannot be placed on the timeline. Re-saving the report as .xlsx usually preserves the full date.`);
+    if(state.meta&&state.meta.dateMixed) msgs.push(`This file mixes day-first and month-first dates. They have been read as ${state.meta.dateOrder==='dmy'?'day/month/year':'month/day/year'}; check the Registered column before relying on it.`);
+    w.textContent=msgs.join(' ');
+  }
+}
+
+function leagueData(rows,keys){
+  const g=groupRows(rows);
+  const awRows=byRegBasis()?[]:activationRows();
+  const aw=actAgg(awRows);
+  const byAg=new Map();
+  for(const r of awRows){
+    if(!byAg.has(r[F.AGENT])) byAg.set(r[F.AGENT],[]);
+    byAg.get(r[F.AGENT]).push(r);
+  }
+  const ids=new Set([...g.keys(),...aw.keys()]);
+  const out=[];
+  for(const id of ids){
+    const arows=g.get(id)||[];
+    const a=blank(); for(const r of arows) add(a,r);
+    const s=series(arows,keys).map(x=>x.reg);
+    out.push({
+      id,a,rows:arows,spark:s,
+      w: byRegBasis()
+           ? {act:a.act,comm:a.comm,ops:a.ops}
+           : (aw.get(id)||{act:0,comm:0,ops:0}),
+      wRows: byRegBasis() ? arows.filter(r=>r[F.ACTD]) : (byAg.get(id)||[]),
+      last:s.length?s[s.length-1]:0,
+      prev:s.length>1?s[s.length-2]:0,
+      hits:dayHitStats(arows)
+    });
+  }
+  return out;
+}
+/* Conversion divides the two columns as shown: activations in these weeks
+   over registrations in these weeks. Both are period figures, so a BDE whose
+   older customers activate now can read above 100%. */
+const convOf=d=>d.a.reg?d.w.act/d.a.reg*100:null;
+const SORTS={
+  reg:d=>d.a.reg, act:d=>d.w.act, comm:d=>d.w.comm,
+  ops:d=>d.w.ops, conv:d=>{const v=convOf(d); return v==null?-1:v;},
+  wk:d=>d.last, name:d=>agentName(d.id).toLowerCase()
+};
+function renderLeague(rows,keys){
+  const data=leagueData(rows,keys);
+  const k=state.sort.key, dir=state.sort.dir, get=SORTS[k]||SORTS.reg;
+  data.sort((x,y)=>{
+    const a=get(x), b=get(y);
+    if(typeof a==='string') return dir*a.localeCompare(b);
+    return dir*(a-b);
+  });
+  const maxReg=Math.max(1,...data.map(d=>d.a.reg));
+  const anyAct=data.some(d=>d.w.act>0);
+  const anyOps=data.some(d=>d.w.ops!==0);
+
+  const cols=[
+    {k:null,l:'',cls:'rank no-sort'},
+    {k:'name',l:'BDE'},
+    {k:'reg',l:'Registrations',cls:'r'},
+  ];
+  if(anyAct) cols.push({k:'act',l:'Activations',cls:'r',tip:byRegBasis()
+    ? 'Businesses registered in the selected weeks that have since spent'
+    : 'Customers who spent during the selected weeks, whenever they registered'});
+  if(anyOps) cols.push({k:'comm',l:'Commission qualified',cls:'r',tip:`Of those activations, the ones spending ${money(commMin())} or more`});
+  if(anyOps) cols.push({k:'ops',l:'Net OPS',cls:'r'});
+  cols.push({k:'conv',l:'Conversion',cls:'r',tip:'Activations divided by registrations for these weeks'});
+  cols.push({k:'wk',l:'Latest week',cls:'r'});
+  cols.push({k:null,l:'Weekly shape',cls:'no-sort'});
+
+  let h='<thead><tr>'+cols.map(c=>{
+    const arrow=c.k===k?`<span class="arrow">${dir<0?'\u25bc':'\u25b2'}</span>`:'';
+    return `<th class="${c.cls||''}"${c.k?` data-sort="${c.k}"`:''}${c.tip?` title="${esc(c.tip)}"`:''}>${c.l}${arrow}</th>`;
+  }).join('')+'</tr></thead><tbody>';
+
+  /* Medals only mean something when the table is ranked best-first, so they
+     are held back when sorting by name or in ascending order. */
+  const ranked = dir<0 && k!=='name';
+  const MEDAL=['\u{1F947}','\u{1F948}','\u{1F949}'];
+  data.forEach((d,i)=>{
+    const a=d.a;
+    const cv=convOf(d);
+    const ccls=cv==null?'none':(cv>50?'hit':cv>=25?'near':'miss');
+    const delta=d.last-d.prev;
+    const dtxt=keys.length>1?(delta>0?`<span style="color:var(--good)">+${fmt(delta)}</span>`:delta<0?`<span style="color:var(--warn)">${fmt(delta)}</span>`:'<span style="color:var(--ink-3)">0</span>'):'';
+    h+=`<tr data-agent="${esc(d.id)}"${state.openAgent===d.id?' class="open"':''}>`;
+    h+= (ranked&&i<3)
+      ? `<td class="rank medal" title="${['First','Second','Third'][i]} by ${cols.find(c=>c.k===k)?cols.find(c=>c.k===k).l.toLowerCase():'registrations'}">${MEDAL[i]}</td>`
+      : `<td class="rank num">${i+1}</td>`;
+    h+=`<td class="agentcell">${esc(agentName(d.id))}<small>#${esc(d.id)} \u00b7 ${a.weeks.size} active week${a.weeks.size===1?'':'s'}</small></td>`;
+    h+=`<td class="r mbar"><span class="num">${fmt(a.reg)}</span><div class="track"><div class="fill" style="width:${(a.reg/maxReg*100).toFixed(1)}%;background:var(--reg)"></div></div></td>`;
+    if(anyAct) h+=`<td class="r num">${fmt(d.w.act)}</td>`;
+    if(anyOps) h+=`<td class="r num">${fmt(d.w.comm)}</td>`;
+    if(anyOps) h+=`<td class="r num">${fmtOps(d.w.ops)}</td>`;
+    h+=`<td class="r"><span class="pill ${ccls}" title="${d.a.reg?`${fmt(d.w.act)} activations \u00f7 ${fmt(d.a.reg)} registrations`:'No registrations in these weeks'}">${cv==null?'—':Math.round(cv)+'%'}</span></td>`;
+    h+=`<td class="r num">${fmt(d.last)} ${dtxt}</td>`;
+    h+=`<td>${spark(d.spark,keys,'var(--reg)')}</td>`;
+    h+='</tr>';
+    if(state.openAgent===d.id) h+=`<tr class="detail"><td colspan="${cols.length}">${drawer(d,keys)}</td></tr>`;
+  });
+  h+='</tbody>';
+  $('#leagueTable').innerHTML=h;
+  $('#leagueHint').textContent=`${data.length} BDE${data.length===1?'':'s'} \u00b7 ${keys.length} week${keys.length===1?'':'s'} \u00b7 registrations counted by sign-up date, activations by ${byRegBasis()?'the week the business registered':'the date the customer spent'} \u00b7 click a column to sort`;
+}
+
+function drawer(d,keys){
+  const a=d.a;
+  const arows=d.rows;
+  const dg=state.drawerGrain;
+  const bk = dg==='day' ? trendKeys(arows,'day') : keys;
+  const s=series(arows,bk,dg);
+  const vals=s.map(x=>x.reg);
+  const best=Math.max(0,...vals);
+  const bestAt=bk[vals.indexOf(best)];
+  const target = dg==='day' ? agentTarget(d.id) : weeklyTarget(d.id);
+
+  // Every account this BDE has that went on to spend, newest first.
+  const acts=[...(d.wRows||[])].sort((x,y)=>(y[F.ACTD]||0)-(x[F.ACTD]||0));
+
+  return `<div class="drawer">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+        <h4 style="margin:0">Registrations by ${dg==='day'?'day':'week'}</h4>
+        <div class="seg" data-dgrain>
+          <button data-k="week" aria-pressed="${dg!=='day'}">By week</button>
+          <button data-k="day" aria-pressed="${dg==='day'}">By day</button>
+        </div>
+      </div>
+      ${miniBars(vals,bk,'var(--reg)',target,86,dg)}
+      <p style="font-size:12px;color:var(--ink-3);margin:8px 0 0">
+        Best ${dg==='day'?'day':'week'} ${best?labelFull(bestAt,dg)+' with '+fmt(best):'\u2014'} \u00b7
+        average ${fmt1(a.reg/(bk.length||1))} per ${dg==='day'?'working day':'week'} \u00b7
+        dashed line is the target of ${fmt(target)}${dg==='day'?' a working day':' a week'}
+      </p>
+      <h4 style="margin-top:20px">Most recent activations <span style="font-weight:400;color:var(--ink-3)">(${fmt(acts.length)})</span></h4>
+      ${acts.length?`<div style="max-height:260px;overflow:auto;border:1px solid var(--rule-2);border-radius:8px">
+      <table style="font-size:12.5px">
+        <thead><tr><th class="no-sort">Business</th><th class="no-sort">Registered</th><th class="no-sort">Activated</th><th class="r no-sort">Spend</th><th class="no-sort"></th></tr></thead>
+        <tbody>${acts.map(r=>`<tr>
+          <td style="max-width:230px"><div class="bizname">${esc(r[F.NAME]||'\u2014')}</div>${r[F.GID]?`<small class="bizid">${esc(r[F.GID])}</small>`:''}</td>
+          <td class="num" style="color:var(--ink-3)">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'\u2014'}</td>
+          <td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):'yes'}</td>
+          <td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">\u2014</span>'}</td>
+          <td>${(c=>c.ok?`<span class="pill hit">${salaryOn()?money(c.amt):'Qualified'}</span>`:'')(commissionFor(r))}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`
+      :'<p style="font-size:12.5px;color:var(--ink-3);margin:0">No activations in this range.</p>'}
+    </div>
+    <div>
+      <h4>Activity in the selected weeks</h4>
+      <div class="statgrid">
+        <div><span class="sk">Registrations signed up</span><span class="sv">${fmt(a.reg)}</span></div>
+        <div><span class="sk">Customers who spent</span><span class="sv">${fmt(d.w.act)}</span></div>
+        <div><span class="sk">Commission qualified</span><span class="sv">${fmt(d.w.comm)}</span></div>
+        <div><span class="sk">Net OPS in these weeks</span><span class="sv">${fmtOps(d.w.ops)}</span></div>
+        <div><span class="sk">Average per activation</span><span class="sv">${fmtOps(d.w.act?d.w.ops/d.w.act:0)}</span></div>
+      </div>
+      <p style="font-size:12px;color:var(--ink-3);margin:8px 0 0">Registrations are counted by sign-up date. Activations are counted by ${byRegBasis()?'the week the business registered':'the date the customer spent, however long ago they registered'}.</p>
+      <h4 style="margin-top:20px">What became of these registrations</h4>
+      <div class="statgrid">
+        <div><span class="sk">Have since spent</span><span class="sv">${fmt(a.act)}</span></div>
+        <div><span class="sk">Reached ${fmtOps(commMin())}</span><span class="sv">${fmt(a.comm)}</span></div>
+        <div><span class="sk">Never spent</span><span class="sv">${fmt(a.dead)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTrend(rows,keys){
+  const body=$('#trendBody');
+  const g=state.grain;
+  const bk=trendKeys(rows,g);
+  if(!bk.length){ body.innerHTML='<p style="color:var(--ink-3);font-size:13.5px">No registrations in this range.</p>'; return; }
+
+  if(state.trendMode==='team'){
+    const s=trendSeries(rows,bk,g);
+    const anyAct=s.act.some(v=>v>0);
+    const sets=[{label:'Registrations',color:'var(--reg)',vals:s.reg}];
+    if(anyAct){
+      sets.push({label:'Activations',color:'var(--act)',vals:s.act});
+      sets.push({label:'Commission qualified',color:'var(--ver)',vals:s.comm});
+    }
+    // Team target is the sum of every active BDE's expectation for one bucket.
+    const ags=[...groupRows(rows).keys()];
+    const daily=ags.reduce((n,id)=>n+agentTarget(id),0);
+    const target=g==='day'?daily:daily*5;
+    body.innerHTML=
+      `<div class="legend" style="margin-bottom:12px">`+
+      sets.map(x=>`<span><i style="background:${x.color}"></i>${x.label}</span>`).join('')+
+      (target?`<span><i style="background:var(--warn);height:0;border-top:2px dashed var(--warn)"></i>Team target ${fmt(target)} a ${g==='day'?'day':'week'}</span>`:'')+
+      `</div>`+
+      timeChart(bk,sets,g,{H:310,area:true,target}) +
+      `<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}.`+
+      (g==='day'?' Saturdays and Sundays are left off, since they are not worked.':'')+
+      (g==='day'&&s.regOff?` <b>${fmt(s.regOff)} registration${s.regOff===1?'':'s'} fall on a weekend</b> and are therefore not plotted here, though they still count everywhere else.`:'')+
+      (s.offAxis?` ${fmt(s.offAxis)} activation${s.offAxis===1?'':'s'} fall outside the weeks you have selected and are not on this chart, though they still count in the totals above.`:'')+
+      `</p>`;
+    const tot=s.reg.reduce((n,v)=>n+v,0);
+    const peak=Math.max(0,...s.reg), pi=s.reg.indexOf(peak);
+    $('#trendHint').textContent = g==='day'
+      ? `${fmt(tot)} registrations \u00b7 busiest day was ${pi>=0&&peak?dayLabelFull(bk[pi]):'—'} with ${fmt(peak)}`
+      : `${fmt(tot)} registrations \u00b7 peak of ${fmt(peak)} in a single week`;
+  }else{
+    const grp=groupRows(rows);
+    const ids=[...grp.keys()].sort((a,b)=>grp.get(b).length-grp.get(a).length);
+    body.innerHTML='<div class="smallmults">'+ids.map(id=>{
+      const arows=grp.get(id);
+      const s=trendSeries(arows,bk,g);
+      const target = g==='day' ? agentTarget(id) : weeklyTarget(id);
+      const sets=[{label:'Registrations',color:'var(--reg)',vals:s.reg}];
+      if(s.act.some(v=>v>0)) sets.push({label:'Activations',color:'var(--act)',vals:s.act});
+      const sum=s.reg.reduce((a,b)=>a+b,0);
+      // Only days the BDE actually signed someone up count toward the target.
+      const hs=dayHitStats(arows);
+      const avg=hs.active?sum/hs.active:0;
+      const pace=hs.pct==null?null:Math.round(hs.pct);
+      const cls=pace==null?'none':(pace>=75?'hit':pace>=40?'near':'miss');
+      return `<div class="sm">
+        <div class="h">
+          <b>${esc(agentName(id))}</b>
+          <span class="pill ${cls}" title="${hs.active?`Reached ${fmt(agentTarget(id))} sign-ups on ${fmt(hs.hit)} of ${fmt(hs.active)} days worked`:'No activity'}">${pace==null?'—':pace+'% of days'}</span>
+        </div>
+        ${timeChart(bk,sets,g,{W:360,H:132,L:30,R:8,B:20,ticks:2,small:true,area:true,target})}
+        <div class="smfoot">
+          <span><b>${fmt(sum)}</b> total</span>
+          <span><b>${fmt1(avg)}</b> avg/day worked</span>
+          <span><b>${fmt(hs.hit)}</b> of ${fmt(hs.active)} days worked on target</span>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+    $('#trendHint').textContent = `${ids.length} BDE${ids.length===1?'':'s'} \u00b7 dashed line is the target of ${fmt(g==='day'?state.settings.dailyTarget:state.settings.dailyTarget*5)} a ${g==='day'?'working day, weekends omitted':'week'} \u00b7 hover any panel for detail`;
+  }
+  bindCharts(body);
+}
+
+function renderQuality(rows){
+  const m=byAgent(rows);
+  const ids=[...m.keys()].sort((a,b)=>pct(m.get(b).comm,m.get(b).reg)-pct(m.get(a).comm,m.get(a).reg));
+  const tot=blank(); for(const r of rows) add(tot,r);
+
+  let h=`<div class="legend" style="margin-bottom:16px">
+    <span><i style="background:var(--s-good)"></i>Commission qualified</span>
+    <span><i style="background:var(--s-mid)"></i>Spent, no commission</span>
+    <span><i style="background:var(--s-none)"></i>Never spent</span>
+  </div>`;
+  h+='<div class="tablewrap"><table><thead><tr><th class="no-sort">BDE</th><th class="no-sort">Where the registrations end up</th><th class="r no-sort">Registrations</th><th class="r no-sort">Activated</th><th class="r no-sort">Commission qualified</th><th class="r no-sort">Net OPS per registration</th></tr></thead><tbody>';
+  for(const id of ids){
+    const a=m.get(id);
+    h+=`<tr><td class="agentcell">${esc(agentName(id))}</td>
+      <td>${stackBar([
+        {k:'Commission qualified',v:a.comm,c:'var(--s-good)'},
+        {k:'Spent, no commission',v:a.actLow,c:'var(--s-mid)'},
+        {k:'Never spent',v:a.dead,c:'var(--s-none)',t:'var(--ink-2)'}
+      ],a.reg,220)}</td>
+      <td class="r num">${fmt(a.reg)}</td>
+      <td class="r num">${pct(a.act,a.reg)}%</td>
+      <td class="r num">${pct(a.comm,a.reg)}%</td>
+      <td class="r num">${fmtOps(a.reg?a.ops/a.reg:0)}</td></tr>`;
+  }
+  h+='</tbody></table></div>';
+
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:22px">`+
+  [
+    {k:'Commission qualified',v:tot.comm,s:`${pct(tot.comm,tot.reg)}% of registrations`},
+    {k:'Spent, no commission',v:tot.actLow,s:`${pct(tot.actLow,tot.reg)}% spent but earned nothing: too little, or outside the window`},
+    {k:'Never spent',v:tot.dead,s:`${pct(tot.dead,tot.reg)}% of registrations`}
+  ].map(c=>`<div style="border:1px solid var(--rule-2);border-radius:9px;padding:12px 13px">
+      <div style="font-size:11.5px;color:var(--ink-3)">${esc(c.k)}</div>
+      <div class="num" style="font-size:22px;font-weight:600">${fmt(c.v)}</div>
+      <div style="font-size:12px;color:var(--ink-3)">${esc(c.s)}</div>
+    </div>`).join('')+'</div>';
+  $('#qualityBody').innerHTML=h;
+}
+
+function renderAudit(){
+  const body=$('#auditBody'), hint=$('#auditHint');
+  // Keep the agent picker in step with whatever the AB report contains.
+  const agSel=$('#crmAgent');
+  if(agSel){
+    const list=allAgents(), cur=auditAgent();
+    agSel.innerHTML=list.map(a=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(agentName(a))} \u00b7 #${esc(a)}</option>`).join('')
+      || '<option value="">No agents yet</option>';
+  }
+  if(!state.rows.length){
+    body.innerHTML='<p style="color:var(--ink-3);font-size:14px;margin:0">Upload an AB report first from the button in the top right. The audit compares the CRM against it.</p>';
+    hint.textContent=''; return;
+  }
+  if(!state.crm){
+    body.innerHTML=`<div class="empty" style="margin:0;border-radius:10px;padding:48px 32px">
+      <h2>No CRM report loaded</h2>
+      <p>Upload your CRM visit export and it will be checked against the AB report, business by business, to show which sign-ups the AB report is missing.</p>
+      <button class="btn btn-primary" id="btnCrm2">Upload CRM report</button>
+      <p class="note">Keep the <b>Business ID</b> column and the PO name; other columns are ignored. Rows with no Business ID are skipped, since there is nothing to match them on. Save as CSV or Excel — Apple Numbers files cannot be read directly.</p>
+    </div>`;
+    const b=$('#btnCrm2'); if(b) b.onclick=()=>$('#crmInput').click();
+    hint.textContent=''; return;
+  }
+
+  const {found,corrected,missing,later,before,extra,abInRange,from,till,agent,abCount}=auditResult();
+  const crm=state.crm;
+  const inScope=found.length+corrected.length+missing.length;
+  const totalFound=found.length+corrected.length;
+  const pctFound=inScope?Math.round(totalFound/inScope*100):0;
+  const iso=t=>{ const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  const tillIso=iso(till);
+  const fromIso=isFinite(from)?iso(from):'';
+  const nice=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const badRange=isFinite(from)&&from>till;
+  const manualCount=corrected.filter(c=>c.near.manual).length;
+
+  const tiles=[
+    {e:'\u{1F4CB}',k:'In scope',v:fmt(inScope),
+      s:`Signed up ${isFinite(from)?nice(from)+' to ':'up to '}${nice(till)}${(later.length+before.length)?` \u00b7 ${fmt(later.length+before.length)} outside the dates`:''}`,
+      c:'var(--ink-3)'},
+    {e:'\u{2705}',k:'Found in the AB report',v:fmt(totalFound),
+      s:corrected.length?`${pctFound}% in scope \u00b7 ${fmt(corrected.length)} look like a mistyped ID${manualCount?`, ${fmt(manualCount)} corrected by you`:''}`:`${pctFound}% of those in scope \u00b7 matched on Business ID`,
+      c:'var(--reg)'},
+    {e:'\u{1F50D}',k:'Missing from the AB report',v:fmt(missing.length),s:missing.length?'Not in the AB report under any ID':'Nothing missing',c:missing.length?'var(--warn)':'var(--good)'},
+    {e:'\u{2795}',k:'Extra in the AB report',v:fmt(extra.length),
+      s:extra.length?`In the AB report but not the CRM \u00b7 ${fmt(abInRange)} AB businesses in these dates`:'Every AB business here is in the CRM',
+      c:extra.length?'var(--amber)':'var(--good)'}
+  ];
+  let h='<div class="totals" style="border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;margin-bottom:18px">'+
+    tiles.map(t=>`<div class="tot"><div class="k"><span class="emo big">${t.e}</span>${t.k}</div><div class="v num" style="color:${t.c}">${t.v}</div><div class="s">${esc(t.s)}</div></div>`).join('')+
+    '</div>';
+
+  h+=`<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+    <div class="field">
+      <label for="auditFrom">Data from</label>
+      <input type="date" id="auditFrom" value="${esc(fromIso)}" max="${esc(tillIso)}">
+    </div>
+    <div class="field">
+      <label for="auditTill">Data till</label>
+      <input type="date" id="auditTill" value="${esc(tillIso)}" min="${esc(fromIso)}">
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <div class="seg" id="auditSeg">
+        <button data-k="missing" aria-pressed="${state.auditShow==='missing'}">Missing (${fmt(missing.length)})</button>
+        <button data-k="corrected" aria-pressed="${state.auditShow==='corrected'}">Corrected ID (${fmt(corrected.length)})</button>
+        <button data-k="found" aria-pressed="${state.auditShow==='found'}">Found (${fmt(found.length)})</button>
+        <button data-k="extra" aria-pressed="${state.auditShow==='extra'}">Extra in AB (${fmt(extra.length)})</button>
+        <button data-k="before" aria-pressed="${state.auditShow==='before'}">Before start (${fmt(before.length)})</button>
+        <button data-k="later" aria-pressed="${state.auditShow==='later'}">After cutoff (${fmt(later.length)})</button>
+      </div>
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <input type="search" id="auditSearch" placeholder="Search PO or Business ID" value="${esc(state.auditQ||'')}"></div>
+    <span style="margin-left:auto;font-size:12px;color:var(--ink-3);padding-bottom:8px">${esc(crm.file)}${
+      crm.sheetStats?` \u00b7 <span class="sheetcount" title="${esc(crm.sheetStats.map(x=>x.skipped?`${x.name} — no Business ID column, skipped`:`${x.name} — ${x.rows} rows, ${x.withId} with an ID`).join('\n'))}">${fmt(crm.sheets.length)} sheet${crm.sheets.length===1?'':'s'}, ${fmt(crm.read||0)} rows</span>`
+      :(crm.sheets&&crm.sheets.length?' \u00b7 '+fmt(crm.sheets.length)+' sheets':'')} \u00b7 ${fmt(abCount)} businesses under ${esc(agentName(agent))}</span>
+  </div>`;
+
+  const q=(state.auditQ||'').trim().toLowerCase();
+  let list = state.auditShow==='found' ? found : state.auditShow==='extra' ? extra : state.auditShow==='later' ? later
+           : state.auditShow==='before' ? before
+           : state.auditShow==='corrected' ? corrected : missing;
+  if(q) list=list.filter(r=>r.po.toLowerCase().includes(q)||r.id.toLowerCase().includes(q));
+  // Rows with no sign-up date sit at the bottom whichever way the column is sorted.
+  const asd=state.auditSort.dir;
+  list=[...list].sort((a,b)=>{
+    if(!a.date&&!b.date) return 0;
+    if(!a.date) return 1;
+    if(!b.date) return -1;
+    return asd*(a.date-b.date);
+  });
+  const shown=list.slice(0,state.auditLimit);
+
+  if(!list.length){
+    h+=`<p style="color:var(--ink-3);font-size:13.5px">${q?'Nothing matches that search.':(state.auditShow==='missing'?'Every business signed up on or before the cutoff was found in the AB report.':state.auditShow==='later'?'No CRM sign-ups fall after the cutoff.':state.auditShow==='before'?'No CRM sign-ups fall before the start date.':state.auditShow==='corrected'?'No IDs needed correcting.':state.auditShow==='extra'?'Every AB business registered in these dates appears in the CRM.':'No matches yet.')}</p>`;
+  }else{
+    h+=`<div class="tablewrap"><table><thead><tr><th class="rank no-sort"></th><th class="no-sort">PO name</th><th class="no-sort">Business ID</th><th data-asort="date" title="Click to sort by date">${state.auditShow==='extra'?'Registered in AB':'Signed up'}<span class="arrow">${asd<0?'\u25bc':'\u25b2'}</span></th>`+
+      (state.auditShow==='found'
+        ? '<th class="no-sort">In AB on</th><th class="no-sort">Activated</th><th class="r no-sort">Spend</th>'
+        : state.auditShow==='corrected'
+        ? '<th class="no-sort">Correct ID found</th><th class="no-sort">In AB on</th><th class="r no-sort">Spend</th>'
+        : state.auditShow==='missing' ? '<th class="no-sort">Correct ID found</th>'
+        : state.auditShow==='extra' ? '<th class="no-sort">Postcode</th><th class="no-sort">Activated</th><th class="r no-sort">Spend</th>' : '')+
+      '</tr></thead><tbody>';
+    shown.forEach((r,i)=>{
+      h+=`<tr><td class="rank num">${i+1}</td>
+        <td style="max-width:340px"><div class="bizname">${esc(r.po||'—')}</div>${r.dupes?`<small class="bizid">appears ${r.dupes+1} times in the CRM</small>`:''}</td>
+        <td><small class="bizid">${esc(r.id)}</small></td>
+        <td class="num">${r.date?new Date(r.date).toLocaleDateString('en-GB'):'<span style="color:var(--ink-3)">no date</span>'}</td>`;
+      if(state.auditShow==='missing'||state.auditShow==='corrected'){
+        const cur=r.near?r.near.id:(r.manual||'');
+        h+=`<td><input class="fixinput" type="text" spellcheck="false" data-fix="${esc(r.id)}"
+              value="${esc(cur)}" placeholder="type the correct ID"
+              title="Enter the Business ID this business actually has in the AB report">
+            ${r.near
+              ? `<small class="bizid fixid">${r.id.length===r.near.id.length?diffId(r.id,r.near.id):esc(r.near.id)}<span class="fixtag">${r.near.kind==='yours'?'yours':r.near.kind==='run'?RUN+'-char run':'0/O 1/I'}</span></small>`
+              : (r.manual?'<small class="bizid" style="color:var(--warn)">not in the AB report</small>':'')}</td>`;
+      }
+      if(state.auditShow==='corrected'){
+        const x=r.row;
+        h+=`<td class="num">${x[F.REGD]?new Date(x[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>
+          <td class="r num">${x[F.OPS]?money2(x[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>`;
+      }
+      if(state.auditShow==='extra'){
+        const x=r.row;
+        h+=`<td>${x[F.POST]?esc(x[F.POST]):'<span style="color:var(--ink-3)">\u2014</span>'}</td>
+          <td class="num">${x[F.ACTD]>0?new Date(x[F.ACTD]).toLocaleDateString('en-GB'):(x[F.ACTD]?'yes':'<span style="color:var(--ink-3)">\u2014</span>')}</td>
+          <td class="r num">${x[F.OPS]?money2(x[F.OPS]):'<span style="color:var(--ink-3)">\u2014</span>'}</td>`;
+      }
+      if(state.auditShow==='found'){
+        const x=r.row;
+        h+=`<td class="num">${x[F.REGD]?new Date(x[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>
+          <td class="num">${x[F.ACTD]>0?new Date(x[F.ACTD]).toLocaleDateString('en-GB'):(x[F.ACTD]?'yes':'<span style="color:var(--ink-3)">—</span>')}</td>
+          <td class="r num">${x[F.OPS]?money2(x[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>`;
+      }
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    if(list.length>shown.length) h+=`<button class="btn" id="auditMore" style="margin-top:14px">Show 200 more (${fmt(list.length-shown.length)} remaining)</button>`;
+  }
+
+  h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
+    ${extra.length?`<b>${fmt(abInRange)} businesses are in the AB report for these dates: ${fmt(abInRange-extra.length)} appear in the CRM and ${fmt(extra.length)} do not.</b> Those ${fmt(extra.length)} are under Extra in AB. A business counts as in the CRM if any CRM visit matches it, whatever that visit's date, so one visited just before the start date is not wrongly listed as extra. `:''}
+    Matched on Business ID against <b>group_id</b> in the AB report, ignoring case and punctuation.
+    ${crm.blank?`${fmt(crm.blank)} CRM row${crm.blank===1?'':'s'} had no Business ID and were skipped. `:''}
+    ${crm.dupes?`${fmt(crm.dupes)} duplicate Business ID${crm.dupes===1?'':'s'} in the CRM were counted once. `:''}
+    ${crm.undated?`${fmt(crm.undated)} CRM row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}
+    Every match is made only against businesses under <b>${esc(agentName(agent))}</b>, so a similar ID belonging to another agent is never claimed here.
+    An ID matches if it is identical, or once 0 and O or 1 and I are swapped, or if it shares a run of ${RUN} consecutive characters with exactly one of that agent's businesses. A run shared by more than one business is not matched, since the guess could go either way.
+    ${corrected.length?`<b>${fmt(corrected.length)} ID${corrected.length===1?'':'s'} matched only after correction</b> and count as found; the tag says which rule applied. Check the ${RUN}-char run matches in particular before relying on them. `:''}
+    You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every CRM you upload. 
+    ${badRange?'<b style="color:var(--warn)">The start date is after the end date, so nothing is in scope.</b> ':''}
+    Only sign-ups between the two dates are audited. "Data from" starts at the earliest planned visit in the CRM report${state.auditFrom?' but has been changed':''}; sign-ups before it are set aside under Before start. Sign-ups after "Data till" are held back rather than counted as missing, because the AB report has not had time to pick them up.
+    A business shown as missing was signed up on a visit on or before the cutoff but does not appear in the AB report at all, so it earns no registration and no commission until it does.
+  </p>`;
+
+  body.innerHTML=h;
+  hint.textContent=`${fmt(missing.length)} of ${fmt(inScope)} CRM sign-ups missing from the AB report`;
+
+  const seg=$('#auditSeg');
+  if(seg) seg.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    state.auditShow=b.dataset.k; state.auditLimit=150; renderAudit();
+  });
+  body.querySelectorAll('input[data-fix]').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      const typed=inp.dataset.fix, v=cleanId(inp.value);
+      if(v) state.fixes[typed]=v; else delete state.fixes[typed];
+      store.set(K_FIX,JSON.stringify(state.fixes));
+      const known=abIndexFor(auditAgent()).byId.has(v);
+      if(v&&!known) toast('No business with ID '+v+' in the AB report. It is saved, but will not match until it appears.',true);
+      renderAudit();
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); });
+  });
+  body.querySelectorAll('th[data-asort]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      state.auditSort={key:'date',dir:-state.auditSort.dir};
+      saveView(); renderAudit();
+    });
+  });
+  const from2=$('#auditFrom');
+  if(from2) from2.onchange=e=>{
+    state.auditFrom=e.target.value||null;
+    state.auditLimit=150; saveView(); renderAudit();
+  };
+  const till2=$('#auditTill');
+  if(till2) till2.onchange=e=>{
+    state.auditTill=e.target.value||null;
+    state.auditLimit=150; saveView(); renderAudit();
+  };
+  const more=$('#auditMore');
+  if(more) more.onclick=()=>{ state.auditLimit+=200; renderAudit(); };
+  const sb=$('#auditSearch');
+  if(sb) sb.addEventListener('input',e=>{
+    clearTimeout(state._aq);
+    state._aq=setTimeout(()=>{ state.auditQ=e.target.value; state.auditLimit=150; renderAudit();
+      const el=$('#auditSearch'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } },200);
+  });
+}
+
+function renderIndustry(){
+  const sec=document.getElementById('sec-industry');
+  const nav=document.querySelector('#secnav button[data-go="sec-industry"]');
+  const d=industryData();
+  const show=!!d;
+  if(sec) sec.classList.toggle('hidden',!show);
+  if(nav) nav.classList.toggle('hidden',!show);
+  if(!show) return;
+  const body=$('#industryBody'), hint=$('#industryHint');
+  if(!d.hasSector){
+    body.innerHTML='<p style="color:var(--ink-3);font-size:13.5px;margin:0">This CRM report has no sector column, so there is nothing to break down. The CRM export needs the column asking which sector the business falls into.</p>';
+    hint.textContent=''; return;
+  }
+  const {sectors,totals}=d;
+  const withSpend=sectors.filter(g=>g.matched>0);
+  const topReg=[...sectors].sort((a,b)=>b.signups-a.signups)[0];
+  const topSpend=[...withSpend].sort((a,b)=>b.spend-a.spend)[0];
+  // An activation rate needs a few businesses behind it to mean anything.
+  const rated=withSpend.filter(g=>g.matched>=3);
+  const topRate=[...rated].sort((a,b)=>b.act/b.matched-a.act/a.matched)[0];
+
+  const tiles=[
+    {e:'\u{1F4DD}',k:'Most sign-ups',v:topReg?esc(topReg.label):'\u2014',c:'var(--reg)',
+      s:topReg?`${fmt(topReg.signups)} of ${fmt(totals.signups)} sign-ups \u00b7 ${pct(topReg.signups,totals.signups)}%`:'No sign-ups'},
+    {e:'\u{1F4B7}',k:'Most spend',v:topSpend?esc(topSpend.label):'\u2014',c:'var(--ver)',
+      s:topSpend?`${fmtOps(topSpend.spend)} across ${fmt(topSpend.matched)} matched businesses`:'Nothing matched to the AB report'},
+    {e:'\u{26A1}',k:'Best activation rate',v:topRate?esc(topRate.label):'\u2014',c:'var(--act)',
+      s:topRate?`${Math.round(topRate.act/topRate.matched*100)}% of ${fmt(topRate.matched)} matched businesses spent`:'Needs 3 or more matched businesses in a sector'}
+  ];
+  let h='<div class="totals" style="border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;margin-bottom:18px">'+
+    tiles.map(t=>`<div class="tot"><div class="k"><span class="emo big">${t.e}</span>${t.k}</div><div class="v ind-v" style="color:${t.c}">${t.v}</div><div class="s">${t.s}</div></div>`).join('')+
+    '</div>';
+
+  const sk=state.indSort.key, sd=state.indSort.dir;
+  const val=g=>({name:g.label.toLowerCase(),signups:g.signups,matched:g.matched,act:g.act,
+    rate:g.matched?g.act/g.matched:-1,spend:g.spend,avg:g.matched?g.spend/g.matched:-1}[sk]);
+  const rows=[...sectors].sort((a,b)=>{
+    const x=val(a), y=val(b);
+    return typeof x==='string'?sd*x.localeCompare(y):sd*(x-y);
+  });
+  const maxS=Math.max(1,...sectors.map(g=>g.signups));
+  const maxP=Math.max(1,...sectors.map(g=>g.spend));
+  const arrow=k=>k===sk?`<span class="arrow">${sd<0?'\u25bc':'\u25b2'}</span>`:'';
+  const th=(k,l,cls='')=>`<th class="${cls}" data-isort="${k}">${l}${arrow(k)}</th>`;
+
+  h+='<div class="tablewrap"><table><thead><tr>'+
+    th('name','Sector')+th('signups','Sign-ups','r')+th('matched','Matched in AB','r')+
+    th('act','Activated','r')+th('rate','Activation rate','r')+th('spend','Total spend','r')+th('avg','Avg per business','r')+
+    '</tr></thead><tbody>';
+  for(const g of rows){
+    const rate=g.matched?Math.round(g.act/g.matched*100):null;
+    const rcls=rate==null?'none':(rate>50?'hit':rate>=25?'near':'miss');
+    h+=`<tr>
+      <td class="agentcell">${esc(g.label)}${g.noId?`<small>${fmt(g.noId)} without a Business ID</small>`:''}</td>
+      <td class="r mbar"><span class="num">${fmt(g.signups)}</span><span class="pct">${pct(g.signups,totals.signups)}%</span><div class="track"><div class="fill" style="width:${(g.signups/maxS*100).toFixed(1)}%;background:var(--reg)"></div></div></td>
+      <td class="r num">${fmt(g.matched)}${g.typo?`<span class="pct" title="Matched after correcting the ID">${fmt(g.typo)} corrected</span>`:''}</td>
+      <td class="r num">${fmt(g.act)}</td>
+      <td class="r"><span class="pill ${rcls}">${rate==null?'\u2014':rate+'%'}</span></td>
+      <td class="r mbar"><span class="num">${fmtOps(g.spend)}</span><div class="track"><div class="fill" style="width:${(g.spend/maxP*100).toFixed(1)}%;background:var(--ver)"></div></div></td>
+      <td class="r num">${g.matched?fmtOps(g.spend/g.matched):'<span style="color:var(--ink-3)">\u2014</span>'}</td>
+    </tr>`;
+  }
+  h+='</tbody></table></div>';
+  const noIdTotal=sectors.reduce((n,g)=>n+g.noId,0);
+  h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
+    <b>Sign-ups</b> counts every business in the CRM report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.
+    <b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. Matching is limited to ${esc(agentName(d.agent))}'s businesses.
+    Activation rate is shown only as a guide where few businesses are matched; the headline tile ignores sectors with fewer than three.
+  </p>`;
+  body.innerHTML=h;
+  hint.textContent=`${fmt(sectors.length)} sector${sectors.length===1?'':'s'} \u00b7 ${fmt(totals.signups)} sign-ups \u00b7 ${fmt(totals.matched)} matched to the AB report \u00b7 from the CRM report`;
+  body.querySelectorAll('th[data-isort]').forEach(t=>t.addEventListener('click',()=>{
+    const k=t.dataset.isort;
+    state.indSort = state.indSort.key===k ? {key:k,dir:-state.indSort.dir} : {key:k,dir:k==='name'?1:-1};
+    saveView(); renderIndustry();
+  }));
+}
+
+function renderSalaries(){
+  const t=$('#salaryTable'), note=$('#salaryNote'), hint=$('#salaryHint');
+  const {periods,per,seats,undated,beyond,unattributed,current,asAt}=salaryData();
+  if(!seats.length){ t.innerHTML=''; note.innerHTML=''; hint.textContent=''; return; }
+
+  const n=Number(state.salaryMonths)||0;
+  const show = n>0 ? periods.slice(-n) : periods;
+  const rate=commRate();
+
+  const book=new Map();
+  for(const seat of seats){
+    const mp=per.get(seat.key)||new Map();
+    const months=show.map(k=>{
+      const c=mp.get(k)||{qual:0,act:0,ops:0,amt:0,rows:[]};
+      const {worked,total}=monthWorkingDays(k,seat.st);
+      const comm=c.amt||0;
+      // Nothing worked and nothing earned means this person was not here.
+      if(!worked&&!comm) return {key:k,off:true,qual:0,act:0,base:0,comm:0,gross:0,tax:0,ni:0,net:0,worked:0,total};
+      const base=(baseSalaryFor(seat.id)/12)*(total?worked/total:0);
+      return {key:k,off:false,qual:c.qual,act:c.act,base,comm,worked,total,
+        partial:k===current,...payslipFor(base+comm)};
+    });
+    book.set(seat.key,{seat,months,
+      net:months.reduce((s,m)=>s+m.net,0),
+      comm:months.reduce((s,m)=>s+m.comm,0),
+      qual:months.reduce((s,m)=>s+m.qual,0),
+      worked:months.some(m=>!m.off)});
+  }
+  // People with no employment overlap in the shown window drop out of the table.
+  const sk=state.salarySort.key, sd=state.salarySort.dir;
+  const monthOf=(b,k)=>{ const m=b.months.find(x=>x.key===k); return m&&!m.off?m.net:-1; };
+  const sortVal=b=>{
+    if(sk==='name') return stintName(b.seat.id,b.seat.st).toLowerCase();
+    if(sk==='qual') return b.qual;
+    if(sk==='comm') return b.comm;
+    if(String(sk).startsWith('m:')) return monthOf(b,Number(sk.slice(2)));
+    return b.net;
+  };
+  const order=[...book.values()].filter(b=>b.worked).sort((a,b)=>{
+    const x=sortVal(a), y=sortVal(b);
+    if(typeof x==='string') return sd*x.localeCompare(y);
+    return sd*(x-y);
+  });
+
+  if(!show.length||!order.length){
+    t.innerHTML='';
+    note.innerHTML='<p style="color:var(--ink-3);font-size:13.5px;margin:0">Nobody was employed during the periods shown, or the report holds no activation dates.</p>';
+    hint.textContent='';
+    return;
+  }
+
+  const multi=new Set(order.map(b=>b.seat.id)).size!==order.length;
+  const arrow=k=>k===sk?`<span class="arrow">${sd<0?'\u25bc':'\u25b2'}</span>`:'';
+  let h=`<thead><tr><th class="rank no-sort"></th><th data-ssort="name">BDE${arrow('name')}</th>`+
+    (multi?'<th class="no-sort">Employed</th>':'')+
+    show.map(k=>`<th class="r" data-ssort="m:${k}" title="${esc(periodFull(k))} \u2014 click to sort">${periodLabel(k)}${k===current?' <span class="pill none" style="font-weight:600">so far</span>':''}${arrow('m:'+k)}<br><span style="font-weight:400;color:var(--ink-3)">${k===current?'in progress':'paid '+dshort(periodRange(k).pay)}</span></th>`).join('')+
+    `<th class="r" data-ssort="qual">Qualifying${arrow('qual')}</th><th class="r" data-ssort="comm">Commission${arrow('comm')}</th><th class="r" data-ssort="total">Total take-home${arrow('total')}</th></tr></thead><tbody>`;
+
+  order.forEach((b,i)=>{
+    const open=state.openSalary===b.seat.key;
+    h+=`<tr data-sal="${esc(b.seat.key)}"${open?' class="open"':''}>`;
+    h+=`<td class="rank num">${i+1}</td>`;
+    h+=`<td class="agentcell">${esc(stintName(b.seat.id,b.seat.st))}</td>`;
+    if(multi) h+=`<td style="color:var(--ink-3);font-size:12px">${esc(stintLabel(b.seat.st)||'throughout')}</td>`;
+    h+=b.months.map(m=>m.off
+      ? '<td class="r" style="color:var(--ink-3)">—</td>'
+      : `<td class="r num">${money(m.net)}${m.worked<m.total?`<span class="pct">${m.worked}/${m.total}d</span>`:''}</td>`).join('');
+    h+=`<td class="r num">${b.qual?`<button class="linknum" data-qual="${esc(b.seat.key)}" data-period="all">${fmt(b.qual)}</button>`:'<span style="color:var(--ink-3)">0</span>'}</td>`;
+    h+=`<td class="r num">${money(b.comm)}</td>`;
+    h+=`<td class="r num" style="font-weight:600">${money(b.net)}</td>`;
+    h+='</tr>';
+    if(open) h+=`<tr class="detail"><td colspan="${show.length+(multi?6:5)}">${salaryDrawer(b)}</td></tr>`;
+  });
+  h+='</tbody>';
+  t.innerHTML=h;
+  hint.textContent=`${order.length} ${order.length===1?'person':'people'} \u00b7 ${show.length} pay period${show.length===1?'':'s'} to ${periodLabel(current)} \u00b7 select a row for the breakdown`;
+  note.innerHTML=`<p style="color:var(--ink-3);font-size:12px;margin:0;line-height:1.6">
+    Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.
+    Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.
+    ${commCfg().testAll?`<b style="color:var(--amber)">What-if view: every activation is judged by the new commission rules, including those registered before ${new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}. These are not the salaries actually owed.</b> `:''}
+    Businesses registered before ${new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.
+    A dash means that person was not employed and earned nothing that month.
+    Tax and National Insurance are estimates on a month-by-month basis at the rates in Settings; real PAYE is cumulative across the tax year and Scottish rates differ.
+    <br>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far.
+    ${unattributed?`<br><b>${fmt(unattributed)} activation${unattributed===1?'':'s'} earn nobody commission</b>, because the business registered or spent outside any employment period for that agent code.`:''}
+    ${undated?`<br>${fmt(undated)} activation${undated===1?'':'s'} have no readable date and cannot be placed in a period.`:''}
+    ${beyond?`<br>${fmt(beyond)} activation${beyond===1?'':'s'} are dated after the end of the report and have been left out.`:''}
+  </p>`;
+}
+
+function salaryDrawer(b){
+  const worked=b.months.filter(m=>!m.off);
+  let h=`<div style="padding:18px 20px">
+    <h4 style="margin:0 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)">
+      ${esc(stintName(b.seat.id,b.seat.st))} \u00b7 agent ${esc(b.seat.id)}${stintLabel(b.seat.st)?' \u00b7 '+esc(stintLabel(b.seat.st)):''}
+    </h4>
+    <table style="font-size:12.5px">
+      <thead><tr>
+        <th class="no-sort">Period</th><th class="no-sort">Paid</th>
+        <th class="r no-sort">Activations</th><th class="r no-sort">Qualifying</th>
+        <th class="r no-sort">Base</th><th class="r no-sort">Commission</th>
+        <th class="r no-sort">Gross</th><th class="r no-sort">Income tax</th>
+        <th class="r no-sort">NI</th><th class="r no-sort">Take-home</th>
+      </tr></thead><tbody>`;
+  for(const m of b.months){
+    const r=periodRange(m.key);
+    if(m.off){
+      h+=`<tr style="color:var(--ink-3)">
+        <td>${monthName(m.key)}</td>
+        <td colspan="8" style="font-style:italic">not employed in this month</td>
+        <td class="r">—</td></tr>`;
+      continue;
+    }
+    h+=`<tr>
+      <td>${monthName(m.key)}${m.partial?' <span class="pill none">so far</span>':''}<br><span style="color:var(--ink-3);font-size:11.5px">commission ${dshort(r.start)}\u2013${dshort(r.end)}${m.worked<m.total?` \u00b7 worked ${m.worked} of ${m.total} working days`:''}</span></td>
+      <td style="color:var(--ink-3)">${m.partial?'not yet paid':dshort(r.pay)+' '+r.pay.getFullYear()}</td>
+      <td class="r num">${fmt(m.act)}</td>
+      <td class="r num">${m.qual?`<button class="linknum" data-qual="${esc(b.seat.key)}" data-period="${m.key}">${fmt(m.qual)}</button>`:'<span style="color:var(--ink-3)">0</span>'}</td>
+      <td class="r num">${money2(m.base)}</td>
+      <td class="r num">${m.comm?money2(m.comm):'<span style="color:var(--ink-3)">—</span>'}</td>
+      <td class="r num">${money2(m.gross)}</td>
+      <td class="r num" style="color:var(--warn)">${money2(m.tax)}</td>
+      <td class="r num" style="color:var(--warn)">${money2(m.ni)}</td>
+      <td class="r num" style="font-weight:600">${money2(m.net)}</td>
+    </tr>`;
+  }
+  const tot=worked.reduce((a,m)=>({act:a.act+m.act,qual:a.qual+m.qual,base:a.base+m.base,
+    comm:a.comm+m.comm,gross:a.gross+m.gross,tax:a.tax+m.tax,ni:a.ni+m.ni,net:a.net+m.net}),
+    {act:0,qual:0,base:0,comm:0,gross:0,tax:0,ni:0,net:0});
+  h+=`<tr style="border-top:2px solid var(--rule)">
+      <td style="font-weight:600">Total</td><td></td>
+      <td class="r num">${fmt(tot.act)}</td><td class="r num">${fmt(tot.qual)}</td>
+      <td class="r num">${money2(tot.base)}</td><td class="r num">${money2(tot.comm)}</td>
+      <td class="r num">${money2(tot.gross)}</td>
+      <td class="r num" style="color:var(--warn)">${money2(tot.tax)}</td>
+      <td class="r num" style="color:var(--warn)">${money2(tot.ni)}</td>
+      <td class="r num" style="font-weight:600">${money2(tot.net)}</td>
+    </tr></tbody></table>
+    <p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">
+      Commission across ${worked.length} period${worked.length===1?'':'s'} worked is ${money2(tot.comm)} before tax and about ${money2(tot.gross?tot.comm*(tot.net/tot.gross):0)} after.
+    </p>
+  </div>`;
+  return h;
+}
+
+function renderDetail(rows){
+  const q=state.filters.q.trim().toLowerCase();
+  let list=rows;
+  if(q) list=rows.filter(r=>String(r[F.NAME]).toLowerCase().includes(q)||String(r[F.POST]).toLowerCase().includes(q));
+  list=list.slice().sort((a,b)=>b[F.REGD]-a[F.REGD]);
+  const shown=list.slice(0,state.detailLimit);
+  const anyAct=rows.some(r=>r[F.ACTD]);
+  let h='<thead><tr><th class="no-sort">Business</th><th class="no-sort">Postcode</th><th class="no-sort">BDE</th><th class="no-sort">Week</th><th class="no-sort">Registered</th>'+
+    (anyAct?'<th class="no-sort">Activated</th>':'')+
+    '<th class="r no-sort">Net OPS</th><th class="no-sort">Commission</th></tr></thead><tbody>';
+  for(const r of shown){
+    const cm=commissionFor(r), q=cm.ok;
+    const bad=isGlitch(r);
+    h+=`<tr${bad?' class="glitch" title="Placeholder business name: a glitch in the AB report, left out of every figure"':''}><td style="max-width:320px"><div class="bizname">${esc(r[F.NAME]||'—')}${bad?' <span class="pill miss">Glitch \u00b7 excluded</span>':''}</div>${r[F.GID]?`<small class="bizid">${esc(r[F.GID])}</small>`:''}</td>
+      <td>${r[F.POST]?esc(r[F.POST]):'<span style="color:var(--warn)">missing</span>'}</td>
+      <td>${esc(agentName(r[F.AGENT]))}</td>
+      <td class="num">${wkLabel(wkKey(r))}</td>
+      <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>`+
+      (anyAct?`<td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):(r[F.ACTD]?'Activated':'<span style="color:var(--ink-3)">—</span>')}</td>`:'')+
+      `<td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>
+      <td>${q&&!bad?`<span class="pill hit">${salaryOn()?money(cm.amt):'Qualified'}</span>`:(cm.why==='late'&&!bad?'<span class="pill none" title="Activated outside the commission window">Too late</span>':'<span style="color:var(--ink-3)">—</span>')}</td></tr>`;
+  }
+  h+='</tbody>';
+  $('#detailTable').innerHTML=h;
+  const gl=list.filter(isGlitch).length;
+  $('#detailHint').textContent=`${fmt(list.length)} row${list.length===1?'':'s'} in the current filters${gl?` \u00b7 ${fmt(gl)} glitch${gl===1?'':'es'} flagged in red`:''}`;
+  $('#detailMore').innerHTML = list.length>shown.length
+    ? `<button class="btn" id="btnMore">Show 200 more (${fmt(list.length-shown.length)} remaining)</button>`
+    : '';
+  const bm=$('#btnMore');
+  if(bm) bm.onclick=()=>{ state.detailLimit+=200; renderDetail(filteredAll()); };
+}
+
+function renderFoot(){
+  const f=$('#foot'); if(!f) return;
+  const parts=[];
+  if(state.meta) parts.push(fileSummary());
+  if(!persistent){
+    parts.push('This browser is blocking local storage, so the report is held in memory for this session only and will clear when the tab closes. Everything still stays on this device.');
+  }else if(state.quota){
+    parts.push('This report is too large to keep on the device, so it will clear when you close the tab. Everything still stays on this device.');
+  }else{
+    parts.push('Everything on this page is read and stored on this device. No file, row or figure is transmitted anywhere, and the page works with no network connection.');
+  }
+  f.textContent=parts.join(' \u2014 ');
+}
+
+/* =======================================================================
+   Qualifying customers modal
+   -----------------------------------------------------------------------
+   Lists the exact rows behind a commission figure, so any number in the
+   Salaries table can be checked against the uploaded file.
+   ======================================================================= */
+function showQualifying(seatKey,periodKey){
+  const {per,periods,current,seats}=salaryData();
+  const seat=seats.find(x=>x.key===seatKey);
+  const id=seat?seat.id:String(seatKey).split('#')[0];
+  const mp=per.get(seatKey)||new Map();
+  const keys = periodKey==='all' ? periods : [Number(periodKey)];
+  const rows=[];
+  for(const k of keys) for(const r of (mp.get(k)||{rows:[]}).rows||[]) rows.push({k,r});
+  rows.sort((a,b)=>a.r[F.ACTD]-b.r[F.ACTD]);
+  const test=commCfg().testAll;
+  const spend=rows.reduce((n,x)=>n+x.r[F.OPS],0);
+  const amtOf=x=>commissionFor(x.r,test).amt;
+  const totalAmt=rows.reduce((n,x)=>n+amtOf(x),0);
+
+  const scope = periodKey==='all'
+    ? `${periods.length} pay period${periods.length===1?'':'s'}`
+    : periodFull(Number(periodKey));
+
+  const wrap=document.createElement('div');
+  wrap.className='scrim';
+  wrap.innerHTML=`<div class="modal wide" role="dialog" aria-modal="true" aria-label="Qualifying customers">
+    <header>
+      <h3>${esc(seat?stintName(seat.id,seat.st):agentName(id))} \u00b7 qualifying customers</h3>
+      <button class="btn btn-quiet" data-close="1">Close</button>
+    </header>
+    <div class="body" style="padding-top:16px">
+      <p style="margin-bottom:14px">${esc(scope)}. Each of these qualified for commission${test?', judged here by the new rules as a what-if':''}.
+        <b>${fmt(rows.length)} qualifying \u00b7 ${money(totalAmt)}</b> commission, on ${money2(spend)} of customer spend.</p>
+      ${rows.length?`<div class="tablewrap" style="max-height:52vh;overflow:auto">
+      <table style="font-size:12.5px">
+        <thead><tr>
+          <th class="no-sort">Business</th><th class="no-sort">Business ID</th>
+          <th class="no-sort">Postcode</th><th class="no-sort">Registered</th>
+          <th class="no-sort">Activated</th><th class="r no-sort">Spend</th>
+          <th class="r no-sort">Commission</th>${periodKey==='all'?'<th class="no-sort">Paid in</th>':''}
+        </tr></thead>
+        <tbody>${rows.map(({k,r})=>`<tr>
+          <td style="max-width:230px"><div class="bizname">${esc(r[F.NAME]||'—')}</div></td>
+          <td><small class="bizid">${esc(r[F.GID]||'—')}</small></td>
+          <td>${r[F.POST]?esc(r[F.POST]):'<span style="color:var(--warn)">missing</span>'}</td>
+          <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>
+          <td class="num">${new Date(r[F.ACTD]).toLocaleDateString('en-GB')}</td>
+          <td class="r num">${money2(r[F.OPS])}</td>
+          <td class="r num">${money(amtOf({r}))}<small class="bizid">${commissionFor(r,test).rule==='new'?'new tier':'old rate'}</small></td>
+          ${periodKey==='all'?`<td>${periodLabel(k)}${k===current?' (so far)':''}</td>`:''}
+        </tr>`).join('')}</tbody>
+        <tfoot><tr style="border-top:2px solid var(--rule)">
+          <td colspan="5" style="font-weight:600">Total</td>
+          <td class="r num" style="font-weight:600">${money2(spend)}</td>
+          <td class="r num" style="font-weight:600">${money(totalAmt)}</td>
+          ${periodKey==='all'?'<td></td>':''}
+        </tr></tfoot>
+      </table></div>`:'<p style="color:var(--ink-3)">No qualifying customers in this period.</p>'}
+      <p style="font-size:12px;color:var(--ink-3);margin:14px 0 0">Customers are placed in a period by their activation date, which is when they spent. A customer that registered months earlier still counts here, provided the same person held agent ${esc(id)} when it registered${seat&&stintLabel(seat.st)?' ('+esc(stintLabel(seat.st))+')':''}.</p>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>{ wrap.remove(); document.removeEventListener('keydown',key); };
+  const key=e=>{ if(e.key==='Escape') close(); };
+  document.addEventListener('keydown',key);
+  wrap.addEventListener('click',e=>{ if(e.target===wrap||e.target.closest('[data-close]')) close(); });
+}
+
+/* =======================================================================
+   Confirmation modal
+   -----------------------------------------------------------------------
+   Built in-page rather than using confirm(): a sandboxed frame blocks the
+   native dialog and returns false without showing anything, which silently
+   cancelled uploads and deletions.
+   ======================================================================= */
+function askConfirm(o){
+  return new Promise(resolve=>{
+    const wrap=document.createElement('div');
+    wrap.className='scrim';
+    wrap.innerHTML=`<div class="modal confirm" role="alertdialog" aria-modal="true" aria-labelledby="cfT">
+      <div class="body">
+        <h3 id="cfT">${esc(o.title)}</h3>
+        <p>${esc(o.body||'')}</p>
+      </div>
+      <footer>
+        <button class="btn" data-no="1">${esc(o.cancel||'Cancel')}</button>
+        <button class="btn ${o.danger?'btn-danger-solid':'btn-primary'}" data-yes="1">${esc(o.ok||'Confirm')}</button>
+      </footer>
+    </div>`;
+    document.body.appendChild(wrap);
+    const done=v=>{ wrap.remove(); document.removeEventListener('keydown',key); resolve(v); };
+    const key=e=>{ if(e.key==='Escape') done(false); if(e.key==='Enter') done(true); };
+    document.addEventListener('keydown',key);
+    wrap.addEventListener('click',e=>{
+      if(e.target===wrap||e.target.closest('[data-no]')) return done(false);
+      if(e.target.closest('[data-yes]')) return done(true);
+    });
+    const y=wrap.querySelector('[data-yes]'); if(y) y.focus();
+  });
+}
+
+/* =======================================================================
+   Settings modal
+   ======================================================================= */
+/* Read the employment editor back out of the modal. Periods with no name and
+   no dates are dropped, so an untouched agent stays on the simple default. */
+function readEmployment(wrap){
+  const acc={};
+  wrap.querySelectorAll('[data-emp-name]').forEach(inp=>{
+    const [id,i]=inp.dataset.empName.split('|');
+    const st=wrap.querySelector(`[data-emp-start="${id}|${i}"]`);
+    const n=inp.value.trim(), sv=st?st.value:'';
+    if(!n&&!sv) return;
+    (acc[id]=acc[id]||[]).push({n,s:sv,e:''});   // everyone runs to the present
+  });
+  const teams={};
+  wrap.querySelectorAll('[data-emp-team]').forEach(sel=>{
+    if(sel.value) teams[sel.dataset.empTeam]=sel.value;
+  });
+  state.settings.teams=teams;
+  state.settings.employment=acc;
+  // Keep names in step so anything still reading them agrees.
+  for(const id in acc){
+    const last=acc[id][acc[id].length-1];
+    if(last&&last.n) state.settings.names[id]=last.n; else delete state.settings.names[id];
+  }
+  clearStints();
+}
+
+function openSettings(){
+  const ags=allAgents();
+  const wrap=document.createElement('div');
+  wrap.className='scrim';
+  wrap.innerHTML=`<div class="modal settings" role="dialog" aria-modal="true" aria-label="Settings">
+    <header>
+      <h3>Settings</h3>
+      <button class="btn act iconly themebtn" data-theme-toggle="1" title="Switch between light and dark" aria-label="Switch between light and dark">
+        <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.8 5.8 0 0 1 6.4 2.5a5.8 5.8 0 1 0 7.1 7.1z"/></svg>
+        <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.1"/><path d="M8 1.2v1.6M8 13.2v1.6M14.8 8h-1.6M2.8 8H1.2M12.8 3.2l-1.1 1.1M4.3 11.7l-1.1 1.1M12.8 12.8l-1.1-1.1M4.3 4.3 3.2 3.2"/></svg>
+      </button>
+      <span class="savestate" aria-live="polite"></span>
+      <button class="btn btn-quiet" data-close="1">Close</button>
+    </header>
+    <div class="body">
+      <h4 class="seth"><span class="emo">&#127919;</span>Targets and commission</h4>
+      <div class="setgrid">
+        <div class="field"><label for="setDefault">Target signups/day</label>
+          <input type="number" id="setDefault" min="0" step="1" value="${esc(state.settings.dailyTarget)}"></div>
+        <div class="field"><label for="setComm">Commission qualifies at (£)
+          <i class="info" tabindex="0" data-tip="A customer must spend at least this much to count as commission qualified.">i</i></label>
+          <input type="number" id="setComm" min="0" step="1" value="${esc(state.settings.commMin)}"></div>
+        <div class="field" style="flex:1 1 240px"><label for="setActBasis">Count an activation in
+          <i class="info" tabindex="0" data-tip="A business registered in one week often spends in a later one. This decides which week its activation and commission appear against on the dashboard. Salaries always pay commission on the date the customer spent, whichever option is chosen.">i</i></label>
+          <select id="setActBasis">
+            <option value="activation"${!byRegBasis()?' selected':''}>The week the customer spent</option>
+            <option value="registration"${byRegBasis()?' selected':''}>The week the business registered</option>
+          </select></div>
+      </div>
+
+      ${salaryOn()?`
+      <details class="setmore">
+        <summary><span class="emo">&#128181;</span>Commission rules</summary>
+        <label class="setswitch">
+          <input type="checkbox" id="cmTest"${commCfg().testAll?' checked':''}>
+          <span>Apply the new rules to all history, to test salaries
+            <i class="info" tabindex="0" data-tip="A what-if view. Salaries recalculate as though the new commission rules had applied to every business, including those registered before the start date. It changes only the Salaries section, and is labelled there so it is not mistaken for pay actually owed.">i</i></span>
+        </label>
+        <div class="setgrid">
+          <div class="field"><label for="cmCut">New rules start on
+            <i class="info" tabindex="0" data-tip="Decided by the date a business registered. Anything registered before this stays on the old rule for good, even if it activates afterwards.">i</i></label>
+            <input type="date" id="cmCut" value="${esc(commCfg().cutover)}"></div>
+          <div class="field"><label for="cmOld">Old rule: activate within (months)
+            <i class="info" tabindex="0" data-tip="Old rule: ${money(COMMISSION_PER)} for spending at least the Commission qualifies at amount above, provided the business activates within this many months of registering.">i</i></label>
+            <input type="number" id="cmOld" min="0" max="24" step="1" value="${esc(commCfg().oldMonths)}"></div>
+          <div class="field"><label for="cmNew">New rule: activate within (months)
+            <i class="info" tabindex="0" data-tip="New rule: a tiered amount by spend, provided the business activates within this many months of registering. Activating later earns nothing, however much is spent.">i</i></label>
+            <input type="number" id="cmNew" min="0" max="24" step="1" value="${esc(commCfg().newMonths)}"></div>
+        </div>
+        <h4 class="seth" style="margin-top:16px"><span class="emo">&#128202;</span>New rule tiers
+          <i class="info" tabindex="0" data-tip="A business earns the amount for the highest tier its spend reaches. Spend is the business's total net OPS in the AB report.">i</i></h4>
+        <div class="tiergrid">
+          <span class="tierhead">Spend from (£)</span><span class="tierhead">Commission (£)</span>
+          ${commCfg().tiers.map((t,i)=>`
+            <input type="number" min="0" step="1" data-tier-from="${i}" value="${esc(t.from)}"${i===0?' readonly title="The first tier always starts at £0"':''}>
+            <input type="number" min="0" step="1" data-tier-amt="${i}" value="${esc(t.amt)}">`).join('')}
+        </div>
+      </details>
+
+      <details class="setmore">
+        <summary><span class="emo">&#128176;</span>Salary</summary>
+        <div class="setgrid">
+          <div class="field"><label for="setBase">Base salary a year (£)
+            <i class="info" tabindex="0" data-tip="Paid as a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.">i</i></label>
+            <input type="number" id="setBase" min="0" step="500" value="${esc(state.settings.baseSalary)}"></div>
+          <div class="field"><label for="setPStart">Commission period starts on day
+            <i class="info" tabindex="0" data-tip="Commission runs from this day of one month to the day before it in the next, so 25 gives a period of the 25th to the 24th. An activation falls in the period containing its activation date.">i</i></label>
+            <input type="number" id="setPStart" min="1" max="28" step="1" value="${esc(state.settings.periodStartDay)}"></div>
+          <div class="field"><label for="setPayDay">Paid on day of following month
+            <i class="info" tabindex="0" data-tip="The period ending on the 24th of a month is paid on this day of the month after. At 25 and 5, the payslip on 5 September covers 25 July to 24 August.">i</i></label>
+            <input type="number" id="setPayDay" min="1" max="28" step="1" value="${esc(state.settings.payDay)}"></div>
+        </div>
+
+        <h4 class="seth" style="margin-top:18px"><span class="emo">&#127974;</span>Tax and National Insurance
+          <i class="info" tabindex="0" data-tip="Defaults are the England, Wales and Northern Ireland figures. Scotland has different income tax bands. Tax is estimated month by month, whereas real PAYE is cumulative across the tax year, so figures are for planning rather than payroll.">i</i></h4>
+        <div class="setgrid">
+          <div class="field"><label for="taxPA">Personal allowance (£)</label><input type="number" id="taxPA" step="10" value="${esc(state.settings.tax.personalAllowance)}"></div>
+          <div class="field"><label for="taxHF">Higher rate starts (£)</label><input type="number" id="taxHF" step="10" value="${esc(state.settings.tax.higherFrom)}"></div>
+          <div class="field"><label for="taxAF">Additional rate starts (£)</label><input type="number" id="taxAF" step="10" value="${esc(state.settings.tax.additionalFrom)}"></div>
+          <div class="field"><label for="taxBR">Basic rate (%)</label><input type="number" id="taxBR" step="1" value="${esc(state.settings.tax.basicRate)}"></div>
+          <div class="field"><label for="taxHR">Higher rate (%)</label><input type="number" id="taxHR" step="1" value="${esc(state.settings.tax.higherRate)}"></div>
+          <div class="field"><label for="taxAR">Additional rate (%)</label><input type="number" id="taxAR" step="1" value="${esc(state.settings.tax.additionalRate)}"></div>
+          <div class="field"><label for="niPT">NI starts (£)</label><input type="number" id="niPT" step="10" value="${esc(state.settings.tax.niPrimary)}"></div>
+          <div class="field"><label for="niUEL">NI upper limit (£)</label><input type="number" id="niUEL" step="10" value="${esc(state.settings.tax.niUpper)}"></div>
+          <div class="field"><label for="niMain">NI main rate (%)</label><input type="number" id="niMain" step="1" value="${esc(state.settings.tax.niMain)}"></div>
+          <div class="field"><label for="niUp">NI rate above limit (%)</label><input type="number" id="niUp" step="1" value="${esc(state.settings.tax.niUpperRate)}"></div>
+        </div>
+      </details>
+
+      `:''}
+      <h4 class="seth"><span class="emo">&#128101;</span>Each BDE
+        <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
+      ${ags.length?`<div class="sethead"><span>Agent</span><span>Person</span><span>Started</span><span>Team</span></div>
+      <div class="setlist" id="empList">${ags.map(a=>{
+        const x=(state.settings.employment[a]&&state.settings.employment[a][0])||{n:state.settings.names[a]||'',s:''};
+        return `<div class="setrow">
+          <span class="id">#${esc(a)}</span>
+          <input type="text" data-emp-name="${esc(a)}|0" value="${esc(x.n||'')}" placeholder="Agent ${esc(a)}">
+          <input type="date" data-emp-start="${esc(a)}|0" value="${esc(x.s||'')}">
+          <select data-emp-team="${esc(a)}">
+            <option value="">No team</option>
+            ${TEAMS.map(t=>`<option value="${esc(t)}"${teamOf(a)===t?' selected':''}>${esc(t)}</option>`).join('')}
+          </select>
+        </div>`;
+      }).join('')}</div>`:'<p class="setnote">Upload a report to set up your BDE list.</p>'}
+    </div>
+    <footer>
+      <button class="btn btn-danger" data-clear="1">Reset all data</button>
+      <span style="flex:1"></span>
+      <span class="setnote" style="margin:0;align-self:center">Changes save as you make them.</span>
+    </footer>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>{ flush(); wrap.remove(); };
+  /* Settings save themselves. Every edit is applied and stored straight away,
+     so closing the modal any way at all, including clicking outside it, loses
+     nothing. Typing is debounced so each keystroke does not redraw the page. */
+  let timer=null;
+  const flush=()=>{ if(timer){ clearTimeout(timer); timer=null; applySettings(); } };
+  const status=wrap.querySelector('.savestate');
+  const applySettings=()=>{
+      state.settings.dailyTarget=Number(wrap.querySelector('#setDefault').value)||0;
+      state.settings.commMin=Number(wrap.querySelector('#setComm').value)||0;
+      const ab=wrap.querySelector('#setActBasis');
+      if(ab) state.settings.actBasis=ab.value;
+      const prev=commCfg();
+      const val=(sel,d)=>{ const el=wrap.querySelector(sel); return el&&el.value!==''?el.value:d; };
+      const tiers=prev.tiers.map((t,i)=>({
+        from: i===0 ? 0 : (+val(`[data-tier-from="${i}"]`,t.from)||0),
+        amt: +val(`[data-tier-amt="${i}"]`,t.amt)||0
+      }));
+      state.settings.comm={
+        cutover: val('#cmCut',prev.cutover),
+        oldMonths: +val('#cmOld',prev.oldMonths),
+        newMonths: +val('#cmNew',prev.newMonths),
+        testAll: wrap.querySelector('#cmTest') ? wrap.querySelector('#cmTest').checked : prev.testAll,
+        tiers
+      };
+      readEmployment(wrap);
+      /* A field that is not on the page (the salary sections are hidden until
+         unlocked) keeps its current value. Falling back to a default here would
+         quietly reset your figures whenever any other setting changed. */
+      const num=(id,d)=>{ const el=wrap.querySelector(id); if(!el) return d; const v=Number(el.value); return isFinite(v)&&el.value!==''?v:d; };
+      const T0=state.settings.tax;
+      state.settings.baseSalary=num('#setBase',state.settings.baseSalary);
+      state.settings.periodStartDay=num('#setPStart',state.settings.periodStartDay);
+      state.settings.payDay=num('#setPayDay',state.settings.payDay);
+      state.settings.tax={
+        personalAllowance:num('#taxPA',T0.personalAllowance), taperFrom:T0.taperFrom||100000,
+        higherFrom:num('#taxHF',T0.higherFrom), additionalFrom:num('#taxAF',T0.additionalFrom),
+        basicRate:num('#taxBR',T0.basicRate), higherRate:num('#taxHR',T0.higherRate), additionalRate:num('#taxAR',T0.additionalRate),
+        niPrimary:num('#niPT',T0.niPrimary), niUpper:num('#niUEL',T0.niUpper),
+        niMain:num('#niMain',T0.niMain), niUpperRate:num('#niUp',T0.niUpperRate)
+      };
+      save(); render();
+      if(status){
+        status.textContent='Saved';
+        status.classList.add('on');
+        clearTimeout(status._t);
+        status._t=setTimeout(()=>status.classList.remove('on'),1400);
+      }
+  };
+  const schedule=(delay)=>{ clearTimeout(timer); timer=setTimeout(()=>{ timer=null; applySettings(); },delay); };
+  // Toggles and dropdowns apply at once; typed fields wait for a pause.
+  wrap.addEventListener('change',e=>{ if(e.target.matches('input,select')) schedule(0); });
+  wrap.addEventListener('input',e=>{
+    if(e.target.matches('input[type=text],input[type=number]')) schedule(450);
+  });
+  wrap.addEventListener('click',e=>{
+    if(e.target===wrap||e.target.closest('[data-close]')) return close();
+    if(e.target.closest('[data-theme-toggle]')){
+      const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+      applyTheme(next); store.set(K_THEME,next);
+      return;
+    }
+    if(e.target.closest('[data-clear]')){
+      askConfirm({
+        title:'Reset all data?',
+        body:'The AB report, the CRM report, your BDE names, teams, targets, corrections and filters will all be removed from this device. This cannot be undone, and you will need to upload the reports again.',
+        ok:'Reset all data', cancel:'Keep my data', danger:true
+      }).then(ok=>{
+        if(!ok) return;
+        store.del(K_DATA); store.del(K_SET); store.del(K_META); store.del(K_VIEW); store.del(K_CRM); store.del(K_FIX);
+        state.crm=null; state.fixes={}; state.view='dashboard';
+        state.rows=[]; state.meta=null; state.quota=false;
+        state.settings={names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,
+          opsCurrency:true,commMin:40,actBasis:'activation',salaryOn:true,baseSalary:40000,
+          comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
+            tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},periodStartDay:25,payDay:5,
+          tax:{personalAllowance:12570,taperFrom:100000,higherFrom:50270,additionalFrom:125140,
+               basicRate:20,higherRate:40,additionalRate:45,
+               niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}};
+        state.filters=Object.assign({},DEFAULT_FILTERS);
+        state.openAgent=null;
+        close(); render(); toast('All data reset');
+      });
+    }
+  });
+  document.addEventListener('keydown',function onEsc(e){
+    if(e.key==='Escape'){ close(); document.removeEventListener('keydown',onEsc); }
+  });
+}
+
+/* =======================================================================
+   Events
+   ======================================================================= */
+/* Open the picker straight off the click. A confirm() here would consume the
+   browser's user-activation and the file dialog would silently never open, so
+   the replace confirmation happens after a file has been chosen instead. */
+function pickFile(){ $('#fileInput').click(); }
+$('#btnUpload').onclick=pickFile;
+$('#btnUpload2').onclick=pickFile;
+$('#fileInput').onchange=e=>{
+  const f=e.target.files[0];
+  e.target.value='';
+  acceptFile(f);
+};
+$('#btnSettings').onclick=openSettings;
+$('#btnAudit').onclick=()=>{
+  state.view = state.view==='audit' ? 'dashboard' : 'audit';
+  saveView(); render();
+  if(state.view==='audit') window.scrollTo({top:0,behavior:'smooth'});
+};
+$('#btnCrm').onclick=()=>$('#crmInput').click();
+$('#crmAgent').onchange=e=>{
+  state.auditAgent=e.target.value;
+  state.auditLimit=150; saveView(); renderAudit();
+};
+$('#crmInput').onchange=async e=>{
+  const f=e.target.files[0];
+  e.target.value='';
+  if(!f) return;
+  if(/\.numbers$/i.test(f.name)){
+    return toast('Apple Numbers files cannot be read directly. In Numbers, use File then Export To then CSV or Excel, and upload that.',true);
+  }
+  try{
+    const sheets = /\.(xlsx|xlsm)$/i.test(f.name)
+      ? await parseXLSXSheets(await f.arrayBuffer())
+      : [{name:f.name, matrix:parseCSV(await f.text(), /\.tsv$/i.test(f.name)?'\t':null)}];
+    const info=buildCrm(sheets);
+    state.crm={file:f.name,at:Date.now(),...info};
+    state.auditLimit=150; state.auditQ='';
+    // A new report has its own earliest visit, so go back to that default.
+    state.auditFrom=null; saveView();
+    store.set(K_CRM,JSON.stringify(state.crm));
+    render();
+    toast(`${fmt(info.sheets.length)} sheet${info.sheets.length===1?'':'s'} read \u00b7 ${fmt(info.read)} rows \u00b7 `+
+      `${fmt(info.rows.length)} businesses with an ID`+
+      (info.blank?` \u00b7 ${fmt(info.blank)} without one`:''));
+  }catch(err){
+    console.error(err);
+    toast(err.message||'That CRM file could not be read.',true);
+  }
+};
+
+['dragenter','dragover'].forEach(ev=>document.addEventListener(ev,e=>{
+  e.preventDefault(); $('#emptyState').classList.add('drag');
+}));
+['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{
+  e.preventDefault(); if(ev==='drop'||e.relatedTarget===null) $('#emptyState').classList.remove('drag');
+}));
+/* Dropping a file takes the same path as the Upload button, confirmation and all. */
+async function acceptFile(f){
+  if(!f) return;
+  if(state.rows.length){
+    const ok=await askConfirm({
+      title:'Replace the current report?',
+      body:`"${f.name}" will replace all data currently on the dashboard. Your BDE names, targets and filters are kept.`,
+      ok:'Replace data', cancel:'Keep current'
+    });
+    if(!ok) return;
+  }
+  handleFile(f);
+}
+document.addEventListener('drop',e=>{
+  const f=e.dataTransfer&&e.dataTransfer.files[0];
+  acceptFile(f);
+});
+
+$('#wkFrom').onchange=e=>{
+  state.filters.wFrom=+e.target.value;
+  if(state.filters.wTo!=null && state.filters.wTo<state.filters.wFrom) state.filters.wTo=state.filters.wFrom;
+  saveView(); render();
+};
+$('#wkTo').onchange=e=>{
+  state.filters.wTo=+e.target.value;
+  if(state.filters.wFrom!=null && state.filters.wFrom>state.filters.wTo) state.filters.wFrom=state.filters.wTo;
+  saveView(); render();
+};
+$('#btnTeams').onclick=e=>{
+  e.stopPropagation();
+  const d=$('#teamDrop'), open=d.classList.toggle('hidden');
+  $('#btnTeams').setAttribute('aria-expanded',String(!open));
+  $('#agentDrop').classList.add('hidden');
+};
+$('#teamDrop').addEventListener('click',e=>{
+  e.stopPropagation();
+  const all=[...$('#teamDrop').querySelectorAll('input[type=checkbox]')];
+  if(e.target.dataset.tall!==undefined){
+    state.filters.teams = e.target.dataset.tall==='1' ? null : new Set();
+    saveView(); render(); $('#teamDrop').classList.remove('hidden'); return;
+  }
+  if(e.target.type==='checkbox'){
+    const on=all.filter(b=>b.checked).map(b=>b.value);
+    state.filters.teams = on.length===all.length ? null : new Set(on);
+    saveView(); render(); $('#teamDrop').classList.remove('hidden');
+  }
+});
+$('#btnReset').onclick=()=>{
+  state.filters=Object.assign({},DEFAULT_FILTERS);
+  store.del(K_VIEW);
+  $('#search').value=''; state.detailLimit=60;
+  saveView(); render();
+};
+$('#btnAgents').onclick=e=>{
+  e.stopPropagation();
+  const d=$('#agentDrop'), open=d.classList.toggle('hidden');
+  $('#btnAgents').setAttribute('aria-expanded',String(!open));
+  $('#teamDrop').classList.add('hidden');
+};
+$('#agentDrop').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(e.target.dataset.all!==undefined){
+    state.filters.agents = e.target.dataset.all==='1' ? null : new Set();
+    saveView(); render(); $('#agentDrop').classList.remove('hidden'); return;
+  }
+  if(e.target.type==='checkbox'){
+    const boxes=[...$('#agentDrop').querySelectorAll('input[type=checkbox]')];
+    const on=boxes.filter(b=>b.checked).map(b=>b.value);
+    state.filters.agents = on.length===boxes.length ? null : new Set(on);
+    saveView(); render(); $('#agentDrop').classList.remove('hidden');
+  }
+});
+document.addEventListener('click',()=>{
+  const a=$('#agentDrop'); if(a) a.classList.add('hidden');
+  const t=$('#teamDrop'); if(t) t.classList.add('hidden');
+});
+
+$('#grainSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('#grainSeg').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  state.grain=b.dataset.k;
+  saveView(); renderTrend(filtered(),activeKeys());
+});
+$('#trendMode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('#trendMode').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  state.trendMode=b.dataset.k;
+  saveView(); renderTrend(filtered(),activeKeys());
+});
+$('#leagueTable').addEventListener('click',e=>{
+  const th=e.target.closest('th[data-sort]');
+  if(th){
+    const k=th.dataset.sort;
+    state.sort = state.sort.key===k ? {key:k,dir:-state.sort.dir} : {key:k,dir:k==='name'?1:-1};
+    saveView(); return renderLeague(filtered(),activeKeys());
+  }
+  const dg=e.target.closest('[data-dgrain] button');
+  if(dg){
+    e.stopPropagation();
+    state.drawerGrain=dg.dataset.k;
+    saveView(); return renderLeague(filtered(),activeKeys());
+  }
+  const tr=e.target.closest('tr[data-agent]');
+  if(tr){
+    state.openAgent = state.openAgent===tr.dataset.agent ? null : tr.dataset.agent;
+    renderLeague(filtered(),activeKeys());
+  }
+});
+$('#salaryMonths').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('#salaryMonths').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  state.salaryMonths=Number(b.dataset.k);
+  saveView(); renderSalaries();
+});
+$('#salaryTable').addEventListener('click',e=>{
+  const th=e.target.closest('th[data-ssort]');
+  if(th){
+    const k=th.dataset.ssort;
+    state.salarySort = state.salarySort.key===k
+      ? {key:k,dir:-state.salarySort.dir}
+      : {key:k,dir:k==='name'?1:-1};
+    saveView(); return renderSalaries();
+  }
+  const q=e.target.closest('[data-qual]');
+  if(q){ e.stopPropagation(); return showQualifying(q.dataset.qual,q.dataset.period); }
+  const tr=e.target.closest('tr[data-sal]'); if(!tr) return;
+  state.openSalary = state.openSalary===tr.dataset.sal ? null : tr.dataset.sal;
+  renderSalaries();
+});
+
+let sq;
+$('#search').addEventListener('input',e=>{
+  clearTimeout(sq);
+  sq=setTimeout(()=>{ state.filters.q=e.target.value; state.detailLimit=60; saveView(); renderDetail(filteredAll()); },180);
+});
+
+/* ---- section navigation ---- */
+const NAV_ALL=['sec-summary','sec-league','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
+const NAV=()=>NAV_ALL.filter(id=>(id!=='sec-salary'||salaryOn())&&(id!=='sec-industry'||!!state.crm));
+/* Sections must clear the sticky header when scrolled to, and the header
+   changes height as it wraps, so measure it rather than guessing. */
+function measureStick(){
+  const t=document.querySelector('.topbar');
+  if(t) document.documentElement.style.setProperty('--stick',(t.offsetHeight+14)+'px');
+}
+window.addEventListener('resize',measureStick);
+$('#secnav').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-go]'); if(!b) return;
+  const el=document.getElementById(b.dataset.go);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+});
+/* Highlight whichever section is currently under the header. */
+function markSection(){
+  const nav=$('#secnav'); if(!nav||nav.classList.contains('hidden')) return;
+  const line=(document.querySelector('.topbar')?.offsetHeight||120)+24;
+  const nav_ids=NAV();
+  let cur=nav_ids[0];
+  for(const id of nav_ids){
+    const el=document.getElementById(id);
+    if(el && el.getBoundingClientRect().top<=line) cur=id;
+  }
+  if(window.innerHeight+window.scrollY>=document.body.scrollHeight-4) cur=nav_ids[nav_ids.length-1];
+  nav.querySelectorAll('button[data-go]').forEach(b=>
+    b.setAttribute('aria-current',String(b.dataset.go===cur)));
+}
+let navTick=false;
+window.addEventListener('scroll',()=>{
+  if(navTick) return;
+  navTick=true;
+  requestAnimationFrame(()=>{ markSection(); navTick=false; });
+},{passive:true});
+
+/* Theme. Stored on its own so the choice survives even if the report is
+   cleared, and falls back to whatever the operating system prefers. */
+function systemTheme(){
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+}
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.querySelectorAll('[data-theme-toggle]').forEach(b=>{
+    b.title = t==='dark' ? 'Switch to light' : 'Switch to dark';
+  });
+}
+function initTheme(){
+  let t=null;
+  try{ t=store.get(K_THEME); }catch(e){}
+  applyTheme(t==='dark'||t==='light'?t:systemTheme());
+}
+
+/* Reveal panels as they scroll in. Elements are only hidden once we know the
+   observer exists, so nothing can be left invisible. */
+function initReveal(){
+  if(!('IntersectionObserver' in window)) return;
+  const io=new IntersectionObserver(es=>{
+    for(const e of es) if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  },{rootMargin:'0px 0px -40px 0px',threshold:.05});
+  document.querySelectorAll('main .panel, main .empty').forEach((el,i)=>{
+    if(el.dataset.reveal) return;
+    el.dataset.reveal='1';
+    el.classList.add('js-reveal');
+    el.style.animationDelay=Math.min(i,6)*45+'ms';
+    io.observe(el);
+  });
+}
+
+/* Five quick clicks on the logo toggle the salary sections. Clicks must come
+   within 1.2 seconds of each other, so ordinary clicking never trips it. No
+   message is shown, only a small pulse on the logo, so nothing on screen
+   hints that anything is hidden. */
+(function(){
+  const logo=document.querySelector('.brand .logo');
+  if(!logo) return;
+  let n=0, last=0;
+  logo.addEventListener('click',()=>{
+    const now=Date.now();
+    n = (now-last<1200) ? n+1 : 1;
+    last=now;
+    if(n<5) return;
+    n=0;
+    salaryUnlocked=!salaryUnlocked;
+    logo.classList.remove('pulse'); void logo.offsetWidth; logo.classList.add('pulse');
+    render();
+  });
+})();
+
+/* boot */
+initTheme();
+load();
+if(state.rows.length) reconcileFilters();
+// Put the saved toggles and search box back where the user left them.
+(function syncControls(){
+  const put=(sel,val)=>{ const el=$(sel); if(el) [...el.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===val))); };
+  put('#grainSeg',state.grain);
+  put('#trendMode',state.trendMode);
+  put('#salaryMonths',String(state.salaryMonths));
+  const q=$('#search'); if(q) q.value=state.filters.q||'';
+})();
+render();
+if(state.rows.length && state.meta){
+  const n=filterCount();
+  toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:''));
+}
+</script>
+</body>
+</html>
