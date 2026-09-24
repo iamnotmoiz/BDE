@@ -308,6 +308,7 @@ main{max-width:1320px;margin:0 auto;padding:0 24px 80px}
 .panel-body{padding:20px}
 
 /* ---------- filters ---------- */
+.filters .field.hidden{display:none}
 .filters{
   display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
   padding:14px 20px;background:var(--surface);border:1px solid var(--rule);
@@ -629,12 +630,27 @@ svg{display:block;max-width:100%}
     <!-- filters -->
     <div class="filters">
       <div class="field">
+        <label for="fMode">Filter by</label>
+        <div class="seg" id="fMode">
+          <button data-k="week" aria-pressed="true">Weeks</button>
+          <button data-k="day" aria-pressed="false">Days</button>
+        </div>
+      </div>
+      <div class="field wkf">
         <label for="wkFrom">Week from</label>
         <select id="wkFrom"></select>
       </div>
-      <div class="field">
+      <div class="field wkf">
         <label for="wkTo">Week to</label>
         <select id="wkTo"></select>
+      </div>
+      <div class="field dayf hidden">
+        <label for="dFrom">Date from</label>
+        <input type="date" id="dFrom">
+      </div>
+      <div class="field dayf hidden">
+        <label for="dTo">Date to</label>
+        <input type="date" id="dTo">
       </div>
       <div class="field">
         <label for="btnAgents">BDEs</label>
@@ -777,7 +793,7 @@ const state={
     tax:{personalAllowance:12570,taperFrom:100000,higherFrom:50270,additionalFrom:125140,
          basicRate:20,higherRate:40,additionalRate:45,
          niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}},
-  filters:{wFrom:null,wTo:null,agents:null,teams:null,q:''},
+  filters:{mode:'week',wFrom:null,wTo:null,dFrom:null,dTo:null,agents:null,teams:null,q:''},
   sort:{key:'reg',dir:-1},
   trendMode:'team', grain:'week', drawerGrain:'week', openAgent:null, openSalary:null, salaryMonths:6, detailLimit:60,
   view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
@@ -1327,7 +1343,7 @@ async function handleFile(file){
 /* =======================================================================
    Persistence
    ======================================================================= */
-const DEFAULT_FILTERS={wFrom:null,wTo:null,agents:null,teams:null,q:''};
+const DEFAULT_FILTERS={mode:'week',wFrom:null,wTo:null,dFrom:null,dTo:null,agents:null,teams:null,q:''};
 /* Filters and view toggles survive a refresh and a new upload; only the
    Reset filters button clears them. */
 function saveView(){
@@ -1335,7 +1351,7 @@ function saveView(){
   store.set(K_VIEW,JSON.stringify({
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
-    teams:f.teams?[...f.teams]:null, q:f.q,
+    teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
     sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
   }));
   paintFilterState();
@@ -1349,7 +1365,10 @@ function loadView(){
       agents:Array.isArray(v.agents)?new Set(v.agents):null,
       // v.team is the old single-select form, kept working for saved views.
       teams:Array.isArray(v.teams)?new Set(v.teams):(v.team&&v.team!=='*'?new Set([v.team]):null),
-      q:v.q||''
+      q:v.q||'',
+      mode:v.mode==='day'?'day':'week',
+      dFrom:typeof v.dFrom==='string'?v.dFrom:null,
+      dTo:typeof v.dTo==='string'?v.dTo:null
     };
     if(v.sort&&SORTS[v.sort.key]) state.sort=v.sort;
     if(v.grain==='day'||v.grain==='week') state.grain=v.grain;
@@ -1402,8 +1421,11 @@ function reconcileFilters(){
 function filterCount(){
   const f=state.filters, keys=weekKeys();
   let n=0;
-  if(keys.length&&f.wFrom!=null&&f.wFrom!==keys[0]) n++;
-  if(keys.length&&f.wTo!=null&&f.wTo!==keys[keys.length-1]) n++;
+  if(isDayMode()){ if(f.dFrom) n++; if(f.dTo) n++; }
+  else{
+    if(keys.length&&f.wFrom!=null&&f.wFrom!==keys[0]) n++;
+    if(keys.length&&f.wTo!=null&&f.wTo!==keys[keys.length-1]) n++;
+  }
   if(f.agents) n++;
   if(f.teams) n++;
   if(f.q) n++;
@@ -1908,6 +1930,15 @@ function agentInView(id){
 }
 function filteredAll(){
   const f=state.filters;
+  if(isDayMode()){
+    const rg=dayRange();
+    if(!rg) return [];
+    return state.rows.filter(r=>{
+      const t=r[F.REGD];
+      if(!t||t<rg[0]||t>rg[1]) return false;
+      return agentInView(r[F.AGENT]);
+    });
+  }
   return state.rows.filter(r=>{
     const k=wkKey(r);
     if(f.wFrom!=null && k<f.wFrom) return false;
@@ -1920,6 +1951,7 @@ function filtered(){ return filteredAll().filter(r=>!isGlitch(r)); }
 /* The selected week range as timestamps, Monday of the first week to the end
    of Sunday of the last. */
 function rangeBounds(){
+  if(isDayMode()) return dayRange();
   const keys=activeKeys();
   if(!keys.length) return null;
   const a=keys[0], b=keys[keys.length-1];
@@ -2035,8 +2067,14 @@ function rangeWeeks(){
   const all=weekKeys();
   if(!all.length) return [];
   const f=state.filters;
-  const lo=f.wFrom!=null?f.wFrom:all[0];
-  const hi=f.wTo!=null?f.wTo:all[all.length-1];
+  let lo,hi;
+  if(isDayMode()){
+    const r=dayRange(); if(!r) return [];
+    lo=weekOf(r[0]); hi=weekOf(r[1]);
+  }else{
+    lo=f.wFrom!=null?f.wFrom:all[0];
+    hi=f.wTo!=null?f.wTo:all[all.length-1];
+  }
   if(lo>hi) return [];
   const out=[];
   let t=isoMonday(Math.floor(lo/100),lo%100).getTime();
@@ -2052,9 +2090,15 @@ function trendKeys(rows,g){
   const keys=rangeWeeks();
   if(!keys.length) return [];
   if(g!=='day') return keys;
-  const first=keys[0], last=keys[keys.length-1];
-  const lo=isoMonday(Math.floor(first/100),first%100).getTime();
-  const hi=isoMonday(Math.floor(last/100),last%100).getTime()+6*86400000;
+  let lo,hi;
+  if(isDayMode()){
+    // Exactly the chosen dates, not the whole weeks around them.
+    const r=dayRange(); lo=midnight(r[0]); hi=midnight(r[1]);
+  }else{
+    const first=keys[0], last=keys[keys.length-1];
+    lo=isoMonday(Math.floor(first/100),first%100).getTime();
+    hi=isoMonday(Math.floor(last/100),last%100).getTime()+6*86400000;
+  }
   // Saturdays and Sundays are not worked, so they are left off the daily
   // axis rather than drawn as a run of zeros between every working week.
   const out=[];
@@ -2073,8 +2117,40 @@ function series(rows,keys,g){
   }
   return keys.map(k=>m.get(k));
 }
+/* ---------- Days mode ----------
+   The filter can work in whole weeks (as before) or in exact dates. In Days
+   mode everything downstream takes its range from dayRange(), so the league
+   table, charts and totals all cover precisely the dates chosen. */
+const isDayMode=()=>state.filters.mode==='day';
+const ymd=t=>{ const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+function dataSpan(){
+  let lo=Infinity, hi=-Infinity;
+  for(const r of state.rows){
+    if(isGlitch(r)) continue;
+    const t=r[F.REGD]; if(!t) continue;
+    if(t<lo) lo=t; if(t>hi) hi=t;
+  }
+  return isFinite(lo)?[lo,hi]:null;
+}
+/* [start of the first day, end of the last day]. Unset ends fall back to the
+   first and last registration in the report. */
+function dayRange(){
+  const f=state.filters, span=dataSpan();
+  if(!span) return null;
+  const lo=f.dFrom?new Date(f.dFrom+'T00:00:00').getTime():midnight(span[0]);
+  const hi=f.dTo?new Date(f.dTo+'T23:59:59.999').getTime():midnight(span[1])+86400000-1;
+  return [lo,hi];
+}
+const weekStart=k=>isoMonday(Math.floor(k/100),k%100).getTime();
+const weekOf=t=>{ const iw=isoWeek(new Date(t)); return iw.y*100+iw.w; };
+
 function activeKeys(){
   const f=state.filters, all=weekKeys();
+  if(isDayMode()){
+    // The weeks the chosen dates touch.
+    const r=dayRange(); if(!r) return [];
+    return all.filter(k=>{ const a=weekStart(k); return a<=r[1] && a+7*86400000-1>=r[0]; });
+  }
   return all.filter(k=>(f.wFrom==null||k>=f.wFrom)&&(f.wTo==null||k<=f.wTo));
 }
 
@@ -2270,6 +2346,21 @@ function renderFilters(){
   const opts=k=>keys.map(x=>`<option value="${x}"${x===k?' selected':''}>${wkLabelFull(x)}</option>`).join('');
   $('#wkFrom').innerHTML=opts(f.wFrom==null?keys[0]:f.wFrom);
   $('#wkTo').innerHTML=opts(f.wTo==null?keys[keys.length-1]:f.wTo);
+
+  // Show whichever pair of range controls matches the mode.
+  const day=isDayMode();
+  [...$('#fMode').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===(day?'day':'week'))));
+  document.querySelectorAll('.filters .wkf').forEach(el=>el.classList.toggle('hidden',day));
+  document.querySelectorAll('.filters .dayf').forEach(el=>el.classList.toggle('hidden',!day));
+  const span=dataSpan();
+  if(span){
+    const r=dayRange()||span, lo=ymd(span[0]), hi=ymd(span[1]);
+    const df=$('#dFrom'), dt=$('#dTo');
+    df.min=lo; df.max=hi; dt.min=lo; dt.max=hi;
+    df.value=ymd(r[0]); dt.value=ymd(r[1]);
+    // Each picker cannot cross the other.
+    df.max=dt.value||hi; dt.min=df.value||lo;
+  }
 
   const ags=allAgents();
 
@@ -3477,6 +3568,43 @@ document.addEventListener('drop',e=>{
   acceptFile(f);
 });
 
+/* Switching mode carries the current range across instead of resetting it:
+   weeks become the dates they span, and dates become the weeks they touch. */
+$('#fMode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const f=state.filters, to=b.dataset.k;
+  if((to==='day')===isDayMode()) return;
+  if(to==='day'){
+    const keys=activeKeys();
+    if(keys.length){
+      f.dFrom=ymd(weekStart(keys[0]));
+      f.dTo=ymd(weekStart(keys[keys.length-1])+6*86400000);
+      // Never reach past the report's own first and last dates.
+      const span=dataSpan();
+      if(span){ if(f.dFrom<ymd(span[0])) f.dFrom=ymd(span[0]); if(f.dTo>ymd(span[1])) f.dTo=ymd(span[1]); }
+    }
+    f.mode='day';
+  }else{
+    const r=dayRange(), all=weekKeys();
+    if(r&&all.length){
+      const a=weekOf(r[0]), z=weekOf(r[1]);
+      f.wFrom=all.find(k=>k>=a)??null;
+      f.wTo=[...all].reverse().find(k=>k<=z)??null;
+    }
+    f.mode='week';
+  }
+  saveView(); render();
+});
+$('#dFrom').onchange=e=>{
+  const f=state.filters; f.dFrom=e.target.value||null;
+  if(f.dFrom&&f.dTo&&f.dFrom>f.dTo) f.dTo=f.dFrom;
+  saveView(); render();
+};
+$('#dTo').onchange=e=>{
+  const f=state.filters; f.dTo=e.target.value||null;
+  if(f.dFrom&&f.dTo&&f.dTo<f.dFrom) f.dFrom=f.dTo;
+  saveView(); render();
+};
 $('#wkFrom').onchange=e=>{
   state.filters.wFrom=+e.target.value;
   if(state.filters.wTo!=null && state.filters.wTo<state.filters.wFrom) state.filters.wTo=state.filters.wFrom;
