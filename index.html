@@ -739,7 +739,11 @@ svg{display:block;max-width:100%}
       <div class="panel-head">
         <h2><span class="emo">🏪</span>Registered businesses</h2>
         <span class="hint" id="detailHint"></span>
-        <input type="search" id="search" placeholder="Search business or postcode">
+        <div class="seg" id="detailShow">
+          <button data-k="all" aria-pressed="true">All</button>
+          <button data-k="act" aria-pressed="false">Activated</button>
+        </div>
+        <input type="search" id="search" placeholder="Search business, postcode or ID">
       </div>
       <div class="tablewrap"><table id="detailTable"></table></div>
       <div class="panel-body" id="detailMore" style="padding-top:14px"></div>
@@ -795,7 +799,7 @@ const state={
          niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}},
   filters:{mode:'week',wFrom:null,wTo:null,dFrom:null,dTo:null,agents:null,teams:null,q:''},
   sort:{key:'reg',dir:-1},
-  trendMode:'team', grain:'week', drawerGrain:'week', openAgent:null, openSalary:null, salaryMonths:6, detailLimit:60,
+  trendMode:'team', grain:'week', drawerGrain:'week', detailShow:'all', openAgent:null, openSalary:null, salaryMonths:6, detailLimit:60,
   view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1}
@@ -1352,7 +1356,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
   }));
   paintFilterState();
 }
@@ -1379,6 +1383,7 @@ function loadView(){
     if(v.salarySort&&v.salarySort.key) state.salarySort=v.salarySort;
     if(v.auditSort&&v.auditSort.dir) state.auditSort=v.auditSort;
     if(v.drawerGrain==='day'||v.drawerGrain==='week') state.drawerGrain=v.drawerGrain;
+    if(v.detailShow==='act'||v.detailShow==='all') state.detailShow=v.detailShow;
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
     if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
@@ -3103,8 +3108,18 @@ function salaryDrawer(b){
 
 function renderDetail(rows){
   const q=state.filters.q.trim().toLowerCase();
+  // IDs are compared with spacing and punctuation stripped, so a pasted ID
+  // with a stray space, or typed in lower case, still finds its business.
+  const qid=cleanId(q);
+  const act=state.detailShow==='act';
   let list=rows;
-  if(q) list=rows.filter(r=>String(r[F.NAME]).toLowerCase().includes(q)||String(r[F.POST]).toLowerCase().includes(q));
+  // "Activated" means anything with an activation date, including one too
+  // garbled to read: the business still spent.
+  if(act) list=list.filter(r=>r[F.ACTD]);
+  if(q) list=list.filter(r=>
+    String(r[F.NAME]).toLowerCase().includes(q) ||
+    String(r[F.POST]).toLowerCase().includes(q) ||
+    (qid && cleanId(r[F.GID]).includes(qid)));
   list=list.slice().sort((a,b)=>b[F.REGD]-a[F.REGD]);
   const shown=list.slice(0,state.detailLimit);
   const anyAct=rows.some(r=>r[F.ACTD]);
@@ -3126,7 +3141,7 @@ function renderDetail(rows){
   h+='</tbody>';
   $('#detailTable').innerHTML=h;
   const gl=list.filter(isGlitch).length;
-  $('#detailHint').textContent=`${fmt(list.length)} row${list.length===1?'':'s'} in the current filters${gl?` \u00b7 ${fmt(gl)} glitch${gl===1?'':'es'} flagged in red`:''}`;
+  $('#detailHint').textContent=`${fmt(list.length)} ${act?'activated ':''}business${list.length===1?'':'es'}${q?` matching \u201c${state.filters.q.trim()}\u201d`:''} in the current filters${gl?` \u00b7 ${fmt(gl)} glitch${gl===1?'':'es'} flagged in red`:''}`;
   $('#detailMore').innerHTML = list.length>shown.length
     ? `<button class="btn" id="btnMore">Show 200 more (${fmt(list.length-shown.length)} remaining)</button>`
     : '';
@@ -3717,6 +3732,13 @@ $('#salaryTable').addEventListener('click',e=>{
   renderSalaries();
 });
 
+$('#detailShow').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('#detailShow').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  state.detailShow=b.dataset.k; state.detailLimit=60;
+  saveView(); renderDetail(filteredAll());
+});
+
 let sq;
 $('#search').addEventListener('input',e=>{
   clearTimeout(sq);
@@ -3847,6 +3869,7 @@ if(state.rows.length) reconcileFilters();
   put('#grainSeg',state.grain);
   put('#trendMode',state.trendMode);
   put('#salaryMonths',String(state.salaryMonths));
+  put('#detailShow',state.detailShow);
   const q=$('#search'); if(q) q.value=state.filters.q||'';
 })();
 render();
