@@ -742,6 +742,8 @@ svg{display:block;max-width:100%}
         <div class="seg" id="detailShow">
           <button data-k="all" aria-pressed="true">All</button>
           <button data-k="act" aria-pressed="false">Activated</button>
+          <button data-k="qual" aria-pressed="false">Qualified</button>
+          <button data-k="notq" aria-pressed="false">Not qualified</button>
         </div>
         <input type="search" id="search" placeholder="Search business, postcode or ID">
       </div>
@@ -1383,7 +1385,7 @@ function loadView(){
     if(v.salarySort&&v.salarySort.key) state.salarySort=v.salarySort;
     if(v.auditSort&&v.auditSort.dir) state.auditSort=v.auditSort;
     if(v.drawerGrain==='day'||v.drawerGrain==='week') state.drawerGrain=v.drawerGrain;
-    if(v.detailShow==='act'||v.detailShow==='all') state.detailShow=v.detailShow;
+    if(['all','act','qual','notq'].includes(v.detailShow)) state.detailShow=v.detailShow;
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
     if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
@@ -3111,11 +3113,15 @@ function renderDetail(rows){
   // IDs are compared with spacing and punctuation stripped, so a pasted ID
   // with a stray space, or typed in lower case, still finds its business.
   const qid=cleanId(q);
-  const act=state.detailShow==='act';
+  const mode=state.detailShow;
   let list=rows;
   // "Activated" means anything with an activation date, including one too
-  // garbled to read: the business still spent.
-  if(act) list=list.filter(r=>r[F.ACTD]);
+  // garbled to read: the business still spent. Qualified and Not qualified
+  // split the activated businesses between them, so the two always add up to
+  // Activated. Glitch rows are not real businesses and sit in neither.
+  if(mode==='act') list=list.filter(r=>r[F.ACTD]);
+  else if(mode==='qual') list=list.filter(r=>!isGlitch(r)&&qualifies(r));
+  else if(mode==='notq') list=list.filter(r=>!isGlitch(r)&&r[F.ACTD]&&!qualifies(r));
   if(q) list=list.filter(r=>
     String(r[F.NAME]).toLowerCase().includes(q) ||
     String(r[F.POST]).toLowerCase().includes(q) ||
@@ -3136,12 +3142,16 @@ function renderDetail(rows){
       <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>`+
       (anyAct?`<td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):(r[F.ACTD]?'Activated':'<span style="color:var(--ink-3)">—</span>')}</td>`:'')+
       `<td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>
-      <td>${q&&!bad?`<span class="pill hit">${salaryOn()?money(cm.amt):'Qualified'}</span>`:(cm.why==='late'&&!bad?'<span class="pill none" title="Activated outside the commission window">Too late</span>':'<span style="color:var(--ink-3)">—</span>')}</td></tr>`;
+      <td>${q&&!bad?`<span class="pill hit">${salaryOn()?money(cm.amt):'Qualified'}</span>`:(!bad&&r[F.ACTD]&&cm.why==='late'?'<span class="pill near" title="Spent, but activated after the commission window had closed">Too late</span>'
+         :!bad&&r[F.ACTD]&&cm.why==='low'?'<span class="pill near" title="Spent, but not enough to reach the commission threshold">Below threshold</span>'
+         :!bad&&r[F.ACTD]&&cm.why==='no date'?'<span class="pill none" title="Activated, but the date cannot be read, so the commission window cannot be checked">Date unreadable</span>'
+         :'<span style="color:var(--ink-3)">—</span>')}</td></tr>`;
   }
   h+='</tbody>';
   $('#detailTable').innerHTML=h;
   const gl=list.filter(isGlitch).length;
-  $('#detailHint').textContent=`${fmt(list.length)} ${act?'activated ':''}business${list.length===1?'':'es'}${q?` matching \u201c${state.filters.q.trim()}\u201d`:''} in the current filters${gl?` \u00b7 ${fmt(gl)} glitch${gl===1?'':'es'} flagged in red`:''}`;
+  const word={act:'activated ',qual:'qualified ',notq:'not qualified '}[mode]||'';
+  $('#detailHint').textContent=`${fmt(list.length)} ${word}business${list.length===1?'':'es'}${q?` matching \u201c${state.filters.q.trim()}\u201d`:''} in the current filters${gl?` \u00b7 ${fmt(gl)} glitch${gl===1?'':'es'} flagged in red`:''}`;
   $('#detailMore').innerHTML = list.length>shown.length
     ? `<button class="btn" id="btnMore">Show 200 more (${fmt(list.length-shown.length)} remaining)</button>`
     : '';
