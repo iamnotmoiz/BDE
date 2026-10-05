@@ -1865,7 +1865,7 @@ function salaryData(){
   const per=new Map();          // "agent#stint" -> Map(period -> counts)
   const seats=[];               // one entry per person
   const seatSeen=new Set();
-  let undated=0, beyond=0, unattributed=0, lo=Infinity;
+  let undated=0, beyond=0, unattributed=0, lo=Infinity, pending=0, pendingAmt=0;
   const agents=new Set();
 
   for(const r of rows){
@@ -1873,7 +1873,27 @@ function salaryData(){
     agents.add(id);
     if(!r[F.ACTD]) continue;
     if(r[F.ACTD]<0){ undated++; continue; }
-    const k=periodOf(r[F.ACTD]);
+    // The what-if switch judges every activation by the new rule.
+    const cm=commissionFor(r,commCfg().testAll);
+    /* When the commission lands in a salary month:
+       - old rule: the month the customer activated, as before;
+       - new rule: the month the one-month window CLOSES. Spend keeps counting
+         until then, so the amount is not known, and nothing is paid, until the
+         window has closed. Registered 5 Oct and spent 7 Oct, it is confirmed on
+         5 Nov and paid in the period containing 5 Nov, not October's.
+       A new-rule window still open on the report's date is not confirmed yet,
+       so it is held back and shown as pending rather than paid early. */
+    let when=r[F.ACTD];
+    if(cm.rule==='new'&&r[F.REGD]){
+      const close=windowEnd(r[F.REGD],commCfg().newMonths);
+      if(close>asAt){
+        pending++;
+        if(cm.ok) pendingAmt+=cm.amt;
+        continue;
+      }
+      when=close;
+    }
+    const k=periodOf(when);
     if(!k) continue;
     if(current&&k>current){ beyond++; continue; }
     const st=stintFor(id,r);
@@ -1885,8 +1905,6 @@ function salaryData(){
     if(!mp.has(k)) mp.set(k,{qual:0,act:0,ops:0,amt:0,rows:[]});
     const c=mp.get(k);
     c.act++; c.ops+=r[F.OPS];
-    // The what-if switch judges every activation by the new rule.
-    const cm=commissionFor(r,commCfg().testAll);
     if(cm.ok){ c.qual++; c.amt+=cm.amt; c.rows.push(r); }
   }
   // Every employment period gets a row, even one with no activations at all.
@@ -1901,7 +1919,7 @@ function salaryData(){
   if(!isFinite(lo)) lo=current;
   lo=Math.min(lo,firstPeriod||lo);
   const periods = current ? periodsBetween(Math.min(lo,current),current) : [];
-  return {periods,per,seats,undated,beyond,unattributed,current,asAt,
+  return {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,current,asAt,
     agents:[...agents].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))};
 }
 
@@ -2965,7 +2983,7 @@ function renderIndustry(){
 
 function renderSalaries(){
   const t=$('#salaryTable'), note=$('#salaryNote'), hint=$('#salaryHint');
-  const {periods,per,seats,undated,beyond,unattributed,current,asAt}=salaryData();
+  const {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,current,asAt}=salaryData();
   if(!seats.length){ t.innerHTML=''; note.innerHTML=''; hint.textContent=''; return; }
 
   const n=Number(state.salaryMonths)||0;
@@ -3048,6 +3066,8 @@ function renderSalaries(){
     Tax and National Insurance are estimates on a month-by-month basis at the rates in Settings; real PAYE is cumulative across the tax year and Scottish rates differ.
     <br>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far.
     ${unattributed?`<br><b>${fmt(unattributed)} activation${unattributed===1?'':'s'} earn nobody commission</b>, because the business registered or spent outside any employment period for that agent code.`:''}
+    <br>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.
+    ${pending?`<br><b>${fmt(pending)} new-rule activation${pending===1?' is':'s are'} still within ${pending===1?'its':'their'} first month</b> and not yet confirmed${pendingAmt?`, worth ${money(pendingAmt)} on current spend`:''}. ${pending===1?'It':'They'} will appear once the window closes, and the amount may rise if the customer spends more before then.`:''}
     ${undated?`<br>${fmt(undated)} activation${undated===1?'':'s'} have no readable date and cannot be placed in a period.`:''}
     ${beyond?`<br>${fmt(beyond)} activation${beyond===1?'':'s'} are dated after the end of the report and have been left out.`:''}
   </p>`;
