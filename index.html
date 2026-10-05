@@ -519,6 +519,13 @@ svg{display:block;max-width:100%}
 }
 .setswitch input{margin:0}
 .teamnames{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:4px 0 16px}
+.nbox{border:1px solid var(--rule);border-radius:10px;padding:14px 16px;margin-bottom:14px;
+  background:var(--surface-2);font-size:13px;line-height:1.5}
+.nbox p{margin:10px 0 0;font-size:12px;color:var(--ink-2)}
+.nbgrid{display:grid;grid-template-columns:1fr auto;gap:5px 18px;margin-top:10px;max-width:640px}
+.nbk{color:var(--ink-2)}
+.nbv{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.nbv.good{color:var(--good)}
 .tiergrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;max-width:360px}
 .tierhead{font-size:11.5px;color:var(--ink-3)}
 .tiergrid input[readonly]{background:var(--surface-2);color:var(--ink-3)}
@@ -905,6 +912,12 @@ function commissionFor(r,forceNew){
   return {ok,amt:ok?COMMISSION_PER:0,rule:'old',why:ok?'':'low'};
 }
 const qualifies=r=>commissionFor(r).ok;
+/* The old rule applied to any business, for comparison. */
+function oldRuleOk(r){
+  const reg=r[F.REGD], act=r[F.ACTD], ops=r[F.OPS]||0;
+  if(!reg||!act||act<0) return false;
+  return act<=windowEnd(reg,commCfg().oldMonths) && ops>=commMin();
+}
 /* An agent code is a seat, not a person: staff leave and the code is reused.
    Each agent therefore has a list of employment periods. Commission belongs
    to whoever held the code when the business both registered AND spent, so a
@@ -1866,6 +1879,7 @@ function salaryData(){
   const seats=[];               // one entry per person
   const seatSeen=new Set();
   let undated=0, beyond=0, unattributed=0, lo=Infinity, pending=0, pendingAmt=0;
+  const nb={total:0,paid:0,pending:0,pendingOk:0,low:0,late:0,wouldOld:0};
   const agents=new Set();
 
   for(const r of rows){
@@ -1886,9 +1900,11 @@ function salaryData(){
     let when=r[F.ACTD];
     if(cm.rule==='new'&&r[F.REGD]){
       const close=windowEnd(r[F.REGD],commCfg().newMonths);
+      nb.total++;
+      if(oldRuleOk(r)) nb.wouldOld++;
       if(close>asAt){
-        pending++;
-        if(cm.ok) pendingAmt+=cm.amt;
+        pending++; nb.pending++;
+        if(cm.ok){ pendingAmt+=cm.amt; nb.pendingOk++; }
         continue;
       }
       when=close;
@@ -1898,6 +1914,12 @@ function salaryData(){
     if(current&&k>current){ beyond++; continue; }
     const st=stintFor(id,r);
     if(!st){ unattributed++; continue; }   // gap between staff, or before a start date
+    // Counted here, after every exclusion, so "paid" matches the table exactly.
+    if(cm.rule==='new'){
+      if(cm.ok) nb.paid++;
+      else if(cm.why==='late') nb.late++;
+      else nb.low++;
+    }
     if(k<lo) lo=k;
     const key=id+'#'+st.i;
     if(!per.has(key)) per.set(key,new Map());
@@ -1919,7 +1941,7 @@ function salaryData(){
   if(!isFinite(lo)) lo=current;
   lo=Math.min(lo,firstPeriod||lo);
   const periods = current ? periodsBetween(Math.min(lo,current),current) : [];
-  return {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,current,asAt,
+  return {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt,
     agents:[...agents].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))};
 }
 
@@ -2983,7 +3005,7 @@ function renderIndustry(){
 
 function renderSalaries(){
   const t=$('#salaryTable'), note=$('#salaryNote'), hint=$('#salaryHint');
-  const {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,current,asAt}=salaryData();
+  const {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt}=salaryData();
   if(!seats.length){ t.innerHTML=''; note.innerHTML=''; hint.textContent=''; return; }
 
   const n=Number(state.salaryMonths)||0;
@@ -3057,7 +3079,25 @@ function renderSalaries(){
   h+='</tbody>';
   t.innerHTML=h;
   hint.textContent=`${order.length} ${order.length===1?'person':'people'} \u00b7 ${show.length} pay period${show.length===1?'':'s'} to ${periodLabel(current)} \u00b7 select a row for the breakdown`;
-  note.innerHTML=`<p style="color:var(--ink-3);font-size:12px;margin:0;line-height:1.6">
+  /* Under the new rule many activations are not paid yet, or not paid in the
+     month they happened. Without this, a drop in qualifying numbers looks like
+     an error rather than the rules working. */
+  if(nb.total){
+    const asAtTxt=new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const cut=new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const box=`<div class="nbox">
+      <b>${fmt(nb.total)} activation${nb.total===1?'':'s'} from businesses registered on or after ${cut} follow the new rules</b>
+      <div class="nbgrid">
+        <span class="nbk">Confirmed and paid</span><span class="nbv good">${fmt(nb.paid)}</span>
+        <span class="nbk">First month still open on ${asAtTxt} \u2014 not paid yet${nb.pendingOk?` (${fmt(nb.pendingOk)} on track at current spend)`:''}</span><span class="nbv">${fmt(nb.pending)}</span>
+        <span class="nbk">Spent under ${money((commCfg().tiers.find(t=>t.amt>0)||{from:76}).from)}</span><span class="nbv">${fmt(nb.low)}</span>
+        <span class="nbk">Activated after the first month</span><span class="nbv">${fmt(nb.late)}</span>
+      </div>
+      <p>Under the old ${money(commMin())} rule, ${fmt(nb.wouldOld)} of these would have qualified. Confirmed ones are paid in the period their first month closes, so September's period (25 Aug to 24 Sep) only receives businesses registered up to 24 August; later registrations are paid the following period.</p>
+    </div>`;
+    state._nbox=box;
+  }else state._nbox='';
+  note.innerHTML=(state._nbox||'')+`<p style="color:var(--ink-3);font-size:12px;margin:0;line-height:1.6">
     Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.
     Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.
     ${commCfg().testAll?`<b style="color:var(--amber)">What-if view: every activation is judged by the new commission rules, including those registered before ${new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}. These are not the salaries actually owed.</b> `:''}
