@@ -2553,7 +2553,7 @@ function drawer(d,keys){
           <td class="num" style="color:var(--ink-3)">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'\u2014'}</td>
           <td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):'yes'}</td>
           <td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">\u2014</span>'}</td>
-          <td>${(c=>c.ok?`<span class="pill hit">${salaryOn()?money(c.amt):'Qualified'}</span>`:'')(commissionFor(r))}</td>
+          <td>${(c=>c.ok?`<span class="pill hit">${money(c.amt)}</span>`:'')(commissionFor(r))}</td>
         </tr>`).join('')}</tbody>
       </table></div>`
       :'<p style="font-size:12.5px;color:var(--ink-3);margin:0">No activations in this range.</p>'}
@@ -3142,7 +3142,7 @@ function renderDetail(rows){
       <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>`+
       (anyAct?`<td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):(r[F.ACTD]?'Activated':'<span style="color:var(--ink-3)">—</span>')}</td>`:'')+
       `<td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>
-      <td>${q&&!bad?`<span class="pill hit">${salaryOn()?money(cm.amt):'Qualified'}</span>`:(!bad&&r[F.ACTD]&&cm.why==='late'?'<span class="pill near" title="Spent, but activated after the commission window had closed">Too late</span>'
+      <td>${q&&!bad?`<span class="pill hit">${money(cm.amt)}</span>`:(!bad&&r[F.ACTD]&&cm.why==='late'?'<span class="pill near" title="Spent, but activated after the commission window had closed">Too late</span>'
          :!bad&&r[F.ACTD]&&cm.why==='low'?'<span class="pill near" title="Spent, but not enough to reach the commission threshold">Below threshold</span>'
          :!bad&&r[F.ACTD]&&cm.why==='no date'?'<span class="pill none" title="Activated, but the date cannot be read, so the commission window cannot be checked">Date unreadable</span>'
          :'<span style="color:var(--ink-3)">—</span>')}</td></tr>`;
@@ -3339,14 +3339,14 @@ function openSettings(){
       <details class="setmore">
         <summary><span class="emo">&#128181;</span>Commission rules</summary>
         <div class="setgrid">
-        <div class="field"><label for="setComm">Commission qualifies at (£)
+        <div class="field"><label for="setComm">Old commission qualified at (£)
           <i class="info" tabindex="0" data-tip="Old rule only: a business registered before the new rules start must spend at least this much to qualify. Businesses on the new rule use the tier bands below instead.">i</i></label>
           <input type="number" id="setComm" min="0" step="1" value="${esc(state.settings.commMin)}"></div>
           <div class="field"><label for="cmCut">New rules start on
             <i class="info" tabindex="0" data-tip="Decided by the date a business registered. Anything registered before this stays on the old rule for good, even if it activates afterwards.">i</i></label>
             <input type="date" id="cmCut" value="${esc(commCfg().cutover)}"></div>
           <div class="field"><label for="cmOld">Old rule: activate within (months)
-            <i class="info" tabindex="0" data-tip="Old rule: ${money(COMMISSION_PER)} for spending at least the Commission qualifies at amount, provided the business activates within this many months of registering.">i</i></label>
+            <i class="info" tabindex="0" data-tip="Old rule: ${money(COMMISSION_PER)} for spending at least the Old commission qualified at amount, provided the business activates within this many months of registering.">i</i></label>
             <input type="number" id="cmOld" min="0" max="24" step="1" value="${esc(commCfg().oldMonths)}"></div>
           <div class="field"><label for="cmNew">New rule: activate within (months)
             <i class="info" tabindex="0" data-tip="New rule: a tiered amount by spend, provided the business activates within this many months of registering. Activating later earns nothing, however much is spent.">i</i></label>
