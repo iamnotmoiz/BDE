@@ -3324,13 +3324,10 @@ function openSettings(){
       <button class="btn btn-quiet" data-close="1">Close</button>
     </header>
     <div class="body">
-      <h4 class="seth"><span class="emo">&#127919;</span>Targets and commission</h4>
+      <h4 class="seth"><span class="emo">&#127919;</span>Targets</h4>
       <div class="setgrid">
         <div class="field"><label for="setDefault">Target signups/day</label>
           <input type="number" id="setDefault" min="0" step="1" value="${esc(state.settings.dailyTarget)}"></div>
-        <div class="field"><label for="setComm">Commission qualifies at (£)
-          <i class="info" tabindex="0" data-tip="A customer must spend at least this much to count as commission qualified.">i</i></label>
-          <input type="number" id="setComm" min="0" step="1" value="${esc(state.settings.commMin)}"></div>
         <div class="field" style="flex:1 1 240px"><label for="setActBasis">Count an activation in
           <i class="info" tabindex="0" data-tip="A business registered in one week often spends in a later one. This decides which week its activation and commission appear against on the dashboard. Salaries always pay commission on the date the customer spent, whichever option is chosen.">i</i></label>
           <select id="setActBasis">
@@ -3339,20 +3336,17 @@ function openSettings(){
           </select></div>
       </div>
 
-      ${salaryOn()?`
       <details class="setmore">
         <summary><span class="emo">&#128181;</span>Commission rules</summary>
-        <label class="setswitch">
-          <input type="checkbox" id="cmTest"${commCfg().testAll?' checked':''}>
-          <span>Apply the new rules to all history, to test salaries
-            <i class="info" tabindex="0" data-tip="A what-if view. Salaries recalculate as though the new commission rules had applied to every business, including those registered before the start date. It changes only the Salaries section, and is labelled there so it is not mistaken for pay actually owed.">i</i></span>
-        </label>
         <div class="setgrid">
+        <div class="field"><label for="setComm">Commission qualifies at (£)
+          <i class="info" tabindex="0" data-tip="Old rule only: a business registered before the new rules start must spend at least this much to qualify. Businesses on the new rule use the tier bands below instead.">i</i></label>
+          <input type="number" id="setComm" min="0" step="1" value="${esc(state.settings.commMin)}"></div>
           <div class="field"><label for="cmCut">New rules start on
             <i class="info" tabindex="0" data-tip="Decided by the date a business registered. Anything registered before this stays on the old rule for good, even if it activates afterwards.">i</i></label>
             <input type="date" id="cmCut" value="${esc(commCfg().cutover)}"></div>
           <div class="field"><label for="cmOld">Old rule: activate within (months)
-            <i class="info" tabindex="0" data-tip="Old rule: ${money(COMMISSION_PER)} for spending at least the Commission qualifies at amount above, provided the business activates within this many months of registering.">i</i></label>
+            <i class="info" tabindex="0" data-tip="Old rule: ${money(COMMISSION_PER)} for spending at least the Commission qualifies at amount, provided the business activates within this many months of registering.">i</i></label>
             <input type="number" id="cmOld" min="0" max="24" step="1" value="${esc(commCfg().oldMonths)}"></div>
           <div class="field"><label for="cmNew">New rule: activate within (months)
             <i class="info" tabindex="0" data-tip="New rule: a tiered amount by spend, provided the business activates within this many months of registering. Activating later earns nothing, however much is spent.">i</i></label>
@@ -3367,9 +3361,14 @@ function openSettings(){
             <input type="number" min="0" step="1" data-tier-amt="${i}" value="${esc(t.amt)}">`).join('')}
         </div>
       </details>
-
+      ${salaryOn()?`
       <details class="setmore">
         <summary><span class="emo">&#128176;</span>Salary</summary>
+        <label class="setswitch">
+          <input type="checkbox" id="cmTest"${commCfg().testAll?' checked':''}>
+          <span>Apply the new rules to all history, to test salaries
+            <i class="info" tabindex="0" data-tip="A what-if view. Salaries recalculate as though the new commission rules had applied to every business, including those registered before the start date. It changes only the Salaries section, and is labelled there so it is not mistaken for pay actually owed.">i</i></span>
+        </label>
         <div class="setgrid">
           <div class="field"><label for="setBase">Base salary a year (£)
             <i class="info" tabindex="0" data-tip="Paid as a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.">i</i></label>
@@ -3397,7 +3396,6 @@ function openSettings(){
           <div class="field"><label for="niUp">NI rate above limit (%)</label><input type="number" id="niUp" step="1" value="${esc(state.settings.tax.niUpperRate)}"></div>
         </div>
       </details>
-
       `:''}
       <h4 class="seth"><span class="emo">&#128101;</span>Each BDE
         <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
@@ -3435,7 +3433,8 @@ function openSettings(){
   const status=wrap.querySelector('.savestate');
   const applySettings=()=>{
       state.settings.dailyTarget=Number(wrap.querySelector('#setDefault').value)||0;
-      state.settings.commMin=Number(wrap.querySelector('#setComm').value)||0;
+      const cmEl=wrap.querySelector('#setComm');
+      if(cmEl) state.settings.commMin=Number(cmEl.value)||0;
       const ab=wrap.querySelector('#setActBasis');
       if(ab) state.settings.actBasis=ab.value;
       const prev=commCfg();
