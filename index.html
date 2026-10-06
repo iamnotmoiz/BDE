@@ -203,6 +203,8 @@ tbody tr:hover .pill{transform:scale(1.04)}
 .act svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .act.iconly{padding:8px 10px}
+.dlbtn{padding:6px 8px}
+.dlbtn.hovername::after{right:0;top:calc(100% + 6px)}
 /* The Audit button swaps icon and wording when the audit is open. */
 #btnAudit .when-open{display:none}
 #btnAudit.is-open .when-open{display:inline-block}
@@ -420,6 +422,27 @@ svg{display:block;max-width:100%}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:14px;height:3px;border-radius:2px;display:inline-block;flex:none}
+.lgdbar{gap:4px 6px;margin-bottom:12px}
+.lgd{
+  display:inline-flex;align-items:center;gap:8px;padding:5px 9px;border-radius:7px;
+  border:1px solid transparent;background:none;color:var(--ink-2);font-size:12.5px;
+  transition:background .14s var(--ease),color .14s var(--ease);
+}
+.lgd:hover{background:var(--hover)}
+.lgd .box{
+  width:15px;height:15px;border-radius:4px;border:2px solid var(--c);flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .14s var(--ease);
+}
+.lgd.dash .box{border-style:dashed}
+.lgd[aria-pressed="true"] .box{background:var(--c)}
+.lgd.dash[aria-pressed="true"] .box{border-style:solid}
+.lgd[aria-pressed="true"] .box::after{
+  content:'';width:4px;height:8px;margin-top:-2px;border:solid var(--surface);
+  border-width:0 2px 2px 0;transform:rotate(45deg);
+}
+.lgd[aria-pressed="false"]{color:var(--ink-3)}
+.chart .tip .tr i.dash{width:10px;height:0;border-top:2px dashed;border-radius:0;background:none}
 .seg{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden}
 .seg button{border:none;background:var(--surface);padding:6px 13px;font-size:13px}
 .seg button+button{border-left:1px solid var(--rule)}
@@ -500,7 +523,7 @@ svg{display:block;max-width:100%}
 .modal.confirm .body p{font-size:14px;line-height:1.55;margin-bottom:18px}
 .btn-danger-solid{background:var(--warn);border-color:var(--warn);color:var(--on-danger)}
 .btn-danger-solid:hover{background:var(--danger-hi);border-color:var(--danger-hi)}
-.setrow{display:grid;grid-template-columns:52px 1fr 140px 120px;gap:9px;align-items:center;margin-bottom:8px}
+.setrow{display:grid;grid-template-columns:52px 1fr 140px 120px 36px;gap:9px;align-items:center;margin-bottom:8px}
 .setrow input[type=date]{font-size:12.5px;padding:7px 6px}
 .setrow select{font-size:12.5px;padding:7px 6px;min-width:0;width:100%}
 .setrow .id{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
@@ -556,7 +579,7 @@ svg{display:block;max-width:100%}
 .setmore summary .emo{font-size:14px;margin-right:8px}
 .setmore summary{display:flex;align-items:center}
 .setmore .setgrid{margin-top:12px}
-.sethead{display:grid;grid-template-columns:52px 1fr 140px 120px;gap:9px;font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+.sethead{display:grid;grid-template-columns:52px 1fr 140px 120px 36px;gap:9px;font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
 
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
@@ -788,6 +811,33 @@ const store={
   },
   del(k){ try{ localStorage.removeItem(k); }catch(e){} delete mem[k]; }
 };
+/* Every key the app writes starts "sig_ab_". Earlier builds used older names
+   (rows_v1 to rows_v6 and so on), and those copies were never read again or
+   removed, so they could quietly hold several old AB reports. */
+const APP_PREFIX='sig_ab_';
+const liveKeys=()=>new Set([K_DATA,K_SET,K_META,K_VIEW,K_CRM,K_FIX,K_THEME]);
+function appKeys(){
+  const out=[];
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith(APP_PREFIX)) out.push(k); } }
+  catch(e){}
+  return out;
+}
+// Browsers hold this storage as UTF-16, two bytes a character.
+function keyBytes(k){
+  try{ return ((localStorage.getItem(k)||'').length+k.length)*2; }catch(e){ return 0; }
+}
+const mb=b=>(b/1048576).toFixed(b<1048576?2:1)+' MB';
+/* Remove leftovers from older builds. Nothing reads them, so this only frees space. */
+function sweepOldVersions(){
+  const live=liveKeys(); let n=0, freed=0;
+  for(const k of appKeys()){
+    if(live.has(k)) continue;
+    freed+=keyBytes(k);
+    try{ localStorage.removeItem(k); n++; }catch(e){}
+  }
+  return {n,freed};
+}
+
 (function probe(){ try{ localStorage.setItem('__p','1'); localStorage.removeItem('__p'); }catch(e){ persistent=false; } })();
 
 /* =======================================================================
@@ -798,7 +848,7 @@ const NF=11;
 
 const state={
   rows:[], meta:null,
-  settings:{names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,
+  settings:{names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,actTarget:3,
     opsCurrency:true,commMin:40,actBasis:'activation',
     comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
       tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},
@@ -938,7 +988,7 @@ function stints(id){
   _stints[id]=out;
   return out;
 }
-const TEAMS=['Team 1','Team 2','Team 3','Team 4','Team 5','Inactive'];
+const TEAMS=['Team 1','Team 2','Team 3','Team 4','Inactive'];
 const teamOf=id=>(state.settings.teams||{})[id]||'';
 /* Teams keep a fixed internal key ("Team 1") and carry a display name on top.
    Renaming therefore never breaks saved assignments or filters. */
@@ -1000,6 +1050,7 @@ function agentTarget(id){
   return (t===''||t==null||isNaN(t)) ? Number(state.settings.dailyTarget)||0 : Number(t);
 }
 const weeklyTarget=id=>agentTarget(id)*5;
+const actTargetDay=()=>{ const v=Number(state.settings.actTarget); return isFinite(v)?v:3; };
 /* A BDE's target is judged on the days they actually worked: of the days they
    signed anyone up at all, on how many did they reach the daily target?
    Days with no activity count neither way, so holidays, days off and a
@@ -1371,7 +1422,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
   }));
   paintFilterState();
 }
@@ -1399,6 +1450,7 @@ function loadView(){
     if(v.auditSort&&v.auditSort.dir) state.auditSort=v.auditSort;
     if(v.drawerGrain==='day'||v.drawerGrain==='week') state.drawerGrain=v.drawerGrain;
     if(['all','act','qual','notq'].includes(v.detailShow)) state.detailShow=v.detailShow;
+    if(Array.isArray(v.trendOff)) state.trendOff=v.trendOff.filter(k=>k in SERIES);
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
     if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
@@ -2217,7 +2269,10 @@ function timeChart(keys,sets,g,opt){
   const W=opt.W||980, H=opt.H||300, L=opt.L??48, R=opt.R??16, T=14, B=opt.B??34;
   if(!keys.length) return '<p style="color:var(--ink-3);font-size:13.5px">No data in this range.</p>';
   const ticks=opt.ticks??4;
-  const max=niceMax(Math.max(1,...sets.flatMap(s=>s.vals),opt.target||0));
+  // Any number of dashed target lines. A plain `target` still works as one red line.
+  const targets=(opt.targets||(opt.target>0?[{value:opt.target,color:'var(--warn)',label:'Target'}]:[]))
+    .filter(t=>t&&t.value>0);
+  const max=niceMax(Math.max(1,...sets.flatMap(s=>s.vals),...targets.map(t=>t.value)));
   const iw=W-L-R, ih=H-T-B;
   const n=keys.length;
   const step=n>1?iw/(n-1):0;
@@ -2229,9 +2284,9 @@ function timeChart(keys,sets,g,opt){
     gg+=`<line x1="${L}" x2="${W-R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--rule-2)" stroke-width="1"/>`;
     gg+=`<text x="${L-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="${opt.small?9.5:11}" fill="var(--ink-3)">${fmt(v)}</text>`;
   }
-  if(opt.target>0){
-    const ty=y(opt.target);
-    gg+=`<line x1="${L}" x2="${W-R}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="4 3" opacity=".7"/>`;
+  for(const t of targets){
+    const ty=y(t.value);
+    gg+=`<line x1="${L}" x2="${W-R}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="${t.color}" stroke-width="${opt.small?1.2:1.4}" stroke-dasharray="5 4" opacity=".85"/>`;
   }
   const lbl=Math.max(1,Math.ceil(n/(opt.small?4:14)));
   keys.forEach((k,i)=>{ if(i%lbl===0||i===n-1)
@@ -2254,7 +2309,7 @@ function timeChart(keys,sets,g,opt){
   const meta={W,H,L,T,ih,max,step,n,g,
     keys:keys.map(k=>labelFull(k,g)),
     sets:sets.map(s=>({label:s.label,color:s.color,vals:s.vals})),
-    target:opt.target||0, note:opt.note||''};
+    targets:targets.map(t=>({value:t.value,color:t.color,label:t.label})), note:opt.note||''};
   return `<div class="chart" data-meta='${esc(JSON.stringify(meta))}'>`+
     `<svg viewBox="0 0 ${W} ${H}" width="100%"${opt.small?'':` height="${H}"`} preserveAspectRatio="xMidYMid meet" style="display:block${opt.small?';height:auto':''}" role="img" aria-label="Registrations over time">${gg}</svg>`+
     `<div class="tip" hidden></div></div>`;
@@ -2282,7 +2337,7 @@ function bindCharts(root){
       dots.forEach((d,si)=>{ d.setAttribute('cx',px); d.setAttribute('cy',yOf(m.sets[si].vals[i])); });
       const rows=m.sets.map(s=>
         `<span class="tr"><i style="background:${s.color}"></i>${esc(s.label)}<b>${fmt(s.vals[i])}</b></span>`).join('');
-      const tgt=m.target?`<span class="tr"><i style="background:var(--warn)"></i>Target<b>${fmt(m.target)}</b></span>`:'';
+      const tgt=(m.targets||[]).map(t=>`<span class="tr"><i class="dash" style="border-color:${t.color}"></i>${esc(t.label)}<b>${fmt(t.value)}</b></span>`).join('');
       tip.innerHTML=`<strong>${esc(m.keys[i])}</strong>${rows}${tgt}`;
       tip.hidden=false;
       const frac=px/m.W;
@@ -2618,31 +2673,56 @@ function drawer(d,keys){
   </div>`;
 }
 
+/* Lines on the trend charts. The legend doubles as a set of switches, shared
+   by the whole-team chart and every per-BDE panel, so turning a line off in
+   one view turns it off in the other too. */
+const SERIES={
+  reg:{label:'Registrations',color:'var(--reg)'},
+  act:{label:'Activations',color:'var(--act)'},
+  comm:{label:'Commission qualified',color:'var(--ver)'},
+  treg:{label:'Sign-ups target',color:'var(--warn)',dash:true},
+  tact:{label:'Activations target',color:'var(--amber)',dash:true}
+};
+const trendOff=()=>new Set(state.trendOff||[]);
+function trendLegend(items){
+  const off=trendOff();
+  return `<div class="legend lgdbar">`+items.map(it=>{
+    const on=!off.has(it.key), c=SERIES[it.key];
+    return `<button class="lgd${c.dash?' dash':''}" data-series="${it.key}" aria-pressed="${on}" style="--c:${c.color}"
+      title="${on?'Hide':'Show'} ${esc(c.label.toLowerCase())}"><span class="box"></span>${esc(it.text||c.label)}</button>`;
+  }).join('')+`</div>`;
+}
+
 function renderTrend(rows,keys){
   const body=$('#trendBody');
   const g=state.grain;
   const bk=trendKeys(rows,g);
   if(!bk.length){ body.innerHTML='<p style="color:var(--ink-3);font-size:13.5px">No registrations in this range.</p>'; return; }
+  const off=trendOff();
+  const per=g==='day'?'a day':'a week', mult=g==='day'?1:5;
+  const grp=groupRows(rows);
+  const anyAct=rows.some(r=>r[F.ACTD]);
+  const lines=(s)=>[
+    {key:'reg',vals:s.reg},
+    ...(anyAct?[{key:'act',vals:s.act},{key:'comm',vals:s.comm}]:[])
+  ].filter(x=>!off.has(x.key)).map(x=>({label:SERIES[x.key].label,color:SERIES[x.key].color,vals:x.vals}));
+  const dashes=(treg,tact)=>[
+    {key:'treg',value:treg},{key:'tact',value:tact}
+  ].filter(t=>t.value>0&&!off.has(t.key)).map(t=>({value:t.value,color:SERIES[t.key].color,label:SERIES[t.key].label}));
 
   if(state.trendMode==='team'){
     const s=trendSeries(rows,bk,g);
-    const anyAct=s.act.some(v=>v>0);
-    const sets=[{label:'Registrations',color:'var(--reg)',vals:s.reg}];
-    if(anyAct){
-      sets.push({label:'Activations',color:'var(--act)',vals:s.act});
-      sets.push({label:'Commission qualified',color:'var(--ver)',vals:s.comm});
-    }
-    // Team target is the sum of every active BDE's expectation for one bucket.
-    const ags=[...groupRows(rows).keys()];
-    const daily=ags.reduce((n,id)=>n+agentTarget(id),0);
-    const target=g==='day'?daily:daily*5;
-    body.innerHTML=
-      `<div class="legend" style="margin-bottom:12px">`+
-      sets.map(x=>`<span><i style="background:${x.color}"></i>${x.label}</span>`).join('')+
-      (target?`<span><i style="background:var(--warn);height:0;border-top:2px dashed var(--warn)"></i>Team target ${fmt(target)} a ${g==='day'?'day':'week'}</span>`:'')+
-      `</div>`+
-      timeChart(bk,sets,g,{H:310,area:true,target}) +
-      `<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}.`+
+    // Team targets are each BDE's expectation added up, for one day or week.
+    const ids=[...grp.keys()];
+    const treg=ids.reduce((n,id)=>n+agentTarget(id),0)*mult;
+    const tact=actTargetDay()*ids.length*mult;
+    const items=[{key:'reg'}];
+    if(anyAct) items.push({key:'act'},{key:'comm'});
+    if(treg) items.push({key:'treg',text:`Sign-ups target ${fmt(treg)} ${per}`});
+    if(tact&&anyAct) items.push({key:'tact',text:`Activations target ${fmt(tact)} ${per}`});
+    body.innerHTML=trendLegend(items)+
+      timeChart(bk,lines(s),g,{H:310,area:!off.has('reg'),targets:dashes(treg,anyAct?tact:0)})+
+      `<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}. Click a name in the key to hide or show its line.`+
       (g==='day'?' Saturdays and Sundays are left off, since they are not worked.':'')+
       (g==='day'&&s.regOff?` <b>${fmt(s.regOff)} registration${s.regOff===1?'':'s'} fall on a weekend</b> and are therefore not plotted here, though they still count everywhere else.`:'')+
       (s.offAxis?` ${fmt(s.offAxis)} activation${s.offAxis===1?'':'s'} fall outside the weeks you have selected and are not on this chart, though they still count in the totals above.`:'')+
@@ -2653,14 +2733,16 @@ function renderTrend(rows,keys){
       ? `${fmt(tot)} registrations \u00b7 busiest day was ${pi>=0&&peak?dayLabelFull(bk[pi]):'—'} with ${fmt(peak)}`
       : `${fmt(tot)} registrations \u00b7 peak of ${fmt(peak)} in a single week`;
   }else{
-    const grp=groupRows(rows);
     const ids=[...grp.keys()].sort((a,b)=>grp.get(b).length-grp.get(a).length);
-    body.innerHTML='<div class="smallmults">'+ids.map(id=>{
+    const items=[{key:'reg'}];
+    if(anyAct) items.push({key:'act'},{key:'comm'});
+    items.push({key:'treg',text:`Sign-ups target ${fmt(state.settings.dailyTarget*mult)} ${per} each`});
+    if(anyAct&&actTargetDay()) items.push({key:'tact',text:`Activations target ${fmt(actTargetDay()*mult)} ${per} each`});
+    body.innerHTML=trendLegend(items)+'<div class="smallmults">'+ids.map(id=>{
       const arows=grp.get(id);
       const s=trendSeries(arows,bk,g);
-      const target = g==='day' ? agentTarget(id) : weeklyTarget(id);
-      const sets=[{label:'Registrations',color:'var(--reg)',vals:s.reg}];
-      if(s.act.some(v=>v>0)) sets.push({label:'Activations',color:'var(--act)',vals:s.act});
+      const treg = g==='day' ? agentTarget(id) : weeklyTarget(id);
+      const tact = anyAct ? actTargetDay()*mult : 0;
       const sum=s.reg.reduce((a,b)=>a+b,0);
       // Only days the BDE actually signed someone up count toward the target.
       const hs=dayHitStats(arows);
@@ -2672,7 +2754,7 @@ function renderTrend(rows,keys){
           <b>${esc(agentName(id))}</b>
           <span class="pill ${cls}" title="${hs.active?`Reached ${fmt(agentTarget(id))} sign-ups on ${fmt(hs.hit)} of ${fmt(hs.active)} days worked`:'No activity'}">${pace==null?'—':pace+'% of days'}</span>
         </div>
-        ${timeChart(bk,sets,g,{W:360,H:132,L:30,R:8,B:20,ticks:2,small:true,area:true,target})}
+        ${timeChart(bk,lines(s),g,{W:360,H:132,L:30,R:8,B:20,ticks:2,small:true,area:!off.has('reg'),targets:dashes(treg,tact)})}
         <div class="smfoot">
           <span><b>${fmt(sum)}</b> total</span>
           <span><b>${fmt1(avg)}</b> avg/day worked</span>
@@ -2680,7 +2762,7 @@ function renderTrend(rows,keys){
         </div>
       </div>`;
     }).join('')+'</div>';
-    $('#trendHint').textContent = `${ids.length} BDE${ids.length===1?'':'s'} \u00b7 dashed line is the target of ${fmt(g==='day'?state.settings.dailyTarget:state.settings.dailyTarget*5)} a ${g==='day'?'working day, weekends omitted':'week'} \u00b7 hover any panel for detail`;
+    $('#trendHint').textContent = `${ids.length} BDE${ids.length===1?'':'s'} \u00b7 click the key to show or hide lines \u00b7 hover any panel for detail`;
   }
   bindCharts(body);
 }
@@ -3303,6 +3385,57 @@ function showQualifying(seatKey,periodKey){
 }
 
 /* =======================================================================
+   Per-BDE export
+   -----------------------------------------------------------------------
+   One BDE's rows from the AB report, from the day they started. Columns keep
+   the AB report's own names and order. Only the columns the dashboard reads
+   on upload are available; the rest are not kept in the browser.
+   ======================================================================= */
+function csvCell(v){
+  const t=String(v==null?'':v);
+  return /[",\r\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+}
+function ukDateTime(t){
+  if(!t) return '';
+  const d=new Date(t), p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function exportAgent(id){
+  const st=stints(id)[0]||{start:-Infinity};
+  const from=st.start;
+  const rows=state.rows
+    .filter(r=>String(r[F.AGENT])===String(id))
+    // From the start date; with no start date set, everything for the code.
+    .filter(r=>from===-Infinity||(r[F.REGD]&&r[F.REGD]>=from))
+    .sort((a,b)=>(a[F.REGD]||0)-(b[F.REGD]||0));
+  const name=agentName(id);
+  if(!rows.length){
+    toast(`No AB report rows for ${name} (#${id})${from!==-Infinity?' from '+ukDateTime(from).slice(0,10):''}.`,true);
+    return;
+  }
+  const head=['week_num','group_id','business_name','postal_code','registered_date','agent_id',
+              'activation_date','total_net_ops','is_multi_user','bde_name'];
+  const lines=[head.join(',')];
+  for(const r of rows){
+    // An activation date that could not be read is kept as a note, not left
+    // blank, since blank would wrongly read as "never activated".
+    const act = r[F.ACTD]>0 ? ukDateTime(r[F.ACTD]) : (r[F.ACTD] ? 'activated, date unreadable' : '');
+    lines.push([r[F.WEEK],r[F.GID],r[F.NAME],r[F.POST],ukDateTime(r[F.REGD]),r[F.AGENT],
+                act,r[F.OPS]||'',r[F.MU]?'1':'0',name].map(csvCell).join(','));
+  }
+  // The byte-order mark makes Excel open the file as UTF-8.
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const fromTxt=from===-Infinity?'all':'from-'+ymd(from);
+  const safe=String(name).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')||'BDE';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`AB-report_${id}_${safe}_${fromTxt}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast(`Downloaded ${fmt(rows.length)} row${rows.length===1?'':'s'} for ${name} (#${id})${from!==-Infinity?' from '+ukDateTime(from).slice(0,10):''}`);
+}
+
+/* =======================================================================
    Confirmation modal
    -----------------------------------------------------------------------
    Built in-page rather than using confirm(): a sandboxed frame blocks the
@@ -3388,6 +3521,9 @@ function openSettings(){
       <div class="setgrid">
         <div class="field"><label for="setDefault">Target signups/day</label>
           <input type="number" id="setDefault" min="0" step="1" value="${esc(state.settings.dailyTarget)}"></div>
+        <div class="field"><label for="setActTarget">Target activations/day
+          <i class="info" tabindex="0" data-tip="Drawn as a dashed line on the charts. Per BDE it is this many a working day, or five times that a week; for the whole team it is multiplied by the number of BDEs shown.">i</i></label>
+          <input type="number" id="setActTarget" min="0" step="1" value="${esc(state.settings.actTarget??3)}"></div>
         <div class="field" style="flex:1 1 240px"><label for="setActBasis">Count an activation in
           <i class="info" tabindex="0" data-tip="A business registered in one week often spends in a later one. This decides which week its activation and commission appear against on the dashboard. Salaries always pay commission on the date the customer spent, whichever option is chosen.">i</i></label>
           <select id="setActBasis">
@@ -3463,7 +3599,7 @@ function openSettings(){
         ${TEAMS.filter(t=>t!=='Inactive').map(t=>`<div class="field"><label for="tn-${esc(t.replace(/\s/g,''))}">${esc(t)} name</label>
           <input type="text" id="tn-${esc(t.replace(/\s/g,''))}" data-team-name="${esc(t)}" value="${esc((state.settings.teamNames||{})[t]||'')}" placeholder="${esc(t)}"></div>`).join('')}
       </div>
-      ${ags.length?`<div class="sethead"><span>Agent</span><span>Person</span><span>Started</span><span>Team</span></div>
+      ${ags.length?`<div class="sethead"><span>Agent</span><span>Person</span><span>Started</span><span>Team</span><span></span></div>
       <div class="setlist" id="empList">${ags.map(a=>{
         const x=(state.settings.employment[a]&&state.settings.employment[a][0])||{n:state.settings.names[a]||'',s:''};
         return `<div class="setrow">
@@ -3474,6 +3610,9 @@ function openSettings(){
             <option value="">No team</option>
             ${TEAMS.map(t=>`<option value="${esc(t)}"${teamOf(a)===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
           </select>
+          <button class="btn act iconly hovername dlbtn" data-export="${esc(a)}" data-name="Download AB rows" aria-label="Download this BDE's AB report rows as CSV">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5V11M4.8 7.8 8 11l3.2-3.2"/><path d="M2.5 11.5v1.2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1.2"/></svg>
+          </button>
         </div>`;
       }).join('')}</div>`:'<p class="setnote">Upload a report to set up your BDE list.</p>'}
     </div>
@@ -3493,6 +3632,8 @@ function openSettings(){
   const status=wrap.querySelector('.savestate');
   const applySettings=()=>{
       state.settings.dailyTarget=Number(wrap.querySelector('#setDefault').value)||0;
+      const atEl=wrap.querySelector('#setActTarget');
+      if(atEl&&atEl.value!=='') state.settings.actTarget=Number(atEl.value)||0;
       const cmEl=wrap.querySelector('#setComm');
       if(cmEl) state.settings.commMin=Number(cmEl.value)||0;
       const ab=wrap.querySelector('#setActBasis');
@@ -3541,6 +3682,8 @@ function openSettings(){
     if(e.target.matches('input[type=text],input[type=number]')) schedule(450);
   });
   wrap.addEventListener('click',e=>{
+    const ex=e.target.closest('[data-export]');
+    if(ex){ flush(); applySettings(); exportAgent(ex.dataset.export); return; }
     if(e.target===wrap||e.target.closest('[data-close]')) return close();
     if(e.target.closest('[data-theme-toggle]')){
       const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
@@ -3550,14 +3693,23 @@ function openSettings(){
     if(e.target.closest('[data-clear]')){
       askConfirm({
         title:'Reset all data?',
-        body:'The AB report, the CRM report, your BDE names, teams, targets, corrections and filters will all be removed from this device. This cannot be undone, and you will need to upload the reports again.',
+        body:'The AB report, the CRM report, your BDE names, teams, targets, corrections and filters will all be removed from this browser, along with any copies left by older versions of the dashboard. This cannot be undone, and you will need to upload the reports again.',
         ok:'Reset all data', cancel:'Keep my data', danger:true
       }).then(ok=>{
         if(!ok) return;
-        store.del(K_DATA); store.del(K_SET); store.del(K_META); store.del(K_VIEW); store.del(K_CRM); store.del(K_FIX);
+        // Everything the app has stored, under any name it has ever used,
+        // except the light/dark choice, which is a preference rather than data.
+        let freed=0;
+        for(const k of appKeys()){
+          if(k===K_THEME) continue;
+          freed+=keyBytes(k);
+          try{ localStorage.removeItem(k); }catch(e){}
+        }
+        for(const k of Object.keys(mem)) if(k!==K_THEME) delete mem[k];
+        state._freed=freed;
         state.crm=null; state.fixes={}; state.view='dashboard';
         state.rows=[]; state.meta=null; state.quota=false;
-        state.settings={names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,
+        state.settings={names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,actTarget:3,
           opsCurrency:true,commMin:40,actBasis:'activation',salaryOn:true,baseSalary:40000,
           comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
             tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},periodStartDay:25,payDay:5,
@@ -3567,7 +3719,8 @@ function openSettings(){
         state.filters=Object.assign({},DEFAULT_FILTERS);
         state.openAgent=null;
         seedLondonEast();   // the team is a baseline, not data, so it survives a reset
-        close(); render(); toast('All data reset');
+        close(); render();
+        toast('All data reset'+(state._freed?` \u00b7 ${mb(state._freed)} freed from this browser`:''));
       });
     }
   });
@@ -3748,6 +3901,13 @@ document.addEventListener('click',()=>{
   const t=$('#teamDrop'); if(t) t.classList.add('hidden');
 });
 
+$('#trendBody').addEventListener('click',e=>{
+  const b=e.target.closest('[data-series]'); if(!b) return;
+  const off=trendOff(), k=b.dataset.series;
+  off.has(k)?off.delete(k):off.add(k);
+  state.trendOff=[...off];
+  saveView(); renderTrend(filtered(),activeKeys());
+});
 $('#grainSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   [...$('#grainSeg').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
@@ -3927,10 +4087,32 @@ function seedLondonEast(){
   store.set(K_SET,JSON.stringify(S));
 }
 
+/* A team that no longer exists (Team 5, after the list was cut to four) would
+   leave its members unreachable: not offered in the filter and not choosable
+   in Settings. Anyone left on one is moved to No team, and filters and names
+   that mention it are tidied. Safe to run on every load. */
+function normaliseTeams(){
+  const S=state.settings, known=new Set(TEAMS);
+  let moved=0;
+  for(const id of Object.keys(S.teams||{})){
+    if(S.teams[id]&&!known.has(S.teams[id])){ delete S.teams[id]; moved++; }
+  }
+  for(const t of Object.keys(S.teamNames||{})) if(!known.has(t)) delete S.teamNames[t];
+  const f=state.filters;
+  if(f.teams){
+    const keep=[...f.teams].filter(t=>t===''||known.has(t));
+    f.teams = keep.length ? new Set(keep) : null;
+  }
+  if(moved) store.set(K_SET,JSON.stringify(S));
+  return moved;
+}
+
 /* boot */
+const swept=sweepOldVersions();
 initTheme();
 load();
 seedLondonEast();
+const teamsMoved=normaliseTeams();
 if(state.rows.length) reconcileFilters();
 // Put the saved toggles and search box back where the user left them.
 (function syncControls(){
@@ -3942,6 +4124,8 @@ if(state.rows.length) reconcileFilters();
   const q=$('#search'); if(q) q.value=state.filters.q||'';
 })();
 render();
+if(swept.n) setTimeout(()=>toast(`Cleared ${mb(swept.freed)} left behind by older versions of the dashboard`),300);
+if(teamsMoved) setTimeout(()=>toast(`${teamsMoved} BDE${teamsMoved===1?' was':'s were'} on a team that no longer exists and ${teamsMoved===1?'has':'have'} been moved to No team. Reassign ${teamsMoved===1?'them':'them'} in Settings.`,true),600);
 if(state.rows.length && state.meta){
   const n=filterCount();
   toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:''));
