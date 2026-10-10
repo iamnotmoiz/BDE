@@ -606,7 +606,7 @@ svg{display:block;max-width:100%}
     </div>
 
     <div class="topbar-actions">
-      <button class="btn act" id="btnAudit" aria-label="Audit against CRM">
+      <button class="btn act" id="btnAudit" aria-label="Audit against Celero">
         <svg class="when-closed" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5h1.5a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H6"/><rect x="6" y="1.5" width="4" height="2.2" rx=".6"/><path d="M6.2 8.6l1.2 1.2 2.4-2.6"/></svg>
         <svg class="when-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
         <span class="lbl when-closed">Audit</span>
@@ -647,10 +647,11 @@ svg{display:block;max-width:100%}
   <div id="audit" class="hidden">
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="emo">🔍</span>Audit against the CRM</h2>
-        <span class="hint" id="auditHint">Checks every business signed up in the CRM against the AB report, to find sign-ups the AB report has missed.</span>
-        <select id="crmAgent" title="Which agent's CRM report this is. Matching only looks at this agent's businesses."></select>
-        <button class="btn" id="btnCrm">Upload CRM report</button>
+        <h2><span class="emo">🔍</span>Audit against the Celero report</h2>
+        <span class="hint" id="auditHint">Checks every business signed up in the Celero report against the AB report, to find sign-ups the AB report has missed.</span>
+        <select id="crmAgent" title="Which agent's Celero report this is. Matching only looks at this agent's businesses."></select>
+        <button class="btn" id="btnCrm">Upload Celero report</button>
+        <button class="btn" id="btnCrmDel" title="Delete the Celero report being audited" aria-label="Delete Celero report">🗑️</button>
       </div>
       <div class="panel-body" id="auditBody"></div>
     </section>
@@ -740,7 +741,7 @@ svg{display:block;max-width:100%}
       <div class="panel-body" id="qualityBody"></div>
     </section>
 
-    <!-- industry: only once a CRM report is loaded -->
+    <!-- industry: only once a Celero report is loaded -->
     <section class="panel hidden" id="sec-industry">
       <div class="panel-head">
         <h2><span class="emo">&#127981;</span>Industry</h2>
@@ -1257,7 +1258,7 @@ function sheetMatrix(P,xml,shared){
   return rows;
 }
 /* Every worksheet in the workbook, in the order the workbook lists them.
-   The CRM export splits first visits and revisits across two sheets. */
+   The Celero export splits first visits and revisits across two sheets. */
 async function parseXLSXSheets(buf){
   const files=await unzip(buf);
   const P=new DOMParser();
@@ -1546,13 +1547,13 @@ function fileSummary(){
   return `${state.meta.file} \u00b7 ${fmt(state.meta.n||state.rows.length)} rows \u00b7 loaded ${when}`;
 }
 /* =======================================================================
-   CRM audit
+   Celero audit
    -----------------------------------------------------------------------
    The AB report occasionally omits businesses that were actually signed up.
-   The CRM export lists every visit, so comparing its Business IDs against
+   The Celero export lists every visit, so comparing its Business IDs against
    the AB report's group_id finds the ones that went missing.
    ======================================================================= */
-/* Column matching is by substring on the normalised header, because the CRM
+/* Column matching is by substring on the normalised header, because the Celero
    writes the Business ID column as a full question:
    "Please enter the customer's Amazon Business ID as it appears in the
    profile section of Business Settings". Matching the whole sentence would
@@ -1636,7 +1637,7 @@ function buildCrm(sheets){
       seen.set(id,rec); out.push(rec);
     }
   }
-  if(!used.length) throw new Error('No Business ID column found on any sheet. The CRM export needs the column that asks for the customer\u2019s Amazon Business ID.');
+  if(!used.length) throw new Error('No Business ID column found on any sheet. The Celero export needs the column that asks for the customer\u2019s Amazon Business ID.');
   if(!out.length) throw new Error('No rows with a Business ID were found in that file.');
   return {rows:out,blank,blankSectors,dupes,sheets:used,sheetStats,read,undated,earliestPlan,dateOrder:order};
 }
@@ -1711,7 +1712,7 @@ function auditAgent(){
   if(list.includes(state.auditAgent)) return state.auditAgent;
   return list.includes('130')?'130':(list[0]||'');
 }
-/* The cutoff: CRM sign-ups after this date are not expected in the AB report
+/* The cutoff: Celero sign-ups after this date are not expected in the AB report
    yet, so they are held back rather than counted as missing. */
 function auditTill(){
   if(state.auditTill) return new Date(state.auditTill+'T23:59:59.999').getTime();
@@ -1719,7 +1720,7 @@ function auditTill(){
   for(const r of state.rows) if(!isGlitch(r)&&r[F.REGD]>asAt) asAt=r[F.REGD];
   return asAt||Date.now();
 }
-/* Match one CRM record to the AB report, trying each rule in turn:
+/* Match one Celero record to the AB report, trying each rule in turn:
    exact, a correction you typed, a 0/O or 1/I swap, then a shared run of
    RUN characters. The audit and the industry analysis both use this, so a
    business matched in one is matched the same way in the other. */
@@ -1737,7 +1738,7 @@ function matchRec(idx,rec){
   return null;
 }
 /* The start of the range: a date you picked, otherwise the earliest planned
-   visit in the CRM report. */
+   visit in the Celero report. */
 function auditFrom(){
   if(state.auditFrom) return new Date(state.auditFrom+'T00:00:00').getTime();
   const e=state.crm&&state.crm.earliestPlan;
@@ -1752,9 +1753,9 @@ function auditResult(){
   const agent=auditAgent();
   const idx=abIndexFor(agent), till=auditTill(), from=auditFrom();
   const found=[], corrected=[], missing=[], later=[], before=[];
-  /* Every AB business any CRM record points at, whatever its date. A business
+  /* Every AB business any Celero record points at, whatever its date. A business
      visited on 31 August but registered in AB on 1 September is still in the
-     CRM, so claims are collected from every record, not just those in range. */
+     Celero, so claims are collected from every record, not just those in range. */
   const claimed=new Set();
   for(const rec of state.crm.rows){
     const m=matchRec(idx,rec);
@@ -1766,7 +1767,7 @@ function auditResult(){
     else corrected.push({...rec,near:m,row:m.row});
   }
   /* The reverse check: this agent's AB businesses registered within the dates
-     that no CRM record matches. One row per Business ID; glitch rows excluded. */
+     that no Celero record matches. One row per Business ID; glitch rows excluded. */
   const extra=[], seenAB=new Set();
   let abInRange=0;
   for(const r of state.rows){
@@ -1787,7 +1788,7 @@ function auditResult(){
    Industry
    -----------------------------------------------------------------------
    Two different questions, answered from two different sets of rows:
-   - which sectors sign up most: every CRM sign-up counts, including those
+   - which sectors sign up most: every Celero sign-up counts, including those
      with no Business ID, since a sign-up happened either way;
    - which sectors spend most: only sign-ups that can be matched to the AB
      report, using exactly the audit's rules, since spend lives there.
@@ -2415,9 +2416,9 @@ function render(){
   ab.setAttribute('aria-pressed',String(audit));
   ab.classList.toggle('is-open',audit);
   ab.classList.toggle('btn-primary',audit);
-  ab.setAttribute('aria-label',audit?'Close the audit and return to the dashboard':'Audit against CRM');
-  ab.title = audit ? 'Back to the dashboard' : 'Audit against CRM';
-  // The audit is its own page: no Settings, and no AB upload to confuse with the CRM one.
+  ab.setAttribute('aria-label',audit?'Close the audit and return to the dashboard':'Audit against Celero');
+  ab.title = audit ? 'Back to the dashboard' : 'Audit against Celero';
+  // The audit is its own page: no Settings, and no AB upload to confuse with the Celero one.
   $('#btnSettings').classList.toggle('hidden',audit);
   $('#emptyState').classList.toggle('hidden',has||audit);
   $('#dash').classList.toggle('hidden',!has||audit);
@@ -2818,14 +2819,14 @@ function renderAudit(){
       || '<option value="">No agents yet</option>';
   }
   if(!state.rows.length){
-    body.innerHTML='<p style="color:var(--ink-3);font-size:14px;margin:0">Upload an AB report first from the button in the top right. The audit compares the CRM against it.</p>';
+    body.innerHTML='<p style="color:var(--ink-3);font-size:14px;margin:0">Upload an AB report first from the button in the top right. The audit compares the Celero against it.</p>';
     hint.textContent=''; return;
   }
   if(!state.crm){
     body.innerHTML=`<div class="empty" style="margin:0;border-radius:10px;padding:48px 32px">
-      <h2>No CRM report loaded</h2>
-      <p>Upload your CRM visit export and it will be checked against the AB report, business by business, to show which sign-ups the AB report is missing.</p>
-      <button class="btn btn-primary" id="btnCrm2">Upload CRM report</button>
+      <h2>No Celero report loaded</h2>
+      <p>Upload your Celero visit export and it will be checked against the AB report, business by business, to show which sign-ups the AB report is missing.</p>
+      <button class="btn btn-primary" id="btnCrm2">Upload Celero report</button>
       <p class="note">Keep the <b>Business ID</b> column and the PO name; other columns are ignored. Rows with no Business ID are skipped, since there is nothing to match them on. Save as CSV or Excel — Apple Numbers files cannot be read directly.</p>
     </div>`;
     const b=$('#btnCrm2'); if(b) b.onclick=()=>$('#crmInput').click();
@@ -2853,7 +2854,7 @@ function renderAudit(){
       c:'var(--reg)'},
     {e:'\u{1F50D}',k:'Missing from the AB report',v:fmt(missing.length),s:missing.length?'Not in the AB report under any ID':'Nothing missing',c:missing.length?'var(--warn)':'var(--good)'},
     {e:'\u{2795}',k:'Extra in the AB report',v:fmt(extra.length),
-      s:extra.length?`In the AB report but not the CRM \u00b7 ${fmt(abInRange)} AB businesses in these dates`:'Every AB business here is in the CRM',
+      s:extra.length?`In the AB report but not the Celero \u00b7 ${fmt(abInRange)} AB businesses in these dates`:'Every AB business here is in the Celero',
       c:extra.length?'var(--amber)':'var(--good)'}
   ];
   let h='<div class="totals" style="border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;margin-bottom:18px">'+
@@ -2902,7 +2903,7 @@ function renderAudit(){
   const shown=list.slice(0,state.auditLimit);
 
   if(!list.length){
-    h+=`<p style="color:var(--ink-3);font-size:13.5px">${q?'Nothing matches that search.':(state.auditShow==='missing'?'Every business signed up on or before the cutoff was found in the AB report.':state.auditShow==='later'?'No CRM sign-ups fall after the cutoff.':state.auditShow==='before'?'No CRM sign-ups fall before the start date.':state.auditShow==='corrected'?'No IDs needed correcting.':state.auditShow==='extra'?'Every AB business registered in these dates appears in the CRM.':'No matches yet.')}</p>`;
+    h+=`<p style="color:var(--ink-3);font-size:13.5px">${q?'Nothing matches that search.':(state.auditShow==='missing'?'Every business signed up on or before the cutoff was found in the AB report.':state.auditShow==='later'?'No Celero sign-ups fall after the cutoff.':state.auditShow==='before'?'No Celero sign-ups fall before the start date.':state.auditShow==='corrected'?'No IDs needed correcting.':state.auditShow==='extra'?'Every AB business registered in these dates appears in the Celero.':'No matches yet.')}</p>`;
   }else{
     h+=`<div class="tablewrap"><table><thead><tr><th class="rank no-sort"></th><th class="no-sort">PO name</th><th class="no-sort">Business ID</th><th data-asort="date" title="Click to sort by date">${state.auditShow==='extra'?'Registered in AB':'Signed up'}<span class="arrow">${asd<0?'\u25bc':'\u25b2'}</span></th>`+
       (state.auditShow==='found'
@@ -2914,7 +2915,7 @@ function renderAudit(){
       '</tr></thead><tbody>';
     shown.forEach((r,i)=>{
       h+=`<tr><td class="rank num">${i+1}</td>
-        <td style="max-width:340px"><div class="bizname">${esc(r.po||'—')}</div>${r.dupes?`<small class="bizid">appears ${r.dupes+1} times in the CRM</small>`:''}</td>
+        <td style="max-width:340px"><div class="bizname">${esc(r.po||'—')}</div>${r.dupes?`<small class="bizid">appears ${r.dupes+1} times in the Celero</small>`:''}</td>
         <td><small class="bizid">${esc(r.id)}</small></td>
         <td class="num">${r.date?new Date(r.date).toLocaleDateString('en-GB'):'<span style="color:var(--ink-3)">no date</span>'}</td>`;
       if(state.auditShow==='missing'||state.auditShow==='corrected'){
@@ -2950,22 +2951,22 @@ function renderAudit(){
   }
 
   h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
-    ${extra.length?`<b>${fmt(abInRange)} businesses are in the AB report for these dates: ${fmt(abInRange-extra.length)} appear in the CRM and ${fmt(extra.length)} do not.</b> Those ${fmt(extra.length)} are under Extra in AB. A business counts as in the CRM if any CRM visit matches it, whatever that visit's date, so one visited just before the start date is not wrongly listed as extra. `:''}
+    ${extra.length?`<b>${fmt(abInRange)} businesses are in the AB report for these dates: ${fmt(abInRange-extra.length)} appear in the Celero and ${fmt(extra.length)} do not.</b> Those ${fmt(extra.length)} are under Extra in AB. A business counts as in the Celero if any Celero visit matches it, whatever that visit's date, so one visited just before the start date is not wrongly listed as extra. `:''}
     Matched on Business ID against <b>group_id</b> in the AB report, ignoring case and punctuation.
-    ${crm.blank?`${fmt(crm.blank)} CRM row${crm.blank===1?'':'s'} had no Business ID and were skipped. `:''}
-    ${crm.dupes?`${fmt(crm.dupes)} duplicate Business ID${crm.dupes===1?'':'s'} in the CRM were counted once. `:''}
-    ${crm.undated?`${fmt(crm.undated)} CRM row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}
+    ${crm.blank?`${fmt(crm.blank)} Celero row${crm.blank===1?'':'s'} had no Business ID and were skipped. `:''}
+    ${crm.dupes?`${fmt(crm.dupes)} duplicate Business ID${crm.dupes===1?'':'s'} in the Celero were counted once. `:''}
+    ${crm.undated?`${fmt(crm.undated)} Celero row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}
     Every match is made only against businesses under <b>${esc(scopeName(agent))}</b>${agent==='*'?' (the full AB report)':', so a similar ID belonging to another agent is never claimed here'}.
     An ID matches if it is identical, or once 0 and O or 1 and I are swapped, or if it shares a run of ${RUN} consecutive characters with exactly one of that agent's businesses. A run shared by more than one business is not matched, since the guess could go either way.
     ${corrected.length?`<b>${fmt(corrected.length)} ID${corrected.length===1?'':'s'} matched only after correction</b> and count as found; the tag says which rule applied. Check the ${RUN}-char run matches in particular before relying on them. `:''}
-    You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every CRM you upload. 
+    You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every Celero you upload. 
     ${badRange?'<b style="color:var(--warn)">The start date is after the end date, so nothing is in scope.</b> ':''}
-    Only sign-ups between the two dates are audited. "Data from" starts at the earliest planned visit in the CRM report${state.auditFrom?' but has been changed':''}; sign-ups before it are set aside under Before start. Sign-ups after "Data till" are held back rather than counted as missing, because the AB report has not had time to pick them up.
+    Only sign-ups between the two dates are audited. "Data from" starts at the earliest planned visit in the Celero report${state.auditFrom?' but has been changed':''}; sign-ups before it are set aside under Before start. Sign-ups after "Data till" are held back rather than counted as missing, because the AB report has not had time to pick them up.
     A business shown as missing was signed up on a visit on or before the cutoff but does not appear in the AB report at all, so it earns no registration and no commission until it does.
   </p>`;
 
   body.innerHTML=h;
-  hint.textContent=`${fmt(missing.length)} of ${fmt(inScope)} CRM sign-ups missing from the AB report`;
+  hint.textContent=`${fmt(missing.length)} of ${fmt(inScope)} Celero sign-ups missing from the AB report`;
 
   const seg=$('#auditSeg');
   if(seg) seg.addEventListener('click',e=>{
@@ -3019,7 +3020,7 @@ function renderIndustry(){
   if(!show) return;
   const body=$('#industryBody'), hint=$('#industryHint');
   if(!d.hasSector){
-    body.innerHTML='<p style="color:var(--ink-3);font-size:13.5px;margin:0">This CRM report has no sector column, so there is nothing to break down. The CRM export needs the column asking which sector the business falls into.</p>';
+    body.innerHTML='<p style="color:var(--ink-3);font-size:13.5px;margin:0">This Celero report has no sector column, so there is nothing to break down. The Celero export needs the column asking which sector the business falls into.</p>';
     hint.textContent=''; return;
   }
   const {sectors,totals}=d;
@@ -3074,12 +3075,12 @@ function renderIndustry(){
   h+='</tbody></table></div>';
   const noIdTotal=sectors.reduce((n,g)=>n+g.noId,0);
   h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
-    <b>Sign-ups</b> counts every business in the CRM report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.
+    <b>Sign-ups</b> counts every business in the Celero report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.
     <b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. ${d.agent==='*'?'Matching uses every business in the AB report.':`Matching is limited to ${esc(agentName(d.agent))}'s businesses.`}
     Activation rate is shown only as a guide where few businesses are matched; the headline tile ignores sectors with fewer than three.
   </p>`;
   body.innerHTML=h;
-  hint.textContent=`${fmt(sectors.length)} sector${sectors.length===1?'':'s'} \u00b7 ${fmt(totals.signups)} sign-ups \u00b7 ${fmt(totals.matched)} matched to the AB report \u00b7 from the CRM report`;
+  hint.textContent=`${fmt(sectors.length)} sector${sectors.length===1?'':'s'} \u00b7 ${fmt(totals.signups)} sign-ups \u00b7 ${fmt(totals.matched)} matched to the AB report \u00b7 from the Celero report`;
   body.querySelectorAll('th[data-isort]').forEach(t=>t.addEventListener('click',()=>{
     const k=t.dataset.isort;
     state.indSort = state.indSort.key===k ? {key:k,dir:-state.indSort.dir} : {key:k,dir:k==='name'?1:-1};
@@ -3695,7 +3696,7 @@ function openSettings(){
     if(e.target.closest('[data-clear]')){
       askConfirm({
         title:'Reset all data?',
-        body:'The AB report, the CRM report, your BDE names, teams, targets, corrections and filters will all be removed from this browser, along with any copies left by older versions of the dashboard. This cannot be undone, and you will need to upload the reports again.',
+        body:'The AB report, the Celero report, your BDE names, teams, targets, corrections and filters will all be removed from this browser, along with any copies left by older versions of the dashboard. This cannot be undone, and you will need to upload the reports again.',
         ok:'Reset all data', cancel:'Keep my data', danger:true
       }).then(ok=>{
         if(!ok) return;
@@ -3752,6 +3753,12 @@ $('#btnAudit').onclick=()=>{
   if(state.view==='audit') window.scrollTo({top:0,behavior:'smooth'});
 };
 $('#btnCrm').onclick=()=>$('#crmInput').click();
+$('#btnCrmDel').onclick=async()=>{
+  if(!state.crm){ toast('No Celero report to delete'); return; }
+  const ok=await askConfirm({title:'Delete the Celero report?',body:'This removes '+(state.crm.file||'the Celero report')+' from this device. Your AB report and ID corrections are kept.',ok:'Delete',danger:true});
+  if(!ok) return;
+  state.crm=null; store.del(K_CRM); state.auditLimit=150; renderAudit(); toast('Celero report deleted');
+};
 $('#crmAgent').onchange=e=>{
   state.auditAgent=e.target.value;
   state.auditLimit=150; saveView(); renderAudit();
@@ -3779,7 +3786,7 @@ $('#crmInput').onchange=async e=>{
       (info.blank?` \u00b7 ${fmt(info.blank)} without one`:''));
   }catch(err){
     console.error(err);
-    toast(err.message||'That CRM file could not be read.',true);
+    toast(err.message||'That Celero file could not be read.',true);
   }
 };
 
