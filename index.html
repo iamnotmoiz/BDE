@@ -1674,7 +1674,7 @@ function abIndexFor(agent){
   const byId=new Map(), byRun=new Map();
   for(const r of state.rows){
     if(isGlitch(r)) continue;
-    if(agent && String(r[F.AGENT])!==String(agent)) continue;
+    if(agent && agent!=='*' && String(r[F.AGENT])!==String(agent)) continue;
     const k=cleanId(r[F.GID]);
     if(!k) continue;
     if(!byId.has(k)) byId.set(k,r);
@@ -1704,8 +1704,10 @@ function runMatch(idx,id){
   if(!best||tied) return null;
   return {id:best,row:idx.byId.get(best),runs:bestN};
 }
+function scopeName(a){ return a==='*'?'all agents':agentName(a); }
 function auditAgent(){
   const list=allAgents();
+  if(state.auditAgent==='*'&&list.length) return '*';
   if(list.includes(state.auditAgent)) return state.auditAgent;
   return list.includes('130')?'130':(list[0]||'');
 }
@@ -1769,7 +1771,7 @@ function auditResult(){
   let abInRange=0;
   for(const r of state.rows){
     if(isGlitch(r)) continue;
-    if(agent && String(r[F.AGENT])!==String(agent)) continue;
+    if(agent && agent!=='*' && String(r[F.AGENT])!==String(agent)) continue;
     const k=cleanId(r[F.GID]);
     if(!k||seenAB.has(k)) continue;
     seenAB.add(k);
@@ -2812,7 +2814,7 @@ function renderAudit(){
   const agSel=$('#crmAgent');
   if(agSel){
     const list=allAgents(), cur=auditAgent();
-    agSel.innerHTML=list.map(a=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(agentName(a))} \u00b7 #${esc(a)}</option>`).join('')
+    agSel.innerHTML=(list.length?`<option value="*"${cur==='*'?' selected':''}>All agents</option>`:'')+list.map(a=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(agentName(a))} \u00b7 #${esc(a)}</option>`).join('')
       || '<option value="">No agents yet</option>';
   }
   if(!state.rows.length){
@@ -2881,7 +2883,7 @@ function renderAudit(){
       <input type="search" id="auditSearch" placeholder="Search PO or Business ID" value="${esc(state.auditQ||'')}"></div>
     <span style="margin-left:auto;font-size:12px;color:var(--ink-3);padding-bottom:8px">${esc(crm.file)}${
       crm.sheetStats?` \u00b7 <span class="sheetcount" title="${esc(crm.sheetStats.map(x=>x.skipped?`${x.name} — no Business ID column, skipped`:`${x.name} — ${x.rows} rows, ${x.withId} with an ID`).join('\n'))}">${fmt(crm.sheets.length)} sheet${crm.sheets.length===1?'':'s'}, ${fmt(crm.read||0)} rows</span>`
-      :(crm.sheets&&crm.sheets.length?' \u00b7 '+fmt(crm.sheets.length)+' sheets':'')} \u00b7 ${fmt(abCount)} businesses under ${esc(agentName(agent))}</span>
+      :(crm.sheets&&crm.sheets.length?' \u00b7 '+fmt(crm.sheets.length)+' sheets':'')} \u00b7 ${fmt(abCount)} businesses under ${esc(scopeName(agent))}</span>
   </div>`;
 
   const q=(state.auditQ||'').trim().toLowerCase();
@@ -2953,7 +2955,7 @@ function renderAudit(){
     ${crm.blank?`${fmt(crm.blank)} CRM row${crm.blank===1?'':'s'} had no Business ID and were skipped. `:''}
     ${crm.dupes?`${fmt(crm.dupes)} duplicate Business ID${crm.dupes===1?'':'s'} in the CRM were counted once. `:''}
     ${crm.undated?`${fmt(crm.undated)} CRM row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}
-    Every match is made only against businesses under <b>${esc(agentName(agent))}</b>, so a similar ID belonging to another agent is never claimed here.
+    Every match is made only against businesses under <b>${esc(scopeName(agent))}</b>${agent==='*'?' (the full AB report)':', so a similar ID belonging to another agent is never claimed here'}.
     An ID matches if it is identical, or once 0 and O or 1 and I are swapped, or if it shares a run of ${RUN} consecutive characters with exactly one of that agent's businesses. A run shared by more than one business is not matched, since the guess could go either way.
     ${corrected.length?`<b>${fmt(corrected.length)} ID${corrected.length===1?'':'s'} matched only after correction</b> and count as found; the tag says which rule applied. Check the ${RUN}-char run matches in particular before relying on them. `:''}
     You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every CRM you upload. 
@@ -3073,7 +3075,7 @@ function renderIndustry(){
   const noIdTotal=sectors.reduce((n,g)=>n+g.noId,0);
   h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
     <b>Sign-ups</b> counts every business in the CRM report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.
-    <b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. Matching is limited to ${esc(agentName(d.agent))}'s businesses.
+    <b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. ${d.agent==='*'?'Matching uses every business in the AB report.':`Matching is limited to ${esc(agentName(d.agent))}'s businesses.`}
     Activation rate is shown only as a guide where few businesses are matched; the headline tile ignores sectors with fewer than three.
   </p>`;
   body.innerHTML=h;
