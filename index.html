@@ -6,40 +6,54 @@
 <title>BDE Performance — Service Innovation Group</title>
 <style>
 :root{
-  --ground:#E9ECE7;
+  --ground:#E8ECE6;
   --surface:#FFFFFF;
   --surface-2:#F4F6F2;
-  --ink:#17201C;
-  --ink-2:#576059;
-  --ink-3:#8B938C;
-  --rule:#D2D8D0;
-  --rule-2:#E3E7E1;
+  --surface-3:#ECF0EA;
+  --ink:#16201B;
+  --ink-2:#525B55;
+  --ink-3:#6C756E;
+  --rule:#D3D9D1;
+  --rule-2:#E4E8E2;
+  /* The brand accent: buttons, selection, focus. */
   --reg:#20574A;
-  --ver:#3C5F92;
-  --act:#7B3F72;
+  --accent-hi:#17423A;
+  --accent-soft:#DDEBE3;
+  /* Data series. Chosen so the three lines stay apart for colour-blind
+     readers as well (checked under protan and deutan simulation). */
+  --c-reg:#03724F;
+  --act:#AA4F8B;
+  --ver:#3284D0;
   --warn:#A83232;
+  --good:#2F7A4F;
+  --amber:#A9740F;
   --s-good:#2E6B57;
   --s-mid:#C89A3C;
   --s-none:#DFE4DD;
   --ease:cubic-bezier(.22,.8,.3,1);
-  --good:#2F7A4F;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --shadow:0 1px 2px rgba(23,32,28,.06),0 8px 24px -16px rgba(23,32,28,.28);
-  --shadow-hover:0 1px 2px rgba(23,32,28,.05),0 14px 30px -24px rgba(23,32,28,.35);
+  --r-lg:14px;
+  --r-md:10px;
+  --r-sm:8px;
+  --ctl:34px;
+  --shadow:0 1px 2px rgba(23,32,28,.05),0 6px 20px -14px rgba(23,32,28,.25);
+  --shadow-hover:0 1px 2px rgba(23,32,28,.05),0 14px 30px -22px rgba(23,32,28,.38);
   --shadow-card:0 10px 24px -18px rgba(23,32,28,.5);
+  --shadow-pop:0 24px 48px -20px rgba(23,32,28,.45),0 2px 8px rgba(23,32,28,.08);
   --shadow-accent:0 6px 16px -8px rgba(32,87,74,.7);
-  --bar:rgba(233,236,231,.94);
-  --hover:rgba(23,32,28,.06);
-  --scrim:rgba(23,32,28,.36);
+  --bar:rgba(232,236,230,.92);
+  --hover:rgba(23,32,28,.055);
+  --scrim:rgba(23,32,28,.38);
   --on-accent:#FFFFFF;
   --on-danger:#FFFFFF;
-  --accent-hi:#17423A;
-  --amber:#C08A1E;
-  --tip-bg:#17201C;  --tip-fg:#FFFFFF;
-  --hit-bg:#E6F1EA;  --near-bg:#FAF1DE;  --near-fg:#8A6212;  --miss-bg:#F8EBEB;
-  --danger-bd:#E4C7C7; --danger-bg:#FBF0F0; --danger-hi:#8E2A2A;
-  --open-bg:#F0F4EF; --detail-bg:#F7F9F6; --drag-bg:#F1F6F1; --fix-bg:#F8E7E7;
+  --tip-bg:#16201B;  --tip-fg:#FFFFFF;
+  --hit-bg:#E3F0E8;  --near-bg:#FAF0DA;  --near-fg:#855C0E;  --near-bd:#EBD9AE;  --miss-bg:#F8EAEA;
+  --danger-bd:#E8CACA; --danger-bg:#FBF1F1; --danger-hi:#8E2A2A;
+  --info-bg:#EEF4F8; --info-bd:#D3E1EC; --info-fg:#2D5679;
+  --open-bg:#F0F5F1; --detail-bg:#F7F9F6; --drag-bg:#EFF6F1; --fix-bg:#F8E5E5;
+  --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%23525B55' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ico-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='4.6' fill='none' stroke='%236C756E' stroke-width='1.5'/%3E%3Cpath d='m10.6 10.6 3 3' stroke='%236C756E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   color-scheme:light;
 }
 
@@ -50,34 +64,41 @@
   --ground:#111613;
   --surface:#191F1C;
   --surface-2:#212925;
+  --surface-3:#1E2522;
   --ink:#E7EDE8;
-  --ink-2:#A6B1AA;
-  --ink-3:#7B867F;
+  --ink-2:#A9B4AD;
+  --ink-3:#8A958E;
   --rule:#313B36;
   --rule-2:#272F2B;
   --reg:#4FB295;
-  --ver:#7CA6E0;
-  --act:#C98CBE;
+  --accent-hi:#67C4A9;
+  --accent-soft:#1F3A30;
+  --c-reg:#36A980;
+  --act:#B6508E;
+  --ver:#578ED4;
   --warn:#EC8686;
   --good:#5FBE8C;
+  --amber:#D9A94A;
   --s-good:#3C8E72;
   --s-mid:#BE9647;
   --s-none:#313B36;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px -16px rgba(0,0,0,.8);
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 8px 24px -16px rgba(0,0,0,.8);
   --shadow-hover:0 1px 2px rgba(0,0,0,.45),0 14px 30px -24px rgba(0,0,0,.9);
   --shadow-card:0 10px 24px -18px rgba(0,0,0,.9);
+  --shadow-pop:0 24px 48px -20px rgba(0,0,0,.85),0 2px 8px rgba(0,0,0,.4);
   --shadow-accent:0 6px 16px -8px rgba(79,178,149,.45);
-  --bar:rgba(17,22,19,.94);
-  --hover:rgba(231,237,232,.08);
+  --bar:rgba(17,22,19,.92);
+  --hover:rgba(231,237,232,.075);
   --scrim:rgba(0,0,0,.6);
   --on-accent:#0E1512;
   --on-danger:#2A1413;
-  --accent-hi:#67C4A9;
-  --amber:#D9A94A;
   --tip-bg:#2B3531;  --tip-fg:#F2F6F3;
-  --hit-bg:#1D3A2C;  --near-bg:#3A3120;  --near-fg:#E0BC70;  --miss-bg:#3B2626;
-  --danger-bd:#5A3636; --danger-bg:#2E1E1E; --danger-hi:#C96A6A;
+  --hit-bg:#1D3A2C;  --near-bg:#3A3120;  --near-fg:#E0BC70;  --near-bd:#5A4A2A;  --miss-bg:#3B2626;
+  --danger-bd:#5A3636; --danger-bg:#2E1E1E; --danger-hi:#E09494;
+  --info-bg:#1C2833; --info-bd:#2B3B4A; --info-fg:#9DC0E3;
   --open-bg:#212B26; --detail-bg:#1D2421; --drag-bg:#1C2A24; --fix-bg:#3B2626;
+  --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%23A9B4AD' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ico-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='4.6' fill='none' stroke='%238A958E' stroke-width='1.5'/%3E%3Cpath d='m10.6 10.6 3 3' stroke='%238A958E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   color-scheme:dark;
 }
 :root[data-theme="dark"] .logo path{stroke:var(--on-accent)}
@@ -90,10 +111,12 @@ body{
   font-size:15px;
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--reg);outline-offset:2px}
+::selection{background:var(--accent-soft)}
 
 /* ---------- motion ----------
    Everything here is decoration: the reveal starts visible and is only
@@ -115,7 +138,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tot .v{transition:transform .25s var(--ease)}
 .tot:hover .v{transform:translateY(-1px)}
 
-.btn,.secnav button,.seg button{transition:background .15s var(--ease),color .15s var(--ease),
+.btn,.secnav button,.seg button,.tabs button{transition:background .15s var(--ease),color .15s var(--ease),
   border-color .15s var(--ease),transform .12s var(--ease),box-shadow .15s var(--ease)}
 .btn:active,.secnav button:active,.seg button:active{transform:translateY(1px)}
 .btn-primary:hover{box-shadow:var(--shadow-accent)}
@@ -133,8 +156,7 @@ tr.detail>td{animation:fadeIn .3s var(--ease) both}
 tbody tr:hover .pill{transform:scale(1.04)}
 
 .sm{transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease)}
-.sm:hover{transform:translateY(-2px);border-color:var(--rule);
-  box-shadow:var(--shadow-card)}
+.sm:hover{transform:translateY(-2px);border-color:var(--rule);box-shadow:var(--shadow-card)}
 
 /* Stacked outcome bar: hovering one segment dims the others. */
 .stack{overflow:visible}
@@ -158,7 +180,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
 .topbar{
   position:sticky;top:0;z-index:40;
   background:var(--bar);
-  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);
   border-bottom:1px solid var(--rule);
 }
 .topbar-in{
@@ -166,11 +188,11 @@ tbody tr:hover .pill{transform:scale(1.04)}
   display:flex;align-items:center;gap:10px 16px;flex-wrap:nowrap;
 }
 .brand{display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto;margin-right:auto;order:1}
-.logo{flex:none;display:block;width:30px;height:30px;
+.logo{flex:none;display:block;width:32px;height:32px;cursor:default;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 @keyframes logoPulse{0%{transform:scale(1)}40%{transform:scale(.86)}100%{transform:scale(1)}}
 .logo.pulse{animation:logoPulse .32s var(--ease)}
-.logo svg{width:30px;height:30px;display:block}
+.logo svg{width:32px;height:32px;display:block}
 .logo rect{fill:var(--reg)}
 .logo path{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
 .brandtext{display:flex;flex-direction:column;min-width:0;line-height:1.2}
@@ -186,24 +208,26 @@ tbody tr:hover .pill{transform:scale(1.04)}
   background:var(--surface-2);border:1px solid var(--rule-2);border-radius:8px;
   padding:10px 12px;margin-bottom:16px}
 
+/* ---------- buttons ---------- */
 .btn{
-  border:1px solid var(--rule);background:var(--surface);
-  border-radius:7px;padding:8px 14px;font-size:13.5px;font-weight:500;
-  display:inline-flex;align-items:center;gap:7px;
-  transition:border-color .12s ease,background .12s ease;
+  border:1px solid var(--rule);background-color:var(--surface);color:var(--ink);
+  border-radius:var(--r-sm);padding:0 13px;min-height:var(--ctl);font-size:13.5px;font-weight:500;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;
 }
-.btn:hover{border-color:var(--ink-3);background:var(--surface-2)}
+.btn:hover{border-color:var(--ink-3);background-color:var(--surface-2)}
 .btn-primary{background:var(--reg);border-color:var(--reg);color:var(--on-accent)}
 .btn-primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
-.btn-quiet{border-color:transparent;background:transparent;padding:8px 10px}
-.btn-quiet:hover{background:var(--hover);border-color:transparent}
+.btn-quiet{border-color:transparent;background-color:transparent;padding:0 10px}
+.btn-quiet:hover{background-color:var(--hover);border-color:transparent}
 .btn-danger{color:var(--warn);border-color:var(--danger-bd)}
 .btn-danger:hover{background:var(--danger-bg);border-color:var(--warn)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+.btn svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .act svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.act.iconly{padding:8px 10px}
-.dlbtn{padding:6px 8px}
+.act.iconly,.btn.iconly{padding:0;width:var(--ctl)}
+.dlbtn{width:32px;min-height:32px}
 .dlbtn.hovername::after{right:0;top:calc(100% + 6px)}
 /* The Audit button swaps icon and wording when the audit is open. */
 #btnAudit .when-open{display:none}
@@ -242,22 +266,21 @@ tbody tr:hover .pill{transform:scale(1.04)}
 /* section nav */
 .secnav{
   order:2;flex:1 1 auto;min-width:0;
-  display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+  display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;padding:2px 0;
 }
 .secnav::-webkit-scrollbar{display:none}
 .secnav button{
-  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
-  border:1px solid transparent;background:transparent;border-radius:7px;
-  padding:7px 12px;font-size:13px;font-weight:500;color:var(--ink-2);
-  transition:background .12s ease,color .12s ease;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;flex:none;
+  border:1px solid transparent;background:transparent;border-radius:var(--r-sm);
+  min-height:var(--ctl);padding:0 12px;font-size:13px;font-weight:500;color:var(--ink-2);
 }
 .secnav button svg{width:15px;height:15px;flex:none;fill:none;
   stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .secnav button span{white-space:nowrap}
 .secnav button[data-go="sec-summary"] svg{fill:currentColor;stroke:none;opacity:.9}
 .secnav button:hover{background:var(--hover);color:var(--ink)}
-.secnav button[aria-current="true"]{background:var(--reg);color:var(--on-accent)}
+.secnav button[aria-current="true"]{background:var(--reg);color:var(--on-accent);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
 /* Everything stays on one line. As width is lost the bar sheds text in
    order of how often each control is used, never wrapping to a second row. */
@@ -265,7 +288,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
 /* 1. Action buttons lose their labels first: least-used controls. */
 @media (max-width:1180px){
   #btnAudit:not(.is-open) .lbl{display:none}
-  #btnAudit:not(.is-open){padding:8px 10px}
+  #btnAudit:not(.is-open){padding:0;width:var(--ctl)}
 }
 /* 2. Inactive nav buttons collapse to icons; the current section keeps its
       label so you can still see where you are. */
@@ -275,76 +298,150 @@ tbody tr:hover .pill{transform:scale(1.04)}
   .brandtext b{font-size:16px}
   .secnav button span{display:none}
   .secnav button[aria-current="true"] span{display:inline}
-  .secnav button{padding:7px 10px}
-  .secnav button[aria-current="true"]{padding:7px 12px}
+  .secnav button{padding:0 10px}
+  .secnav button[aria-current="true"]{padding:0 12px}
 }
-/* 3. Phone: every nav button is an icon, and the name shortens to a monogram. */
+/* Set by script whenever the full names would not fit on the line. */
+@media (min-width:561px){
+  .topbar.compact .secnav button span{display:none}
+  .topbar.compact .secnav button[aria-current="true"] span{display:inline}
+  .topbar.compact .secnav button{padding:0 10px}
+  .topbar.compact .secnav button[aria-current="true"]{padding:0 12px}
+}
+/* 3. Phone: every button is an icon and the wordmark steps aside, so all
+      seven sections and the three actions fit on the one line. */
 @media (max-width:560px){
-  .topbar-in{padding:9px 12px;gap:6px}
-  .brandtext b{font-size:0}
-  .brandtext b::after{content:"SIG";font-size:16px}
-  .secnav button[aria-current="true"] span{display:none}
-  .secnav{gap:1px}
-  .secnav button,.secnav button[aria-current="true"]{padding:7px 9px}
-  .logo,.logo svg{width:26px;height:26px}
-}
-/* 4. Very narrow: drop the wordmark, keep the logo. */
-@media (max-width:380px){
+  .topbar .btn,.secnav button{min-height:32px}
+  .topbar-in{padding:8px 16px;gap:6px}
   .brandtext{display:none}
+  .brand{margin-right:0}
+  .secnav{gap:1px}
+  .topbar-actions{margin-left:auto}
+  .secnav button[aria-current="true"] span{display:none}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 6px}
+  .secnav button[aria-current="true"]{background:var(--accent-soft);color:var(--reg);box-shadow:none}
+  .topbar-actions{gap:4px}
+  .topbar-actions .btn:not(.is-open){width:33px;padding:0}
+  .logo,.logo svg{width:28px;height:28px}
+}
+@media (max-width:400px){
+  .topbar-in{padding:8px 10px}
+}
+@media (max-width:380px){
+  .topbar-in{padding:8px 8px;gap:4px}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 5px}
+  .topbar-actions .btn:not(.is-open){width:31px}
+  .logo,.logo svg{width:26px;height:26px}
 }
 
 /* ---------- layout ---------- */
 main{max-width:1320px;margin:0 auto;padding:0 24px 80px}
 .panel{
-  background:var(--surface);border:1px solid var(--rule);border-radius:12px;
-  margin-top:22px;overflow:hidden;
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);
+  margin-top:20px;overflow:hidden;overflow:clip;box-shadow:var(--shadow);
 }
 .panel-head{
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;
   padding:16px 20px;border-bottom:1px solid var(--rule-2);
 }
+.ph-title{display:flex;flex-direction:column;gap:3px;min-width:0;margin-right:auto;flex:1 1 300px}
 .panel-head h2{
-  font-family:var(--serif);font-size:17px;font-weight:600;margin:0;letter-spacing:-.005em;
+  font-family:var(--serif);font-size:18.5px;font-weight:600;margin:0;letter-spacing:-.01em;
+  display:flex;align-items:center;line-height:1.25;
 }
-.panel-head .hint{font-size:12.5px;color:var(--ink-3);margin-right:auto}
+.panel-head .hint{font-size:12.5px;color:var(--ink-3);margin-right:auto;line-height:1.45}
+.ph-title .hint{margin:0}
+.ph-tools{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}
 .panel-body{padding:20px}
 
-/* ---------- filters ---------- */
-.filters .field.hidden{display:none}
-.filters{
-  display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
-  padding:14px 20px;background:var(--surface);border:1px solid var(--rule);
-  border-radius:12px;margin-top:22px;
-}
-.field{display:flex;flex-direction:column;gap:4px;position:relative}
-.field label{font-size:11.5px;color:var(--ink-3);letter-spacing:.01em}
+/* ---------- form controls ---------- */
+.field{display:flex;flex-direction:column;gap:5px;position:relative}
+.field label{font-size:11.5px;color:var(--ink-2);font-weight:500;letter-spacing:.005em}
 select,input[type=text],input[type=number],input[type=search],input[type=date]{
-  font:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--rule);
-  border-radius:6px;background:var(--surface);color:var(--ink);min-width:96px;
+  font:inherit;font-size:13.5px;min-height:var(--ctl);padding:5px 10px;border:1px solid var(--rule);
+  border-radius:var(--r-sm);background-color:var(--surface);color:var(--ink);min-width:96px;
+  transition:border-color .15s var(--ease),box-shadow .15s var(--ease);
 }
+select{
+  -webkit-appearance:none;appearance:none;padding-right:30px;cursor:pointer;
+  background-image:var(--chev);background-repeat:no-repeat;background-position:right 10px center;background-size:12px 12px;
+}
+select:hover,input[type=text]:hover,input[type=number]:hover,input[type=search]:hover,input[type=date]:hover{border-color:var(--ink-3)}
+select:focus-visible,input[type=text]:focus-visible,input[type=number]:focus-visible,input[type=search]:focus-visible,input[type=date]:focus-visible{
+  outline:none;border-color:var(--reg);box-shadow:0 0 0 3px var(--accent-soft);
+}
+input[type=search]{
+  min-width:200px;padding-left:32px;
+  background-image:var(--ico-search);background-repeat:no-repeat;background-position:10px center;background-size:15px 15px;
+}
+input::placeholder{color:var(--ink-3);opacity:1}
 input[type=date]{
   font-variant-numeric:tabular-nums;min-width:0;width:100%;
-  appearance:none;-webkit-appearance:none;
+  -webkit-appearance:none;appearance:none;
 }
 input[type=date]::-webkit-datetime-edit{padding:0;color:var(--ink)}
 input[type=date]:invalid::-webkit-datetime-edit,
 input[type=date]:not(:focus):placeholder-shown::-webkit-datetime-edit{color:var(--ink-3)}
 input[type=date]::-webkit-calendar-picker-indicator{
-  opacity:.45;cursor:pointer;padding:0;margin-left:2px;
+  opacity:.5;cursor:pointer;padding:0;margin-left:4px;
 }
-input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:.8}
-input[type=date]:hover{border-color:var(--ink-3)}
-input[type=search]{min-width:200px}
+input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:.85}
+input[type=checkbox]{accent-color:var(--reg)}
 .spacer{margin-left:auto}
+#search{min-width:260px}
+
+/* Segmented control: a soft track with the chosen option as a green chip. */
+.seg{
+  display:inline-flex;gap:2px;padding:2px;border-radius:calc(var(--r-sm) + 2px);
+  background:var(--surface-3);border:1px solid var(--rule-2);max-width:100%;
+}
+.seg button{
+  border:0;background:transparent;border-radius:var(--r-sm);
+  min-height:calc(var(--ctl) - 6px);padding:0 12px;font-size:13px;font-weight:500;color:var(--ink-2);white-space:nowrap;
+}
+.seg button:hover{color:var(--ink);background:var(--hover)}
+.seg button[aria-pressed=true]{background:var(--reg);color:var(--on-accent);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+
+/* On/off switch, used for Show weekends. The real checkbox stays in the
+   page for keyboard and screen readers; the track is drawn beside it. */
+.switch{
+  display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);font-weight:500;
+  cursor:pointer;user-select:none;min-height:var(--ctl);padding:0 2px;position:relative;white-space:nowrap;
+}
+.switch input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.switch .track{
+  width:30px;height:18px;border-radius:9px;background:var(--rule);position:relative;flex:none;
+  transition:background .18s var(--ease);
+}
+.switch .track::after{
+  content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.28);transition:transform .18s var(--ease);
+}
+.switch input:checked+.track{background:var(--reg)}
+.switch input:checked+.track::after{transform:translateX(12px)}
+.switch input:focus-visible+.track{outline:2px solid var(--reg);outline-offset:2px}
+.switch:hover{color:var(--ink)}
+.switch.dim{opacity:.6}
+
+/* ---------- filters ---------- */
+.filters .field.hidden{display:none}
+.filters{
+  display:flex;gap:12px 14px;align-items:flex-end;flex-wrap:wrap;
+  padding:14px 18px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:var(--r-lg);margin-top:20px;box-shadow:var(--shadow);
+}
+.filters .btn[aria-expanded]{min-width:120px;justify-content:space-between;padding-right:30px;
+  background-image:var(--chev);background-repeat:no-repeat;background-position:right 10px center;background-size:12px 12px}
 
 .dropdown{
   position:absolute;top:calc(100% + 6px);left:0;z-index:30;
-  background:var(--surface);border:1px solid var(--rule);border-radius:9px;
-  box-shadow:var(--shadow);padding:10px;width:250px;max-height:320px;overflow:auto;
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-md);
+  box-shadow:var(--shadow-pop);padding:10px;width:260px;max-height:340px;overflow:auto;
 }
-.dropdown .row{display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:13.5px}
+.dropdown .row{display:flex;align-items:center;gap:9px;padding:5px 6px;font-size:13.5px;border-radius:6px;cursor:pointer}
+.dropdown .row:hover{background:var(--hover)}
 .dropdown .row input{margin:0}
-.dropdown .bar{display:flex;gap:8px;padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid var(--rule-2)}
+.dropdown .bar{display:flex;gap:12px;padding:0 6px 8px;margin-bottom:6px;border-bottom:1px solid var(--rule-2)}
 .linkish{background:none;border:none;padding:0;font-size:12.5px;color:var(--reg);text-decoration:underline;text-underline-offset:2px}
 
 /* ---------- totals strip ---------- */
@@ -352,27 +449,96 @@ input[type=search]{min-width:200px}
   display:grid;gap:1px;background:var(--rule-2);
   grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
 }
-.tot{background:var(--surface);padding:18px 20px}
-.tot .k{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:9px}
-.tot .v{font-size:34px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin-top:6px}
-.tot .s{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.tot{background:var(--surface);padding:18px 20px 16px;display:flex;flex-direction:column;min-width:0}
+.tot .k{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:9px;font-weight:500}
+.tot .v{font-size:33px;font-weight:650;letter-spacing:-.022em;line-height:1.1;margin-top:8px}
+.tot .v.num{font-variant-numeric:normal;font-feature-settings:normal}
+.tot .s{font-size:12.5px;color:var(--ink-3);margin-top:4px}
+.tot .trend{margin-top:auto;padding-top:14px}
+.tot .trend svg{display:block;width:100%;height:30px;overflow:visible}
+.tot .tl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums}
+.meter{position:relative;height:6px;border-radius:3px;background:var(--surface-3);margin-top:auto;overflow:hidden}
+.tot .meterwrap{margin-top:auto;padding-top:18px}
+.meter i{display:block;height:100%;border-radius:3px;transition:width .5s var(--ease)}
+.minitiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:20px}
+.minitile{border:1px solid var(--rule-2);border-radius:var(--r-md);padding:12px 14px;background:var(--surface)}
+.minitile .mk{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.minitile .mv{font-size:22px;font-weight:650;letter-spacing:-.015em;margin-top:2px}
+.minitile .ms{font-size:12px;color:var(--ink-3)}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
 @media(max-width:560px){
-  .totals{grid-template-columns:1fr}
-  .tot{padding:14px 16px}
-  .tot .v{font-size:28px}
+  .totals{grid-template-columns:1fr 1fr}
+  .tot{padding:14px 14px 13px}
+  .tot .k{font-size:12px;gap:7px}
+  .tot .k .emo.big{font-size:18px}
+  .tot .v{font-size:25px;margin-top:6px}
+  .tot .s{font-size:11.5px}
+  .tot .ind-v{font-size:17px}
 }
 
+/* ---------- notices ---------- */
+.notice{
+  display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 14px;
+  border-radius:var(--r-md);font-size:13px;line-height:1.5;border:1px solid var(--rule);background:var(--surface);
+}
+.notice[hidden]{display:none}
+.notice .ni{flex:none;width:18px;height:18px;margin-top:1px}
+.notice .ni svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.notice p{margin:0}
+.notice p+p{margin-top:4px}
+.notice.warn{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger-hi)}
+.notice.info{background:var(--info-bg);border-color:var(--info-bd);color:var(--info-fg)}
+.notice.amber{background:var(--near-bg);border-color:var(--near-bd);color:var(--near-fg)}
+.notes{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.notes li{position:relative;padding-left:14px}
+.notes li::before{content:'';position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--ink-3)}
+.notes li.warn{color:var(--warn)}
+.notes li.warn::before{background:var(--warn)}
+.notes li.amber{color:var(--near-fg)}
+.notes li.amber::before{background:var(--amber)}
+
+/* Long explanations fold away under a plain question. */
+.explain{margin-top:16px;border-top:1px solid var(--rule-2);padding-top:12px}
+.explain>summary{
+  cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:600;color:var(--ink-2);border-radius:6px;padding:2px 4px;margin-left:-4px;
+}
+.explain>summary::-webkit-details-marker{display:none}
+.explain>summary::before{
+  content:'';width:6px;height:6px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
+  transform:rotate(-45deg);transition:transform .18s var(--ease);margin-right:1px;
+}
+.explain[open]>summary::before{transform:rotate(45deg) translate(-1px,-1px)}
+.explain>summary:hover{color:var(--ink)}
+.explain-body{font-size:12.5px;color:var(--ink-2);line-height:1.65;max-width:100ch;margin-top:10px}
+.explain-body p{margin:0 0 8px}
+.explain-body p:last-child{margin-bottom:0}
+.explain-body b{color:var(--ink)}
+
 /* ---------- table ---------- */
-.tablewrap{overflow-x:auto}
+.tablewrap{
+  overflow-x:auto;
+  background:
+    linear-gradient(to right,var(--surface) 30%,transparent) left center/32px 100% no-repeat local,
+    linear-gradient(to left,var(--surface) 30%,transparent) right center/32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.12),transparent) left center/10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.12),transparent) right center/10px 100% no-repeat scroll;
+}
+/* When a table fits (see fitTables) its header row pins under the top bar. */
+.tablewrap.fits{overflow:visible}
+.tablewrap.fits>table>thead th{top:calc(var(--stick,70px) - 14px)}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--rule-2);white-space:nowrap}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule-2);white-space:nowrap}
 thead th{
   position:sticky;top:0;background:var(--surface-2);z-index:2;
-  font-size:11.5px;font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none;
-  border-bottom:1px solid var(--rule);
+  font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none;
+  border-bottom:1px solid var(--rule);padding-top:9px;padding-bottom:9px;
 }
+thead th:hover{color:var(--ink)}
 thead th.no-sort{cursor:default}
-thead th span.arrow{color:var(--ink-3);font-size:9px;margin-left:3px}
+thead th.no-sort:hover{color:var(--ink-2)}
+thead th span.arrow{color:var(--reg);font-size:9px;margin-left:4px}
+tbody tr:last-child>td{border-bottom:0}
 tbody tr:hover{background:var(--surface-2)}
 tbody tr.open{background:var(--open-bg)}
 td.r,th.r{text-align:right}
@@ -384,75 +550,86 @@ tbody tr:hover .rank.medal{transform:scale(1.12)}
   margin-right:7px;font-size:14px;line-height:1;
   font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
 }
-.panel-head h2 .emo{font-size:16px;margin-right:9px}
-.tot .ind-v{font-size:22px;line-height:1.25;font-family:var(--serif);letter-spacing:-.01em;
-  margin-top:8px;overflow-wrap:anywhere}
+.panel-head h2 .emo{font-size:17px;margin-right:10px}
+.tot .ind-v{font-size:21px;line-height:1.25;font-family:var(--serif);letter-spacing:-.01em;
+  margin-top:8px;overflow-wrap:anywhere;font-weight:600}
 .emo.big{
   font-size:22px;line-height:1;margin-right:0;flex:none;
   transition:transform .22s var(--ease);
 }
 .tot:hover .emo.big{transform:scale(1.12) rotate(-4deg)}
 .agentcell{font-weight:600}
-.agentcell small{display:block;font-weight:400;color:var(--ink-3);font-size:11.5px}
-.mbar{position:relative;min-width:96px}
-.mbar .track{height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin-top:4px}
+.agentcell small{display:block;font-weight:400;color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.mbar{position:relative;min-width:110px}
+.mbar .track{height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin-top:5px}
 .mbar .fill{height:100%;border-radius:3px}
 .pct{color:var(--ink-3);font-size:12px;margin-left:5px}
 .pill{
-  display:inline-block;padding:2px 8px;border-radius:11px;font-size:11.5px;
-  font-weight:600;font-variant-numeric:tabular-nums;
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;
+  font-weight:600;font-variant-numeric:tabular-nums;line-height:1.45;
 }
 .pill.hit{background:var(--hit-bg);color:var(--good)}
 .pill.near{background:var(--near-bg);color:var(--near-fg)}
 .pill.miss{background:var(--miss-bg);color:var(--warn)}
 .pill.none{background:var(--surface-2);color:var(--ink-3)}
+.delta{font-size:11.5px;font-weight:600;margin-left:6px;font-variant-numeric:tabular-nums}
+.delta.up{color:var(--good)}
+.delta.down{color:var(--warn)}
+.delta.flat,.delta.soft{color:var(--ink-3)}
+.wk-sofar{font-weight:500;color:var(--ink-3);font-size:11px;margin-left:4px}
+.expect{display:block;font-size:11.5px;color:var(--ink-2);font-style:italic;font-weight:500;margin-top:2px}
 
 /* ---------- drawer row ---------- */
-tr.detail td{background:var(--detail-bg);padding:0;border-bottom:1px solid var(--rule)}
-.drawer{padding:18px 20px;display:grid;grid-template-columns:1.25fr 1fr;gap:26px}
+/* Only the drawer's own cell is flattened; tables inside it keep their padding. */
+tr.detail>td{background:var(--detail-bg);padding:0;border-bottom:1px solid var(--rule);white-space:normal}
+tr.detail table th,tr.detail table td{padding:7px 10px}
+tr.detail table thead th{background:var(--surface-2)}
+.drawer{padding:20px 22px;display:grid;grid-template-columns:1.25fr 1fr;gap:28px}
 @media(max-width:860px){.drawer{grid-template-columns:1fr}}
 .drawer h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
 .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px}
+.statgrid>div{background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-sm);padding:9px 11px}
 .statgrid div span{display:block}
 .statgrid .sk{font-size:11.5px;color:var(--ink-3)}
-.statgrid .sv{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.statgrid .sv{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;margin-top:1px}
+.drawer .tablewrap,.drawer>div>div[style*="overflow:auto"]{background-color:var(--surface)}
 
 /* ---------- charts ---------- */
 svg{display:block;max-width:100%}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
-.legend span{display:flex;align-items:center;gap:6px}
+.legend span{display:flex;align-items:center;gap:7px}
 .legend i{width:14px;height:3px;border-radius:2px;display:inline-block;flex:none}
+.legend i.sq{width:10px;height:10px;border-radius:3px}
 .lgdbar{gap:4px 6px;margin-bottom:12px}
 .lgd{
-  display:inline-flex;align-items:center;gap:8px;padding:5px 9px;border-radius:7px;
-  border:1px solid transparent;background:none;color:var(--ink-2);font-size:12.5px;
-  transition:background .14s var(--ease),color .14s var(--ease);
+  display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 8px;border-radius:999px;
+  border:1px solid var(--rule-2);background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:500;
+  transition:background .14s var(--ease),color .14s var(--ease),border-color .14s var(--ease);
 }
-.lgd:hover{background:var(--hover)}
+.lgd:hover{background:var(--hover);border-color:var(--rule)}
 .lgd .box{
-  width:15px;height:15px;border-radius:4px;border:2px solid var(--c);flex:none;
+  width:15px;height:15px;border-radius:4px;border:2px solid var(--c);flex:none;order:-2;
   display:inline-flex;align-items:center;justify-content:center;
   transition:background .14s var(--ease);
 }
-.lgd.dash .box{border-style:dashed}
+/* Targets carry a short dashed stroke beside the tick box, like their line. */
+.lgd.dash::after{content:'';order:-1;width:14px;height:0;border-top:2px dashed var(--c);flex:none}
+.lgd.dash[aria-pressed="false"]::after{opacity:.5}
 .lgd[aria-pressed="true"] .box{background:var(--c)}
-.lgd.dash[aria-pressed="true"] .box{border-style:solid}
 .lgd[aria-pressed="true"] .box::after{
   content:'';width:4px;height:8px;margin-top:-2px;border:solid var(--surface);
   border-width:0 2px 2px 0;transform:rotate(45deg);
 }
 .lgd[aria-pressed="false"]{color:var(--ink-3)}
+.lgd[aria-pressed="false"] .box{opacity:.6}
 .chart .tip .tr i.dash{width:10px;height:0;border-top:2px dashed;border-radius:0;background:none}
-.seg{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden}
-.seg button{border:none;background:var(--surface);padding:6px 13px;font-size:13px}
-.seg button+button{border-left:1px solid var(--rule)}
-.seg button[aria-pressed=true]{background:var(--reg);color:var(--on-accent)}
+.chart svg text{font-family:var(--sans)}
 
 .smallmults{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
-.sm{border:1px solid var(--rule-2);border-radius:10px;padding:14px 15px 12px;background:var(--surface)}
+.sm{border:1px solid var(--rule-2);border-radius:var(--r-md);padding:14px 15px 12px;background:var(--surface)}
 .sm .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .sm .h b{font-size:13.5px;font-weight:600}
-.smfoot{display:flex;justify-content:space-between;gap:10px;margin-top:8px;
+.smfoot{display:flex;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap;
   font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule-2);padding-top:8px}
 .smfoot b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
 
@@ -462,28 +639,35 @@ svg{display:block;max-width:100%}
 .chart .guide{transition:opacity .1s ease;pointer-events:none}
 .chart .tip{
   position:absolute;top:0;z-index:5;pointer-events:none;
-  background:var(--tip-bg);color:var(--tip-fg);border-radius:7px;padding:8px 10px;
-  font-size:12px;line-height:1.45;white-space:nowrap;box-shadow:var(--shadow);
+  background:var(--tip-bg);color:var(--tip-fg);border-radius:9px;padding:9px 11px;
+  font-size:12px;line-height:1.5;white-space:nowrap;box-shadow:var(--shadow-pop);
 }
 .chart .tip[hidden]{display:none}
 .chart .tip strong{display:block;font-weight:600;margin-bottom:4px;font-size:12.5px}
 .chart .tip .tr{display:flex;align-items:center;gap:7px}
 .chart .tip .tr i{width:8px;height:8px;border-radius:2px;flex:none}
 .chart .tip .tr b{margin-left:auto;padding-left:14px;font-variant-numeric:tabular-nums;font-weight:600}
+.chart .tip .so{display:block;margin-top:4px;font-size:11px;opacity:.75}
+.chartnote{font-size:12px;color:var(--ink-3);margin:10px 0 0}
 @media (prefers-reduced-motion:reduce){.chart .guide{transition:none}}
 
 /* ---------- empty / modal ---------- */
 .empty{
-  margin-top:22px;border:1.5px dashed var(--rule);border-radius:14px;background:var(--surface);
-  padding:64px 32px;text-align:center;
+  margin-top:22px;border:1.5px dashed var(--rule);border-radius:18px;background:var(--surface);
+  padding:64px 32px;text-align:center;transition:border-color .2s var(--ease),background .2s var(--ease);
 }
 .empty.drag{border-color:var(--reg);background:var(--drag-bg)}
-.empty h2{font-family:var(--serif);font-size:26px;margin:0 0 8px;font-weight:600}
+.empty-ico{width:56px;height:56px;border-radius:16px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);color:var(--reg)}
+.empty-ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.empty h2{font-family:var(--serif);font-size:26px;margin:0 0 8px;font-weight:600;letter-spacing:-.01em}
 .empty p{margin:0 auto 22px;max-width:52ch;color:var(--ink-2);font-size:14.5px}
 .empty .note{font-size:12.5px;color:var(--ink-3);margin-top:20px;margin-bottom:0}
+.empty .note svg{width:13px;height:13px;display:inline-block;vertical-align:-2px;margin-right:5px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 
-.scrim{position:fixed;inset:0;background:var(--scrim);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow:auto}
-.modal{background:var(--surface);border-radius:13px;width:100%;max-width:720px;box-shadow:var(--shadow)}
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:44px 20px;overflow:auto;
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:720px;box-shadow:var(--shadow-pop);border:1px solid var(--rule)}
 .modal.wide{max-width:920px}
 .linknum{
   border:none;background:none;padding:0;font:inherit;font-variant-numeric:tabular-nums;
@@ -492,15 +676,15 @@ svg{display:block;max-width:100%}
 }
 .linknum:hover{color:var(--ink)}
 .bizname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bizid{display:block;color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.bizid{display:block;color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .fixid{color:var(--ink);letter-spacing:.04em;margin-top:4px}
 .sheetcount{border-bottom:1px dotted var(--ink-3);cursor:help}
 .fixinput{
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-size:12px;letter-spacing:.04em;text-transform:uppercase;
-  padding:5px 7px;min-width:160px;width:170px;
+  min-height:30px;padding:4px 8px;min-width:160px;width:176px;
 }
-.fixinput::placeholder{text-transform:none;letter-spacing:0;color:var(--ink-3)}
+.fixinput::placeholder{text-transform:none;letter-spacing:0;color:var(--ink-3);font-family:var(--sans)}
 .fixtag{
   margin-left:6px;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;
   color:var(--ink-3);border:1px solid var(--rule);border-radius:8px;padding:1px 5px;
@@ -509,43 +693,46 @@ svg{display:block;max-width:100%}
   color:var(--warn);background:var(--fix-bg);border-radius:3px;
   padding:1px 2px;margin:0 -1px;font-weight:700;
 }
-.modal header{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--rule-2)}
-.modal header h3{font-family:var(--serif);font-size:18px;margin:0;font-weight:600;margin-right:auto}
+.modal header{display:flex;align-items:center;padding:16px 22px;border-bottom:1px solid var(--rule-2);
+  position:sticky;top:0;background:var(--surface);z-index:3;border-radius:16px 16px 0 0}
+.modal header h3{font-family:var(--serif);font-size:19px;margin:0;font-weight:600;margin-right:auto;letter-spacing:-.01em}
 /* In Settings the theme toggle sits beside the title, so the title gives up
    its push and the saved indicator takes over pushing Close to the right. */
 .modal.settings header h3{margin-right:0}
 .modal .body{padding:22px}
-.modal footer{padding:14px 22px;border-top:1px solid var(--rule-2);display:flex;gap:8px;justify-content:flex-end}
+.modal footer{padding:14px 22px;border-top:1px solid var(--rule-2);display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .modal .body p{margin-top:0;color:var(--ink-2);font-size:13.5px}
 .modal.confirm{max-width:440px}
 .modal.confirm .body{padding:24px 24px 4px}
-.modal.confirm h3{font-family:var(--serif);font-size:19px;font-weight:600;margin:0 0 8px}
+.modal.confirm h3{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
 .modal.confirm .body p{font-size:14px;line-height:1.55;margin-bottom:18px}
 .btn-danger-solid{background:var(--warn);border-color:var(--warn);color:var(--on-danger)}
 .btn-danger-solid:hover{background:var(--danger-hi);border-color:var(--danger-hi)}
-.setrow{display:grid;grid-template-columns:52px 1fr 140px 120px 36px;gap:9px;align-items:center;margin-bottom:8px}
-.setrow input[type=date]{font-size:12.5px;padding:7px 6px}
-.setrow select{font-size:12.5px;padding:7px 6px;min-width:0;width:100%}
+.setrow{display:grid;grid-template-columns:52px 1fr 148px 128px 34px;gap:9px;align-items:center;margin-bottom:8px}
+.setrow input[type=date]{font-size:12.5px;padding:5px 7px}
+.setrow select{font-size:12.5px;padding:5px 26px 5px 8px;min-width:0;width:100%;background-position:right 8px center}
 .setrow .id{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .setrow input{width:100%;min-width:0}
 .setlist{max-height:320px;overflow:auto;padding-right:4px;margin-top:6px}
-.seth{font-size:12px;font-weight:600;color:var(--ink-3);margin:20px 0 10px;
-  padding-bottom:6px;border-bottom:1px solid var(--rule-2)}
+.seth{font-size:12.5px;font-weight:600;color:var(--ink-2);margin:22px 0 10px;
+  padding-bottom:7px;border-bottom:1px solid var(--rule-2)}
 .setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.modal .body>.seth:first-child{margin-top:0}
 .setnote{font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.55}
-.setmore{margin-top:16px;border:1px solid var(--rule-2);border-radius:8px;padding:10px 12px}
-.setmore summary{font-size:13px;font-weight:500;cursor:pointer}
+.setmore{margin-top:16px;border:1px solid var(--rule-2);border-radius:var(--r-md);padding:11px 14px;background:var(--surface)}
+.setmore[open]{background:var(--surface-2)}
+.setmore summary{font-size:13.5px;font-weight:600;cursor:pointer}
 .setswitch{
   display:flex;align-items:center;gap:9px;font-size:13.5px;
-  margin:12px 0 4px;padding:9px 11px;border-radius:8px;background:var(--surface-2);
+  margin:12px 0 4px;padding:9px 11px;border-radius:8px;background:var(--surface);
   border:1px solid var(--rule-2);cursor:pointer;
 }
 .setswitch input{margin:0}
 .teamnames{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:4px 0 16px}
-.nbox{border:1px solid var(--rule);border-radius:10px;padding:14px 16px;margin-bottom:14px;
+.nbox{border:1px solid var(--rule-2);border-radius:var(--r-md);padding:14px 16px;margin-bottom:6px;
   background:var(--surface-2);font-size:13px;line-height:1.5}
 .nbox p{margin:10px 0 0;font-size:12px;color:var(--ink-2)}
-.nbgrid{display:grid;grid-template-columns:1fr auto;gap:5px 18px;margin-top:10px;max-width:640px}
+.nbgrid{display:grid;grid-template-columns:1fr auto;gap:6px 18px;margin-top:10px;max-width:640px}
 .nbk{color:var(--ink-2)}
 .nbv{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
 .nbv.good{color:var(--good)}
@@ -579,16 +766,92 @@ svg{display:block;max-width:100%}
 .setmore summary .emo{font-size:14px;margin-right:8px}
 .setmore summary{display:flex;align-items:center}
 .setmore .setgrid{margin-top:12px}
-.sethead{display:grid;grid-template-columns:52px 1fr 140px 120px 36px;gap:9px;font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+.sethead{display:grid;grid-template-columns:52px 1fr 148px 128px 34px;gap:9px;font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+
+/* ---------- audit ---------- */
+.toolbar{display:flex;gap:12px 14px;align-items:flex-end;flex-wrap:wrap;margin:2px 0 14px}
+.toolbar .field.grow{flex:1 1 220px;max-width:340px}
+.toolbar .field.grow input{width:100%}
+.srcinfo{margin-left:auto;font-size:12px;color:var(--ink-3);padding-bottom:8px;text-align:right}
+.tabs{
+  display:flex;gap:2px;border-bottom:1px solid var(--rule);overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;margin-bottom:0;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  flex:none;border:0;background:none;padding:10px 12px 11px;font-size:13.5px;font-weight:500;color:var(--ink-2);
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;gap:7px;align-items:center;
+  border-radius:8px 8px 0 0;
+}
+.tabs button:hover{color:var(--ink);background:var(--hover)}
+.tabs button[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--reg);font-weight:600}
+.tabs .count{font-size:11.5px;font-weight:600;padding:0 7px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);line-height:1.6;font-variant-numeric:tabular-nums}
+.tabs button[aria-pressed=true] .count{background:var(--reg);color:var(--on-accent)}
+.tabs .count.warn{background:var(--miss-bg);color:var(--warn)}
+.tabs button[aria-pressed=true] .count.warn{background:var(--warn);color:var(--on-danger)}
+.tabs+.tablewrap thead th{border-top:0}
+.auditempty{color:var(--ink-3);font-size:13.5px;padding:26px 4px;margin:0}
 
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
-  background:var(--tip-bg);color:var(--tip-fg);padding:11px 18px;border-radius:8px;font-size:13.5px;
-  box-shadow:var(--shadow);max-width:min(90vw,520px);
+  background:var(--tip-bg);color:var(--tip-fg);padding:11px 18px;border-radius:10px;font-size:13.5px;
+  box-shadow:var(--shadow-pop);max-width:min(90vw,520px);
 }
-.toast.err{background:var(--warn)}
+.toast.err{background:var(--warn);color:var(--on-danger)}
 .hidden{display:none!important}
-.foot{max-width:1320px;margin:0 auto;padding:26px 24px 0;font-size:12px;color:var(--ink-3);line-height:1.6}
+.foot{max-width:1320px;margin:0 auto;padding:26px 24px 0;font-size:12px;color:var(--ink-3);line-height:1.6;text-align:center}
+
+/* ---------- phones ---------- */
+@media (max-width:760px){
+  /* The name column stays put while the figures scroll beneath it. */
+  #leagueTable td.agentcell,#leagueTable thead th:nth-child(2),
+  #salaryTable td.agentcell,#salaryTable thead th:nth-child(2){
+    position:sticky;left:0;z-index:1;background:var(--surface);
+    box-shadow:6px 0 8px -8px rgba(0,0,0,.25);
+  }
+  #leagueTable thead th:nth-child(2),#salaryTable thead th:nth-child(2){z-index:3;background:var(--surface-2)}
+  #leagueTable tbody tr:hover td.agentcell,#salaryTable tbody tr:hover td.agentcell{background:var(--surface-2)}
+  #leagueTable tbody tr.open td.agentcell,#salaryTable tbody tr.open td.agentcell{background:var(--open-bg)}
+  .rank{width:28px;padding-left:10px;padding-right:4px}
+}
+@media (max-width:560px){
+  main{padding:0 16px 64px}
+  .foot{padding:22px 16px 0}
+  .panel,.filters{margin-top:14px}
+  .panel-head{padding:14px 16px;gap:10px}
+  .ph-title{flex-basis:100%}
+  .ph-tools{width:100%;gap:8px}
+  .ph-tools .seg{overflow-x:auto;scrollbar-width:none}
+  .ph-tools .seg::-webkit-scrollbar{display:none}
+  .panel-head h2{font-size:17px}
+  .panel-body{padding:16px}
+  th,td{padding:9px 10px}
+  .filters{display:grid;grid-template-columns:1fr 1fr;padding:12px 14px;gap:10px}
+  .filters .field{min-width:0}
+  .filters .field select,.filters .field .btn{width:100%;min-width:0}
+  .filters .field .seg{width:100%}
+  .filters .field .seg button{flex:1}
+  .filters .spacer{display:none}
+  .filters .field:last-child{grid-column:1/-1}
+  .filters .field:last-child label{display:none}
+  .filters #btnReset{width:100%}
+  .dropdown{width:min(300px,calc(100vw - 48px))}
+  .toolbar .field.grow{max-width:none;flex-basis:100%}
+  .lgd{font-size:12px;padding:4px 9px 4px 7px;gap:6px}
+  .lgd .box{width:13px;height:13px}
+  #search{min-width:0;flex:1 1 100%}
+  .srcinfo{margin-left:0;text-align:left;padding-bottom:0}
+  .empty{padding:44px 20px}
+  .scrim{padding:16px 10px}
+  .sethead{display:none}
+  .setrow{grid-template-columns:40px 1fr 1fr 32px;row-gap:6px;padding-bottom:8px;border-bottom:1px solid var(--rule-2)}
+  .setrow .id{grid-column:1;grid-row:1}
+  .setrow input[type=text]{grid-column:2/4;grid-row:1}
+  .setrow .dlbtn{grid-column:4;grid-row:1}
+  .setrow input[type=date]{grid-column:2;grid-row:2}
+  .setrow select{grid-column:3;grid-row:2}
+  .statgrid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -638,20 +901,25 @@ svg{display:block;max-width:100%}
 <main>
   <!-- empty state -->
   <section class="empty" id="emptyState">
+    <div class="empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14.5v3.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3.5"/></svg></div>
     <h2>No report loaded yet</h2>
     <p>Upload an Amazon Business activations export to see how each BDE is performing week by week. Drop the file anywhere on this page, or use the button below.</p>
     <button class="btn btn-primary" id="btnUpload2">Upload report</button>
-    <p class="note">CSV and Excel both work. Everything is read and stored on this device only &mdash; no file, row or figure is ever sent anywhere.</p>
+    <p class="note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>CSV and Excel both work. Everything is read and stored on this device only &mdash; no file, row or figure is ever sent anywhere.</p>
   </section>
 
   <div id="audit" class="hidden">
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="emo">🔍</span>Audit against the Celero report</h2>
-        <span class="hint" id="auditHint">Checks every business signed up in the Celero report against the AB report, to find sign-ups the AB report has missed.</span>
-        <select id="crmAgent" title="Which agent's Celero report this is. Matching only looks at this agent's businesses."></select>
-        <button class="btn" id="btnCrm">Upload Celero report</button>
-        <button class="btn" id="btnCrmDel" title="Delete the Celero report being audited" aria-label="Delete Celero report">🗑️</button>
+        <div class="ph-title">
+          <h2><span class="emo">🔍</span>Audit against the Celero report</h2>
+          <span class="hint" id="auditHint">Checks every business signed up in the Celero report against the AB report, to find sign-ups the AB report has missed.</span>
+        </div>
+        <div class="ph-tools">
+          <select id="crmAgent" aria-label="Agent to audit" title="Which agent's Celero report this is. Matching only looks at this agent's businesses."></select>
+          <button class="btn" id="btnCrm"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.8 5.7 8 2.5l3.2 3.2"/><path d="M2.5 10.5v2.2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2.2"/></svg>Upload Celero report</button>
+          <button class="btn iconly hovername" id="btnCrmDel" data-name="Delete Celero report" aria-label="Delete Celero report">🗑️</button>
+        </div>
       </div>
       <div class="panel-body" id="auditBody"></div>
     </section>
@@ -704,13 +972,15 @@ svg{display:block;max-width:100%}
     <section class="panel" id="sec-summary">
       <div class="totals" id="totals"></div>
     </section>
-    <p id="postWarn" style="margin:8px 2px 0;font-size:12.5px;color:var(--warn)"></p>
+    <div id="postWarn" class="notice warn" role="status" hidden></div>
 
     <!-- league table -->
     <section class="panel" id="sec-league">
       <div class="panel-head">
-        <h2><span class="emo">🏆</span>League table</h2>
-        <span class="hint" id="leagueHint"></span>
+        <div class="ph-title">
+          <h2><span class="emo">🏆</span>League table</h2>
+          <span class="hint" id="leagueHint"></span>
+        </div>
       </div>
       <div class="tablewrap"><table id="leagueTable"></table></div>
     </section>
@@ -718,15 +988,20 @@ svg{display:block;max-width:100%}
     <!-- trend -->
     <section class="panel" id="sec-trend">
       <div class="panel-head">
-        <h2><span class="emo">📈</span>Registrations over time</h2>
-        <span class="hint" id="trendHint"></span>
-        <div class="seg" id="grainSeg">
-          <button data-k="week" aria-pressed="true">By week</button>
-          <button data-k="day" aria-pressed="false">By day</button>
+        <div class="ph-title">
+          <h2><span class="emo">📈</span>Registrations over time</h2>
+          <span class="hint" id="trendHint"></span>
         </div>
-        <div class="seg" id="trendMode">
-          <button data-k="team" aria-pressed="true">Whole team</button>
-          <button data-k="agent" aria-pressed="false">Per BDE</button>
+        <div class="ph-tools">
+          <label class="switch" title="Include Saturdays and Sundays on the day-by-day charts"><input type="checkbox" id="showWeekends" checked><span class="track" aria-hidden="true"></span>Show weekends</label>
+          <div class="seg" id="grainSeg">
+            <button data-k="week" aria-pressed="true">By week</button>
+            <button data-k="day" aria-pressed="false">By day</button>
+          </div>
+          <div class="seg" id="trendMode">
+            <button data-k="team" aria-pressed="true">Whole team</button>
+            <button data-k="agent" aria-pressed="false">Per BDE</button>
+          </div>
         </div>
       </div>
       <div class="panel-body" id="trendBody"></div>
@@ -735,8 +1010,10 @@ svg{display:block;max-width:100%}
     <!-- quality -->
     <section class="panel" id="sec-spend">
       <div class="panel-head">
-        <h2><span class="emo">💷</span>From registration to spend</h2>
-        <span class="hint">Where each BDE's registrations end up: earning commission, spending below the line, or never spending at all.</span>
+        <div class="ph-title">
+          <h2><span class="emo">💷</span>From registration to spend</h2>
+          <span class="hint">Where each BDE's registrations end up: earning commission, spending below the line, or never spending at all.</span>
+        </div>
       </div>
       <div class="panel-body" id="qualityBody"></div>
     </section>
@@ -744,8 +1021,10 @@ svg{display:block;max-width:100%}
     <!-- industry: only once a Celero report is loaded -->
     <section class="panel hidden" id="sec-industry">
       <div class="panel-head">
-        <h2><span class="emo">&#127981;</span>Industry</h2>
-        <span class="hint" id="industryHint"></span>
+        <div class="ph-title">
+          <h2><span class="emo">&#127981;</span>Industry</h2>
+          <span class="hint" id="industryHint"></span>
+        </div>
       </div>
       <div class="panel-body" id="industryBody"></div>
     </section>
@@ -753,12 +1032,17 @@ svg{display:block;max-width:100%}
     <!-- salaries -->
     <section class="panel" id="sec-salary">
       <div class="panel-head">
-        <h2><span class="emo">💰</span>Salaries</h2>
-        <span class="hint" id="salaryHint"></span>
-        <div class="seg" id="salaryMonths">
-          <button data-k="6" aria-pressed="true">Last 6</button>
-          <button data-k="12" aria-pressed="false">Last 12</button>
-          <button data-k="0" aria-pressed="false">All</button>
+        <div class="ph-title">
+          <h2><span class="emo">💰</span>Salaries</h2>
+          <span class="hint" id="salaryHint"></span>
+        </div>
+        <div class="ph-tools">
+          <div class="seg" id="salaryMonths">
+            <button data-k="3" aria-pressed="false">Last 3</button>
+            <button data-k="6" aria-pressed="true">Last 6</button>
+            <button data-k="12" aria-pressed="false">Last 12</button>
+            <button data-k="0" aria-pressed="false">All</button>
+          </div>
         </div>
       </div>
       <div class="tablewrap"><table id="salaryTable"></table></div>
@@ -768,15 +1052,19 @@ svg{display:block;max-width:100%}
     <!-- detail -->
     <section class="panel" id="sec-data">
       <div class="panel-head">
-        <h2><span class="emo">🏪</span>Registered businesses</h2>
-        <span class="hint" id="detailHint"></span>
-        <div class="seg" id="detailShow">
-          <button data-k="all" aria-pressed="true">All</button>
-          <button data-k="act" aria-pressed="false">Activated</button>
-          <button data-k="qual" aria-pressed="false">Qualified</button>
-          <button data-k="notq" aria-pressed="false">Not qualified</button>
+        <div class="ph-title">
+          <h2><span class="emo">🏪</span>Registered businesses</h2>
+          <span class="hint" id="detailHint"></span>
         </div>
-        <input type="search" id="search" placeholder="Search business, postcode or ID">
+        <div class="ph-tools">
+          <div class="seg" id="detailShow">
+            <button data-k="all" aria-pressed="true">All</button>
+            <button data-k="act" aria-pressed="false">Activated</button>
+            <button data-k="qual" aria-pressed="false">Qualified</button>
+            <button data-k="notq" aria-pressed="false">Not qualified</button>
+          </div>
+          <input type="search" id="search" aria-label="Search businesses" placeholder="Search business, postcode or ID">
+        </div>
       </div>
       <div class="tablewrap"><table id="detailTable"></table></div>
       <div class="panel-body" id="detailMore" style="padding-top:14px"></div>
@@ -859,7 +1147,7 @@ const state={
          niPrimary:12570,niUpper:50270,niMain:8,niUpperRate:2}},
   filters:{mode:'week',wFrom:null,wTo:null,dFrom:null,dTo:null,agents:null,teams:null,q:''},
   sort:{key:'reg',dir:-1},
-  trendMode:'team', grain:'week', drawerGrain:'week', detailShow:'all', openAgent:null, openSalary:null, salaryMonths:6, detailLimit:60,
+  trendMode:'team', grain:'week', drawerGrain:'week', detailShow:'all', openAgent:null, openSalary:null, salaryMonths:6, showWeekends:true, detailLimit:60,
   view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1}
@@ -1423,7 +1711,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
   }));
   paintFilterState();
 }
@@ -1444,13 +1732,14 @@ function loadView(){
     if(v.sort&&SORTS[v.sort.key]) state.sort=v.sort;
     if(v.grain==='day'||v.grain==='week') state.grain=v.grain;
     if(v.trendMode==='team'||v.trendMode==='agent') state.trendMode=v.trendMode;
-    if([0,6,12].includes(v.salaryMonths)) state.salaryMonths=v.salaryMonths;
+    if([0,3,6,12].includes(v.salaryMonths)) state.salaryMonths=v.salaryMonths;
     if(v.view==='audit'||v.view==='dashboard') state.view=v.view;
     if(typeof v.auditTill==='string') state.auditTill=v.auditTill;
     if(v.salarySort&&v.salarySort.key) state.salarySort=v.salarySort;
     if(v.auditSort&&v.auditSort.dir) state.auditSort=v.auditSort;
     if(v.drawerGrain==='day'||v.drawerGrain==='week') state.drawerGrain=v.drawerGrain;
     if(['all','act','qual','notq'].includes(v.detailShow)) state.detailShow=v.detailShow;
+    if(typeof v.showWeekends==='boolean') state.showWeekends=v.showWeekends;
     if(Array.isArray(v.trendOff)) state.trendOff=v.trendOff.filter(k=>k in SERIES);
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
@@ -1935,6 +2224,7 @@ function salaryData(){
   const seatSeen=new Set();
   let undated=0, beyond=0, unattributed=0, lo=Infinity, pending=0, pendingAmt=0;
   const nb={total:0,paid:0,pending:0,pendingOk:0,low:0,late:0,wouldOld:0};
+  const est=new Map();          // "agent#stint" -> Map(period -> pending new-rule commission on track)
   const agents=new Set();
 
   for(const r of rows){
@@ -1959,7 +2249,16 @@ function salaryData(){
       if(oldRuleOk(r)) nb.wouldOld++;
       if(close>asAt){
         pending++; nb.pending++;
-        if(cm.ok){ pendingAmt+=cm.amt; nb.pendingOk++; }
+        if(cm.ok){
+          pendingAmt+=cm.amt; nb.pendingOk++;
+          const st0=stintFor(id,r);
+          if(st0){
+            const ek=id+'#'+st0.i, pk=periodOf(close);
+            if(!est.has(ek)) est.set(ek,new Map());
+            const em=est.get(ek), c0=em.get(pk)||{qual:0,amt:0};
+            c0.qual++; c0.amt+=cm.amt; em.set(pk,c0);
+          }
+        }
         continue;
       }
       when=close;
@@ -1996,7 +2295,8 @@ function salaryData(){
   if(!isFinite(lo)) lo=current;
   lo=Math.min(lo,firstPeriod||lo);
   const periods = current ? periodsBetween(Math.min(lo,current),current) : [];
-  return {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt,
+  const nextKey=current?(current%100===12?(Math.floor(current/100)+1)*100+1:current+1):0;
+  return {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt,est,nextKey,
     agents:[...agents].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))};
 }
 
@@ -2198,16 +2498,25 @@ function trendKeys(rows,g){
     const r=dayRange(); lo=midnight(r[0]); hi=midnight(r[1]);
   }else{
     const first=keys[0], last=keys[keys.length-1];
-    lo=isoMonday(Math.floor(first/100),first%100).getTime();
-    hi=isoMonday(Math.floor(last/100),last%100).getTime()+6*86400000;
+    lo=midnight(isoMonday(Math.floor(first/100),first%100).getTime());
+    const e=new Date(isoMonday(Math.floor(last/100),last%100).getTime());
+    e.setHours(0,0,0,0); e.setDate(e.getDate()+6);
+    hi=e.getTime();
+    // Whole weeks, but never past the report's own first and last day, so the
+    // line does not drop to zero on days the report has not reached yet.
+    const span=dataSpan();
+    if(span){ lo=Math.max(lo,midnight(span[0])); hi=Math.min(hi,midnight(span[1])); }
   }
-  // Saturdays and Sundays are not worked, so they are left off the daily
-  // axis rather than drawn as a run of zeros between every working week.
+  // Saturdays and Sundays are not worked, so unless Show weekends is on they
+  // are left off the daily axis rather than drawn as a run of zeros. Stepping
+  // a calendar day at a time means the clocks changing in spring and autumn
+  // can never repeat or skip a day.
   const out=[];
-  for(let t=lo;t<=hi;t+=86400000){
-    const d=new Date(t); d.setHours(0,0,0,0);
+  const d=new Date(lo); d.setHours(0,0,0,0);
+  while(d.getTime()<=hi){
     const w=d.getDay();
-    if(w>=1&&w<=5) out.push(d.getTime());
+    if(state.showWeekends||(w>=1&&w<=5)) out.push(d.getTime());
+    d.setDate(d.getDate()+1);
   }
   return out;
 }
@@ -2233,6 +2542,13 @@ function dataSpan(){
     if(t<lo) lo=t; if(t>hi) hi=t;
   }
   return isFinite(lo)?[lo,hi]:null;
+}
+/* A week is still in progress when the report stops before its Friday. BDEs
+   do not work weekends, so a report running to Friday covers the week. */
+function weekIsPartial(k){
+  const span=dataSpan(); if(!span||!k) return false;
+  const fri=new Date(weekStart(k)); fri.setHours(0,0,0,0); fri.setDate(fri.getDate()+4);
+  return midnight(span[1])<fri.getTime();
 }
 /* [start of the first day, end of the last day]. Unset ends fall back to the
    first and last registration in the report. */
@@ -2281,36 +2597,65 @@ function timeChart(keys,sets,g,opt){
   const step=n>1?iw/(n-1):0;
   const x=i=>n===1?L+iw/2:L+i*step;
   const y=v=>T+ih-(v/max)*ih;
+  const fs=opt.small?9.5:11;
+  // The final point of a week still in progress is drawn dashed and hollow.
+  const partial=!!opt.partial&&n>1;
   let gg='';
   for(let i=0;i<=ticks;i++){
     const v=max*i/ticks, yy=y(v);
-    gg+=`<line x1="${L}" x2="${W-R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--rule-2)" stroke-width="1"/>`;
-    gg+=`<text x="${L-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="${opt.small?9.5:11}" fill="var(--ink-3)">${fmt(v)}</text>`;
+    gg+=`<line x1="${L}" x2="${W-R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${i===0?'var(--rule)':'var(--rule-2)'}" stroke-width="1"/>`;
+    gg+=`<text x="${L-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="${fs}" fill="var(--ink-3)">${fmt(v)}</text>`;
   }
   for(const t of targets){
     const ty=y(t.value);
-    gg+=`<line x1="${L}" x2="${W-R}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="${t.color}" stroke-width="${opt.small?1.2:1.4}" stroke-dasharray="5 4" opacity=".85"/>`;
+    gg+=`<line x1="${L}" x2="${W-R}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="${t.color}" stroke-width="${opt.small?1.2:1.5}" stroke-dasharray="6 5" opacity=".9"/>`;
   }
-  const lbl=Math.max(1,Math.ceil(n/(opt.small?4:14)));
-  keys.forEach((k,i)=>{ if(i%lbl===0||i===n-1)
-    gg+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="${opt.small?9.5:11}" fill="var(--ink-3)">${label(k,g)}</text>`;
+  // As many axis labels as comfortably fit, always ending on the last key.
+  const room=opt.small?4:Math.max(3,Math.floor(iw/72));
+  const lbl=Math.max(1,Math.ceil(n/room));
+  keys.forEach((k,i)=>{
+    if(i!==n-1&&(i%lbl!==0||(n-1-i)<lbl*0.6)) return;
+    const anchor=opt.small&&n>1?(i===0?'start':i===n-1?'end':'middle'):'middle';
+    gg+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="${anchor}" font-size="${fs}" fill="var(--ink-3)">${label(k,g)}</text>`;
   });
+  const path=p=>'M'+p.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L');
+  const sw=opt.small?1.8:2;
+  const ends=[];
   sets.forEach((s,si)=>{
-    const pts=s.vals.map((v,i)=>x(i).toFixed(1)+' '+y(v).toFixed(1));
+    const p=s.vals.map((v,i)=>[x(i),y(v)]);
     if(opt.area&&si===0){
-      gg+=`<path d="M${x(0).toFixed(1)} ${y(0).toFixed(1)} L${pts.join(' L')} L${x(n-1).toFixed(1)} ${y(0).toFixed(1)} Z" fill="${s.color}" opacity=".10"/>`;
+      gg+=`<path d="${path(p)} L${x(n-1).toFixed(1)} ${y(0).toFixed(1)} L${x(0).toFixed(1)} ${y(0).toFixed(1)} Z" fill="${s.color}" opacity=".10"/>`;
     }
-    gg+=`<path d="M${pts.join(' L')}" fill="none" stroke="${s.color}" stroke-width="${opt.small?1.8:2.2}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    if(n<=45&&!opt.small) s.vals.forEach((v,i)=>{
-      gg+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;
-    });
+    const solid=partial?p.slice(0,n-1):p;
+    if(solid.length>1) gg+=`<path d="${path(solid)}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(partial) gg+=`<path d="${path(p.slice(n-2))}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="3 4"/>`;
+    if(!opt.small){
+      // Small dots mark each week when there are few enough to tell apart.
+      if(n<=26&&step>=14) p.forEach((q,i)=>{ if(i<n-1)
+        gg+=`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3" fill="${s.color}" stroke="var(--surface)" stroke-width="1.5"/>`; });
+      const e=p[n-1];
+      gg+=partial
+        ? `<circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="4" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`
+        : `<circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`;
+      ends.push({v:s.vals[n-1],y:e[1]});
+    }
   });
+  // The latest value beside each line's end, unless two would overlap; the
+  // hover readout always has every value.
+  if(opt.endLabels&&n>1){
+    let prev=-99;
+    for(const e of ends.sort((a,b)=>a.y-b.y)){
+      if(e.y-prev<13) continue;
+      gg+=`<text x="${(x(n-1)+9).toFixed(1)}" y="${(e.y+4).toFixed(1)}" font-size="11" font-weight="600" fill="var(--ink-2)">${fmt(e.v)}</text>`;
+      prev=e.y;
+    }
+  }
   // hover furniture, moved by script rather than redrawn
   gg+=`<g class="guide" opacity="0"><line y1="${T}" y2="${T+ih}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>`+
-      sets.map(s=>`<circle r="4" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`).join('')+`</g>`;
+      sets.map(s=>`<circle r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`).join('')+`</g>`;
   gg+=`<rect class="hit" x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/>`;
   const meta={W,H,L,T,ih,max,step,n,g,
-    keys:keys.map(k=>labelFull(k,g)),
+    keys:keys.map((k,i)=>labelFull(k,g)+(partial&&i===n-1?' · so far':'')),
     sets:sets.map(s=>({label:s.label,color:s.color,vals:s.vals})),
     targets:targets.map(t=>({value:t.value,color:t.color,label:t.label})), note:opt.note||''};
   return `<div class="chart" data-meta='${esc(JSON.stringify(meta))}'>`+
@@ -2367,7 +2712,7 @@ function miniBars(vals,keys,color,target,h,g){
   });
   if(target>0){
     const ty=H-(target/max)*H;
-    gg+=`<line x1="0" x2="${W}" y1="${ty.toFixed(2)}" y2="${ty.toFixed(2)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".65"/>`;
+    gg+=`<line x1="0" x2="${W}" y1="${ty.toFixed(2)}" y2="${ty.toFixed(2)}" stroke="var(--ink-2)" stroke-width="1.2" stroke-dasharray="4 3" opacity=".75"/>`;
   }
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">${gg}</svg>`;
 }
@@ -2386,23 +2731,26 @@ function spark(vals,keys,color){
 function stackBar(parts,total,w){
   const W=w||200,H=16,R=8;
   const id='sb'+Math.random().toString(36).slice(2,8);
+  const shown=parts.filter(p=>total>0&&(p.v/total)*W>0.3);
   let g=`<clipPath id="${id}"><rect x="0" y="0" width="${W}" height="${H}" rx="${R}"/></clipPath>`;
-  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="${R}" fill="var(--surface-2)"/>`;
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="${R}" fill="${total>0?'var(--surface)':'var(--surface-2)'}"/>`;
   g+=`<g clip-path="url(#${id})">`;
   let x=0;
   for(const p of parts){
     const pw=total>0?(p.v/total)*W:0;
     if(pw>0.3){
       const share=total>0?Math.round(p.v/total*100):0;
-      g+=`<g class="seg"><rect x="${x.toFixed(2)}" y="0" width="${pw.toFixed(2)}" height="${H}" fill="${p.c}">`+
+      // A 2px gap in the card colour separates neighbouring parts.
+      const dw=p===shown[shown.length-1]?pw:Math.max(.6,pw-2);
+      g+=`<g class="seg"><rect x="${x.toFixed(2)}" y="0" width="${dw.toFixed(2)}" height="${H}" fill="${p.c}">`+
          `<title>${esc(p.k)}: ${fmt(p.v)} (${share}%)</title></rect>`;
-      if(pw>34) g+=`<text x="${(x+pw/2).toFixed(2)}" y="${H/2+3.5}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${p.t||'#fff'}" pointer-events="none">${share}%</text>`;
+      if(pw>34) g+=`<text x="${(x+dw/2).toFixed(2)}" y="${H/2+3.5}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${p.t||'#fff'}" pointer-events="none">${share}%</text>`;
       g+='</g>';
     }
     x+=pw;
   }
   g+='</g>';
-  return `<svg class="stack" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`;
+  return `<svg class="stack" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(parts.map(p=>p.k+' '+fmt(p.v)).join(', '))}">${g}</svg>`;
 }
 
 /* =======================================================================
@@ -2443,7 +2791,7 @@ function render(){
   if(salaryOn()) renderSalaries();
   renderDetail(filteredAll());
   paintFilterState();
-  measureStick(); markSection(); initReveal();
+  measureStick(); markSection(); initReveal(); fitNav();
 }
 
 function renderFilters(){
@@ -2486,6 +2834,42 @@ function renderFilters(){
     ags.map(a=>`<label class="row"><input type="checkbox" value="${esc(a)}"${(!f.agents||f.agents.has(a))?' checked':''}><span>${esc(agentName(a))} <span style="color:var(--ink-3)">#${esc(a)}${teamOf(a)?' \u00b7 '+esc(teamLabel(teamOf(a))):''}</span></span></label>`).join('');
 }
 
+/* Weekly figures for the sparklines under the headline numbers, counted the
+   same way as each headline, so a line always adds up to the number above it. */
+function tileSeries(rows,wk){
+  const idx=new Map(wk.map((k,i)=>[k,i]));
+  const reg=wk.map(()=>0), act=wk.map(()=>0), comm=wk.map(()=>0);
+  for(const r of rows){
+    if(!r[F.POST]) continue;
+    const i=idx.get(wkKey(r)); if(i!==undefined) reg[i]++;
+  }
+  const src=byRegBasis()?rows.filter(r=>r[F.POST]&&r[F.ACTD]):activationRows();
+  for(const r of src){
+    const i=idx.get(byRegBasis()?wkKey(r):keyOfTime(r[F.ACTD],'week'));
+    if(i===undefined) continue;
+    act[i]++;
+    if(qualifies(r)) comm[i]++;
+  }
+  return {reg,act,comm};
+}
+function kpiSpark(vals,color,partial){
+  if(vals.length<2) return '';
+  const W=240,H=30,P=3,n=vals.length;
+  // Scaled to the line's own range, so the week-to-week shape is visible.
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(hi===lo){ lo-=1; hi+=1; }
+  const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  const x=i=>W*i/(n-1), y=v=>H-P-(H-2*P)*(v-lo)/(hi-lo);
+  const pts=vals.map((v,i)=>x(i).toFixed(1)+' '+y(v).toFixed(1));
+  const line=a=>'M'+a.join(' L');
+  const solid=partial?pts.slice(0,n-1):pts;
+  const gid='kg'+Math.random().toString(36).slice(2,8);
+  let g=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".16"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`;
+  g+=`<path d="${line(pts)} L${W} ${H} L0 ${H} Z" fill="url(#${gid})"/>`;
+  if(solid.length>1) g+=`<path d="${line(solid)}" fill="none" stroke="${color}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  if(partial) g+=`<path d="${line(pts.slice(n-2))}" fill="none" stroke="${color}" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="100%" height="${H}" aria-hidden="true">${g}</svg>`;
+}
 function renderTotals(rows,keys){
   const t=blank(); for(const r of rows) add(t,r);
   const win={act:0,comm:0,ops:0};
@@ -2495,13 +2879,30 @@ function renderTotals(rows,keys){
   const grp=groupRows(rows);
   const ags=new Set(grp.keys());
   const hits=dayHitStats(rows);
+  // The weekly shape of each headline across the selected range.
+  // A week still in progress is left off, so the line is not dragged down by
+  // a part week; the headline number above still includes it.
+  const all=trendKeys(rows,'week');
+  const part=all.length>1&&weekIsPartial(all[all.length-1]);
+  const wk=part?all.slice(0,-1):all;
+  const ts=tileSeries(rows,wk);
+  const ends=wk.length>1?`<div class="tl"><span>${wkLabel(wk[0])}</span><span>${wkLabel(wk[wk.length-1])}</span></div>`:'';
+  const trend=(vals,color,what)=>wk.length>1
+    ? `<div class="trend" title="${esc(what)} each week, ${wkLabel(wk[0])} to ${wkLabel(wk[wk.length-1])}${part?`; ${wkLabel(all[all.length-1])} is still in progress and is left off`:''}">${kpiSpark(vals,color,false)}${ends}</div>`:'';
+  const hp=hits.pct;
+  const meterCol=hp==null?'var(--ink-3)':hp>=75?'var(--good)':hp>=40?'var(--s-mid)':'var(--warn)';
+  const meter=`<div class="meterwrap"><div class="meter" role="img" aria-label="${hp==null?'No activity':Math.round(hp)+'% of active days on target'}"><i style="width:${Math.min(100,hp||0).toFixed(1)}%;background:${meterCol}"></i></div><div class="tl"><span>0%</span><span>100% of days</span></div></div>`;
   const html=[
-    {e:'\u{1F4DD}',k:'Registrations',c:'var(--reg)',v:fmt(t.reg),s:`${fmt1(hits.active?t.reg/hits.active:0)} per active day across ${ags.size} BDE${ags.size===1?'':'s'}`},
-    {e:'\u{26A1}',k:'Activations',c:'var(--act)',v:fmt(win.act),s:win.act?(byRegBasis()?'Registrations from these weeks that have since spent':'Customers who spent in these weeks, whenever they registered'):'Nothing filled in the activation_date column'},
-    {e:'\u{1F4B7}',k:'Commission qualified',c:'var(--ver)',v:fmt(win.comm),s:`Of those, the ones spending ${fmtOps(commMin())} or more`},
-    {e:'\u{1F3AF}',k:'Days on target',c:'var(--ink-3)',v:hits.pct==null?'—':Math.round(hits.pct)+'%',
-      s:hits.active?`${fmt(hits.hit)} of ${fmt(hits.active)} active day${hits.active===1?'':'s'} reached ${fmt1(state.settings.dailyTarget)} sign-ups`:'No activity in this range'}
-  ].map(x=>`<div class="tot"><div class="k"><span class="emo big">${x.e}</span>${x.k}</div><div class="v num" style="color:${x.c}">${x.v}</div><div class="s">${esc(x.s)}</div></div>`).join('');
+    {e:'\u{1F4DD}',k:'Registrations',c:'var(--c-reg)',v:fmt(t.reg),s:`${fmt1(hits.active?t.reg/hits.active:0)} per active day across ${ags.size} BDE${ags.size===1?'':'s'}`,
+      x:trend(ts.reg,'var(--c-reg)','Registrations')},
+    {e:'\u{26A1}',k:'Activations',c:'var(--act)',v:fmt(win.act),s:win.act?(byRegBasis()?'Registrations from these weeks that have since spent':'Customers who spent in these weeks, whenever they registered'):'Nothing filled in the activation_date column',
+      x:trend(ts.act,'var(--act)','Activations')},
+    {e:'\u{1F4B7}',k:'Commission qualified',c:'var(--ver)',v:fmt(win.comm),s:`Of those, the ones spending ${fmtOps(commMin())} or more`,
+      x:trend(ts.comm,'var(--ver)','Commission qualified')},
+    {e:'\u{1F3AF}',k:'Days on target',c:'var(--ink)',v:hits.pct==null?'—':Math.round(hits.pct)+'%',
+      s:hits.active?`${fmt(hits.hit)} of ${fmt(hits.active)} active day${hits.active===1?'':'s'} reached ${fmt1(state.settings.dailyTarget)} sign-ups`:'No activity in this range',
+      x:meter}
+  ].map(x=>`<div class="tot"><div class="k"><span class="emo big">${x.e}</span>${x.k}</div><div class="v num" style="color:${x.c}">${x.v}</div><div class="s">${esc(x.s)}</div>${x.x||''}</div>`).join('');
   $('#totals').innerHTML=html;
   const w=$('#postWarn');
   if(w){
@@ -2511,7 +2912,8 @@ function renderTotals(rows,keys){
     if(t.nopost) msgs.push(`${fmt(t.nopost)} row${t.nopost===1?'':'s'} have no postcode, so they are not counted as registrations.`);
     if(t.actNoDate) msgs.push(`${fmt(t.actNoDate)} activation${t.actNoDate===1?'':'s'} hold a value in activation_date that carries no date, such as a duration like 46:31.7. They still count as activations, but cannot be placed on the timeline. Re-saving the report as .xlsx usually preserves the full date.`);
     if(state.meta&&state.meta.dateMixed) msgs.push(`This file mixes day-first and month-first dates. They have been read as ${state.meta.dateOrder==='dmy'?'day/month/year':'month/day/year'}; check the Registered column before relying on it.`);
-    w.textContent=msgs.join(' ');
+    w.hidden=!msgs.length;
+    w.innerHTML=msgs.length?`<span class="ni" aria-hidden="true">${ICON_WARN}</span><div>${msgs.map(m=>`<p>${esc(m)}</p>`).join('')}</div>`:'';
   }
 }
 
@@ -2575,7 +2977,11 @@ function renderLeague(rows,keys){
   if(anyOps) cols.push({k:'comm',l:'Commission qualified',cls:'r',tip:`Of those activations, the ones spending ${money(commMin())} or more`});
   if(anyOps) cols.push({k:'ops',l:'Net OPS',cls:'r'});
   cols.push({k:'conv',l:'Conversion',cls:'r',tip:'Activations divided by registrations for these weeks'});
-  cols.push({k:'wk',l:'Latest week',cls:'r'});
+  // While the last week is still under way its count is partial, so the
+  // change against the week before is shown, but not coloured as good or bad.
+  const lastK=keys[keys.length-1], partWk=keys.length>0&&weekIsPartial(lastK);
+  cols.push({k:'wk',l:'Latest week'+(partWk?'<span class="wk-sofar">so far</span>':''),cls:'r',
+    tip:keys.length?`${wkLabel(lastK)}${partWk?' so far':''}, and the change on the week before`:''});
   cols.push({k:null,l:'Weekly shape',cls:'no-sort'});
 
   let h='<thead><tr>'+cols.map(c=>{
@@ -2586,31 +2992,33 @@ function renderLeague(rows,keys){
   /* Medals only mean something when the table is ranked best-first, so they
      are held back when sorting by name or in ascending order. */
   const ranked = dir<0 && k!=='name';
+  const sortName=(((cols.find(c=>c.k===k)||{}).l)||'registrations').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
   const MEDAL=['\u{1F947}','\u{1F948}','\u{1F949}'];
   data.forEach((d,i)=>{
     const a=d.a;
     const cv=convOf(d);
     const ccls=cv==null?'none':(cv>50?'hit':cv>=25?'near':'miss');
     const delta=d.last-d.prev;
-    const dtxt=keys.length>1?(delta>0?`<span style="color:var(--good)">+${fmt(delta)}</span>`:delta<0?`<span style="color:var(--warn)">${fmt(delta)}</span>`:'<span style="color:var(--ink-3)">0</span>'):'';
+    const dtxt=keys.length>1?(delta>0?`<span class="delta ${partWk?'soft':'up'}">+${fmt(delta)}</span>`:delta<0?`<span class="delta ${partWk?'soft':'down'}">−${fmt(-delta)}</span>`:'<span class="delta flat">0</span>'):'';
     h+=`<tr data-agent="${esc(d.id)}"${state.openAgent===d.id?' class="open"':''}>`;
     h+= (ranked&&i<3)
-      ? `<td class="rank medal" title="${['First','Second','Third'][i]} by ${cols.find(c=>c.k===k)?cols.find(c=>c.k===k).l.toLowerCase():'registrations'}">${MEDAL[i]}</td>`
+      ? `<td class="rank medal" title="${['First','Second','Third'][i]} by ${esc(sortName)}">${MEDAL[i]}</td>`
       : `<td class="rank num">${i+1}</td>`;
     h+=`<td class="agentcell">${esc(agentName(d.id))}<small>#${esc(d.id)} \u00b7 ${a.weeks.size} active week${a.weeks.size===1?'':'s'}</small></td>`;
-    h+=`<td class="r mbar"><span class="num">${fmt(a.reg)}</span><div class="track"><div class="fill" style="width:${(a.reg/maxReg*100).toFixed(1)}%;background:var(--reg)"></div></div></td>`;
+    h+=`<td class="r mbar"><span class="num">${fmt(a.reg)}</span><div class="track"><div class="fill" style="width:${(a.reg/maxReg*100).toFixed(1)}%;background:var(--c-reg)"></div></div></td>`;
     if(anyAct) h+=`<td class="r num">${fmt(d.w.act)}</td>`;
     if(anyOps) h+=`<td class="r num">${fmt(d.w.comm)}</td>`;
     if(anyOps) h+=`<td class="r num">${fmtOps(d.w.ops)}</td>`;
     h+=`<td class="r"><span class="pill ${ccls}" title="${d.a.reg?`${fmt(d.w.act)} activations \u00f7 ${fmt(d.a.reg)} registrations`:'No registrations in these weeks'}">${cv==null?'—':Math.round(cv)+'%'}</span></td>`;
-    h+=`<td class="r num">${fmt(d.last)} ${dtxt}</td>`;
-    h+=`<td>${spark(d.spark,keys,'var(--reg)')}</td>`;
+    h+=`<td class="r num" title="${keys.length?`${fmt(d.last)} in ${wkLabel(lastK)}${partWk?' so far':''}${keys.length>1?`, ${fmt(d.prev)} the week before`:''}`:''}">${fmt(d.last)}${dtxt}</td>`;
+    h+=`<td>${spark(d.spark,keys,'var(--c-reg)')}</td>`;
     h+='</tr>';
     if(state.openAgent===d.id) h+=`<tr class="detail"><td colspan="${cols.length}">${drawer(d,keys)}</td></tr>`;
   });
   h+='</tbody>';
   $('#leagueTable').innerHTML=h;
   $('#leagueHint').textContent=`${data.length} BDE${data.length===1?'':'s'} \u00b7 ${keys.length} week${keys.length===1?'':'s'} \u00b7 registrations counted by sign-up date, activations by ${byRegBasis()?'the week the business registered':'the date the customer spent'} \u00b7 click a column to sort`;
+  fitSoon();
 }
 
 function drawer(d,keys){
@@ -2636,7 +3044,7 @@ function drawer(d,keys){
           <button data-k="day" aria-pressed="${dg==='day'}">By day</button>
         </div>
       </div>
-      ${miniBars(vals,bk,'var(--reg)',target,86,dg)}
+      ${miniBars(vals,bk,'var(--c-reg)',target,86,dg)}
       <p style="font-size:12px;color:var(--ink-3);margin:8px 0 0">
         Best ${dg==='day'?'day':'week'} ${best?labelFull(bestAt,dg)+' with '+fmt(best):'\u2014'} \u00b7
         average ${fmt1(a.reg/(bk.length||1))} per ${dg==='day'?'working day':'week'} \u00b7
@@ -2676,15 +3084,33 @@ function drawer(d,keys){
   </div>`;
 }
 
+/* Folded explanations. Each remembers whether you opened it, for as long as
+   the page is open, so a filter change does not snap it shut again. */
+const openExplain=new Set();
+function explain(key,title,html){
+  return `<details class="explain" data-explain="${esc(key)}"${openExplain.has(key)?' open':''}><summary>${esc(title)}</summary><div class="explain-body">${html}</div></details>`;
+}
+document.addEventListener('toggle',e=>{
+  const d=e.target;
+  if(d&&d.dataset&&d.dataset.explain) d.open?openExplain.add(d.dataset.explain):openExplain.delete(d.dataset.explain);
+},true);
+/* Short notes under a table or chart. Each item is [tone, html]; tone is
+   '', 'warn' or 'amber'. */
+function notesList(items){
+  return items.length?`<ul class="notes">${items.map(([c,t])=>`<li${c?` class="${c}"`:''}>${t}</li>`).join('')}</ul>`:'';
+}
+const ICON_WARN='<svg viewBox="0 0 20 20"><path d="M10 3.4 17.4 16.2H2.6z"/><path d="M10 8.3v3.6M10 13.9v.2"/></svg>';
+
 /* Lines on the trend charts. The legend doubles as a set of switches, shared
    by the whole-team chart and every per-BDE panel, so turning a line off in
    one view turns it off in the other too. */
 const SERIES={
-  reg:{label:'Registrations',color:'var(--reg)'},
+  reg:{label:'Registrations',color:'var(--c-reg)'},
   act:{label:'Activations',color:'var(--act)'},
   comm:{label:'Commission qualified',color:'var(--ver)'},
-  treg:{label:'Sign-ups target',color:'var(--warn)',dash:true},
-  tact:{label:'Activations target',color:'var(--amber)',dash:true}
+  // A target is drawn dashed in the colour of the line it is a target for.
+  treg:{label:'Sign-ups target',color:'var(--c-reg)',dash:true},
+  tact:{label:'Activations target',color:'var(--act)',dash:true}
 };
 const trendOff=()=>new Set(state.trendOff||[]);
 function trendLegend(items){
@@ -2696,6 +3122,14 @@ function trendLegend(items){
   }).join('')+`</div>`;
 }
 
+/* The chart is drawn at the width of its card, so it fills the space and its
+   lettering stays at its true size rather than being scaled. */
+function chartW(){
+  const b=$('#trendBody');
+  if(!b||!b.clientWidth) return 980;
+  const cs=getComputedStyle(b);
+  return Math.max(280,Math.floor(b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)));
+}
 function renderTrend(rows,keys){
   const body=$('#trendBody');
   const g=state.grain;
@@ -2712,6 +3146,13 @@ function renderTrend(rows,keys){
   const dashes=(treg,tact)=>[
     {key:'treg',value:treg},{key:'tact',value:tact}
   ].filter(t=>t.value>0&&!off.has(t.key)).map(t=>({value:t.value,color:SERIES[t.key].color,label:SERIES[t.key].label}));
+  // The last week is drawn dashed while the report has not yet reached its Friday.
+  const partial=g==='week'&&bk.length>1&&weekIsPartial(bk[bk.length-1]);
+  const span=dataSpan();
+  const upto=span?new Date(span[1]).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
+  const partNote=partial?['',`${wkLabel(bk[bk.length-1])} is still in progress: the report runs to ${esc(upto)}, so the dashed end of each line is that week so far.`]:null;
+  const how=`<p>Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}.</p>
+    <p>Click a name in the key to hide or show its line. Each dashed line is a target, drawn in the colour of the line it is the target for.${g==='day'?(state.showWeekends?' Saturdays and Sundays are included; switch off Show weekends to leave them out.':' Saturdays and Sundays are left off; switch on Show weekends to include them.'):''}</p>`;
 
   if(state.trendMode==='team'){
     const s=trendSeries(rows,bk,g);
@@ -2723,18 +3164,20 @@ function renderTrend(rows,keys){
     if(anyAct) items.push({key:'act'},{key:'comm'});
     if(treg) items.push({key:'treg',text:`Sign-ups target ${fmt(treg)} ${per}`});
     if(tact&&anyAct) items.push({key:'tact',text:`Activations target ${fmt(tact)} ${per}`});
+    const W=chartW(), H=Math.round(Math.min(330,Math.max(230,W*0.3)));
+    state._trendW=W;
+    const notes=[];
+    if(partNote) notes.push(partNote);
+    if(g==='day'&&!state.showWeekends&&s.regOff) notes.push(['warn',`<b>${fmt(s.regOff)} registration${s.regOff===1?'':'s'} fall on a weekend</b> and are not plotted while weekends are hidden, though they still count everywhere else.`]);
+    if(s.offAxis) notes.push(['',`${fmt(s.offAxis)} activation${s.offAxis===1?'':'s'} fall outside the weeks you have selected and are not on this chart, though they still count in the totals above.`]);
     body.innerHTML=trendLegend(items)+
-      timeChart(bk,lines(s),g,{H:310,area:!off.has('reg'),targets:dashes(treg,anyAct?tact:0)})+
-      `<p style="font-size:12px;color:var(--ink-3);margin:10px 0 0">Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}. Click a name in the key to hide or show its line.`+
-      (g==='day'?' Saturdays and Sundays are left off, since they are not worked.':'')+
-      (g==='day'&&s.regOff?` <b>${fmt(s.regOff)} registration${s.regOff===1?'':'s'} fall on a weekend</b> and are therefore not plotted here, though they still count everywhere else.`:'')+
-      (s.offAxis?` ${fmt(s.offAxis)} activation${s.offAxis===1?'':'s'} fall outside the weeks you have selected and are not on this chart, though they still count in the totals above.`:'')+
-      `</p>`;
+      timeChart(bk,lines(s),g,{W,H,L:W<560?38:48,R:W<560?36:46,area:!off.has('reg'),targets:dashes(treg,anyAct?tact:0),partial,endLabels:true})+
+      notesList(notes)+explain('trend','How this chart works',how);
     const tot=s.reg.reduce((n,v)=>n+v,0);
     const peak=Math.max(0,...s.reg), pi=s.reg.indexOf(peak);
     $('#trendHint').textContent = g==='day'
-      ? `${fmt(tot)} registrations \u00b7 busiest day was ${pi>=0&&peak?dayLabelFull(bk[pi]):'—'} with ${fmt(peak)}`
-      : `${fmt(tot)} registrations \u00b7 peak of ${fmt(peak)} in a single week`;
+      ? `${fmt(tot)} registrations · busiest day was ${pi>=0&&peak?dayLabelFull(bk[pi]):'—'} with ${fmt(peak)}`
+      : `${fmt(tot)} registrations · peak of ${fmt(peak)} in a single week`;
   }else{
     const ids=[...grp.keys()].sort((a,b)=>grp.get(b).length-grp.get(a).length);
     const items=[{key:'reg'}];
@@ -2757,15 +3200,15 @@ function renderTrend(rows,keys){
           <b>${esc(agentName(id))}</b>
           <span class="pill ${cls}" title="${hs.active?`Reached ${fmt(agentTarget(id))} sign-ups on ${fmt(hs.hit)} of ${fmt(hs.active)} days worked`:'No activity'}">${pace==null?'—':pace+'% of days'}</span>
         </div>
-        ${timeChart(bk,lines(s),g,{W:360,H:132,L:30,R:8,B:20,ticks:2,small:true,area:!off.has('reg'),targets:dashes(treg,tact)})}
+        ${timeChart(bk,lines(s),g,{W:360,H:132,L:30,R:8,B:20,ticks:2,small:true,area:!off.has('reg'),targets:dashes(treg,tact),partial})}
         <div class="smfoot">
           <span><b>${fmt(sum)}</b> total</span>
           <span><b>${fmt1(avg)}</b> avg/day worked</span>
           <span><b>${fmt(hs.hit)}</b> of ${fmt(hs.active)} days worked on target</span>
         </div>
       </div>`;
-    }).join('')+'</div>';
-    $('#trendHint').textContent = `${ids.length} BDE${ids.length===1?'':'s'} \u00b7 click the key to show or hide lines \u00b7 hover any panel for detail`;
+    }).join('')+'</div>'+notesList(partNote?[partNote]:[])+explain('trend','How these charts work',how);
+    $('#trendHint').textContent = `${ids.length} BDE${ids.length===1?'':'s'} · click the key to show or hide lines · hover any panel for detail`;
   }
   bindCharts(body);
 }
@@ -2776,9 +3219,9 @@ function renderQuality(rows){
   const tot=blank(); for(const r of rows) add(tot,r);
 
   let h=`<div class="legend" style="margin-bottom:16px">
-    <span><i style="background:var(--s-good)"></i>Commission qualified</span>
-    <span><i style="background:var(--s-mid)"></i>Spent, no commission</span>
-    <span><i style="background:var(--s-none)"></i>Never spent</span>
+    <span><i class="sq" style="background:var(--s-good)"></i>Commission qualified</span>
+    <span><i class="sq" style="background:var(--s-mid)"></i>Spent, no commission</span>
+    <span><i class="sq" style="background:var(--s-none)"></i>Never spent</span>
   </div>`;
   h+='<div class="tablewrap"><table><thead><tr><th class="no-sort">BDE</th><th class="no-sort">Where the registrations end up</th><th class="r no-sort">Registrations</th><th class="r no-sort">Activated</th><th class="r no-sort">Commission qualified</th><th class="r no-sort">Net OPS per registration</th></tr></thead><tbody>';
   for(const id of ids){
@@ -2788,7 +3231,7 @@ function renderQuality(rows){
         {k:'Commission qualified',v:a.comm,c:'var(--s-good)'},
         {k:'Spent, no commission',v:a.actLow,c:'var(--s-mid)'},
         {k:'Never spent',v:a.dead,c:'var(--s-none)',t:'var(--ink-2)'}
-      ],a.reg,220)}</td>
+      ],a.reg,300)}</td>
       <td class="r num">${fmt(a.reg)}</td>
       <td class="r num">${pct(a.act,a.reg)}%</td>
       <td class="r num">${pct(a.comm,a.reg)}%</td>
@@ -2796,17 +3239,18 @@ function renderQuality(rows){
   }
   h+='</tbody></table></div>';
 
-  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:22px">`+
+  h+='<div class="minitiles">'+
   [
-    {k:'Commission qualified',v:tot.comm,s:`${pct(tot.comm,tot.reg)}% of registrations`},
-    {k:'Spent, no commission',v:tot.actLow,s:`${pct(tot.actLow,tot.reg)}% spent but earned nothing: too little, or outside the window`},
-    {k:'Never spent',v:tot.dead,s:`${pct(tot.dead,tot.reg)}% of registrations`}
-  ].map(c=>`<div style="border:1px solid var(--rule-2);border-radius:9px;padding:12px 13px">
-      <div style="font-size:11.5px;color:var(--ink-3)">${esc(c.k)}</div>
-      <div class="num" style="font-size:22px;font-weight:600">${fmt(c.v)}</div>
-      <div style="font-size:12px;color:var(--ink-3)">${esc(c.s)}</div>
+    {k:'Commission qualified',v:tot.comm,s:`${pct(tot.comm,tot.reg)}% of registrations`,c:'var(--s-good)'},
+    {k:'Spent, no commission',v:tot.actLow,s:`${pct(tot.actLow,tot.reg)}% spent but earned nothing: too little, or outside the window`,c:'var(--s-mid)'},
+    {k:'Never spent',v:tot.dead,s:`${pct(tot.dead,tot.reg)}% of registrations`,c:'var(--s-none)'}
+  ].map(c=>`<div class="minitile">
+      <div class="mk"><i class="sw" style="background:${c.c}"></i>${esc(c.k)}</div>
+      <div class="mv num">${fmt(c.v)}</div>
+      <div class="ms">${esc(c.s)}</div>
     </div>`).join('')+'</div>';
   $('#qualityBody').innerHTML=h;
+  fitSoon();
 }
 
 function renderAudit(){
@@ -2861,7 +3305,9 @@ function renderAudit(){
     tiles.map(t=>`<div class="tot"><div class="k"><span class="emo big">${t.e}</span>${t.k}</div><div class="v num" style="color:${t.c}">${t.v}</div><div class="s">${esc(t.s)}</div></div>`).join('')+
     '</div>';
 
-  h+=`<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+  const TABS=[['missing','Missing',missing.length],['corrected','Corrected ID',corrected.length],['found','Found',found.length],
+    ['extra','Extra in AB',extra.length],['before','Before start',before.length],['later','After cutoff',later.length]];
+  h+=`<div class="toolbar">
     <div class="field">
       <label for="auditFrom">Data from</label>
       <input type="date" id="auditFrom" value="${esc(fromIso)}" max="${esc(tillIso)}">
@@ -2870,22 +3316,16 @@ function renderAudit(){
       <label for="auditTill">Data till</label>
       <input type="date" id="auditTill" value="${esc(tillIso)}" min="${esc(fromIso)}">
     </div>
-    <div class="field"><label>&nbsp;</label>
-      <div class="seg" id="auditSeg">
-        <button data-k="missing" aria-pressed="${state.auditShow==='missing'}">Missing (${fmt(missing.length)})</button>
-        <button data-k="corrected" aria-pressed="${state.auditShow==='corrected'}">Corrected ID (${fmt(corrected.length)})</button>
-        <button data-k="found" aria-pressed="${state.auditShow==='found'}">Found (${fmt(found.length)})</button>
-        <button data-k="extra" aria-pressed="${state.auditShow==='extra'}">Extra in AB (${fmt(extra.length)})</button>
-        <button data-k="before" aria-pressed="${state.auditShow==='before'}">Before start (${fmt(before.length)})</button>
-        <button data-k="later" aria-pressed="${state.auditShow==='later'}">After cutoff (${fmt(later.length)})</button>
-      </div>
+    <div class="field grow">
+      <label for="auditSearch">Search</label>
+      <input type="search" id="auditSearch" placeholder="PO name or Business ID" value="${esc(state.auditQ||'')}">
     </div>
-    <div class="field"><label>&nbsp;</label>
-      <input type="search" id="auditSearch" placeholder="Search PO or Business ID" value="${esc(state.auditQ||'')}"></div>
-    <span style="margin-left:auto;font-size:12px;color:var(--ink-3);padding-bottom:8px">${esc(crm.file)}${
-      crm.sheetStats?` \u00b7 <span class="sheetcount" title="${esc(crm.sheetStats.map(x=>x.skipped?`${x.name} — no Business ID column, skipped`:`${x.name} — ${x.rows} rows, ${x.withId} with an ID`).join('\n'))}">${fmt(crm.sheets.length)} sheet${crm.sheets.length===1?'':'s'}, ${fmt(crm.read||0)} rows</span>`
-      :(crm.sheets&&crm.sheets.length?' \u00b7 '+fmt(crm.sheets.length)+' sheets':'')} \u00b7 ${fmt(abCount)} businesses under ${esc(scopeName(agent))}</span>
-  </div>`;
+    <span class="srcinfo">${esc(crm.file)}${
+      crm.sheetStats?` · <span class="sheetcount" title="${esc(crm.sheetStats.map(x=>x.skipped?`${x.name} — no Business ID column, skipped`:`${x.name} — ${x.rows} rows, ${x.withId} with an ID`).join('\n'))}">${fmt(crm.sheets.length)} sheet${crm.sheets.length===1?'':'s'}, ${fmt(crm.read||0)} rows</span>`
+      :(crm.sheets&&crm.sheets.length?' · '+fmt(crm.sheets.length)+' sheets':'')}<br>${fmt(abCount)} businesses under ${esc(scopeName(agent))}</span>
+  </div>
+  <div class="tabs" id="auditSeg" role="group" aria-label="Which businesses to list">${TABS.map(([k,l,n])=>
+    `<button data-k="${k}" aria-pressed="${state.auditShow===k}">${l}<span class="count${k==='missing'&&n?' warn':''}">${fmt(n)}</span></button>`).join('')}</div>`;
 
   const q=(state.auditQ||'').trim().toLowerCase();
   let list = state.auditShow==='found' ? found : state.auditShow==='extra' ? extra : state.auditShow==='later' ? later
@@ -2903,7 +3343,7 @@ function renderAudit(){
   const shown=list.slice(0,state.auditLimit);
 
   if(!list.length){
-    h+=`<p style="color:var(--ink-3);font-size:13.5px">${q?'Nothing matches that search.':(state.auditShow==='missing'?'Every business signed up on or before the cutoff was found in the AB report.':state.auditShow==='later'?'No Celero sign-ups fall after the cutoff.':state.auditShow==='before'?'No Celero sign-ups fall before the start date.':state.auditShow==='corrected'?'No IDs needed correcting.':state.auditShow==='extra'?'Every AB business registered in these dates appears in the Celero.':'No matches yet.')}</p>`;
+    h+=`<p class="auditempty">${q?'Nothing matches that search.':(state.auditShow==='missing'?'Every business signed up on or before the cutoff was found in the AB report.':state.auditShow==='later'?'No Celero sign-ups fall after the cutoff.':state.auditShow==='before'?'No Celero sign-ups fall before the start date.':state.auditShow==='corrected'?'No IDs needed correcting.':state.auditShow==='extra'?'Every AB business registered in these dates appears in the Celero.':'No matches yet.')}</p>`;
   }else{
     h+=`<div class="tablewrap"><table><thead><tr><th class="rank no-sort"></th><th class="no-sort">PO name</th><th class="no-sort">Business ID</th><th data-asort="date" title="Click to sort by date">${state.auditShow==='extra'?'Registered in AB':'Signed up'}<span class="arrow">${asd<0?'\u25bc':'\u25b2'}</span></th>`+
       (state.auditShow==='found'
@@ -2950,20 +3390,20 @@ function renderAudit(){
     if(list.length>shown.length) h+=`<button class="btn" id="auditMore" style="margin-top:14px">Show 200 more (${fmt(list.length-shown.length)} remaining)</button>`;
   }
 
-  h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
-    ${extra.length?`<b>${fmt(abInRange)} businesses are in the AB report for these dates: ${fmt(abInRange-extra.length)} appear in the Celero and ${fmt(extra.length)} do not.</b> Those ${fmt(extra.length)} are under Extra in AB. A business counts as in the Celero if any Celero visit matches it, whatever that visit's date, so one visited just before the start date is not wrongly listed as extra. `:''}
-    Matched on Business ID against <b>group_id</b> in the AB report, ignoring case and punctuation.
+  const notes=[];
+  if(badRange) notes.push(['warn','<b>The start date is after the end date, so nothing is in scope.</b>']);
+  if(extra.length) notes.push(['',`<b>${fmt(abInRange)} businesses are in the AB report for these dates: ${fmt(abInRange-extra.length)} appear in the Celero and ${fmt(extra.length)} do not.</b> Those ${fmt(extra.length)} are under Extra in AB.`]);
+  if(corrected.length) notes.push(['amber',`<b>${fmt(corrected.length)} ID${corrected.length===1?'':'s'} matched only after correction</b> and count as found; the tag says which rule applied. Check the ${RUN}-char run matches in particular before relying on them.`]);
+  h+=notesList(notes)+explain('audit','How the audit matches businesses',`
+    <p>Matched on Business ID against <b>group_id</b> in the AB report, ignoring case and punctuation.
     ${crm.blank?`${fmt(crm.blank)} Celero row${crm.blank===1?'':'s'} had no Business ID and were skipped. `:''}
     ${crm.dupes?`${fmt(crm.dupes)} duplicate Business ID${crm.dupes===1?'':'s'} in the Celero were counted once. `:''}
-    ${crm.undated?`${fmt(crm.undated)} Celero row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}
-    Every match is made only against businesses under <b>${esc(scopeName(agent))}</b>${agent==='*'?' (the full AB report)':', so a similar ID belonging to another agent is never claimed here'}.
-    An ID matches if it is identical, or once 0 and O or 1 and I are swapped, or if it shares a run of ${RUN} consecutive characters with exactly one of that agent's businesses. A run shared by more than one business is not matched, since the guess could go either way.
-    ${corrected.length?`<b>${fmt(corrected.length)} ID${corrected.length===1?'':'s'} matched only after correction</b> and count as found; the tag says which rule applied. Check the ${RUN}-char run matches in particular before relying on them. `:''}
-    You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every Celero you upload. 
-    ${badRange?'<b style="color:var(--warn)">The start date is after the end date, so nothing is in scope.</b> ':''}
-    Only sign-ups between the two dates are audited. "Data from" starts at the earliest planned visit in the Celero report${state.auditFrom?' but has been changed':''}; sign-ups before it are set aside under Before start. Sign-ups after "Data till" are held back rather than counted as missing, because the AB report has not had time to pick them up.
-    A business shown as missing was signed up on a visit on or before the cutoff but does not appear in the AB report at all, so it earns no registration and no commission until it does.
-  </p>`;
+    ${crm.undated?`${fmt(crm.undated)} Celero row${crm.undated===1?'':'s'} had no readable missionStartDate; those are always included, since there is no date to judge them by. `:''}</p>
+    <p>Every match is made only against businesses under <b>${esc(scopeName(agent))}</b>${agent==='*'?' (the full AB report)':', so a similar ID belonging to another agent is never claimed here'}.
+    An ID matches if it is identical, or once 0 and O or 1 and I are swapped, or if it shares a run of ${RUN} consecutive characters with exactly one of that agent's businesses. A run shared by more than one business is not matched, since the guess could go either way.</p>
+    <p>${extra.length?`A business counts as in the Celero if any Celero visit matches it, whatever that visit's date, so one visited just before the start date is not wrongly listed as extra. `:''}You can type the correct Business ID into any row: corrections are kept on this device and reapplied to every Celero you upload.</p>
+    <p>Only sign-ups between the two dates are audited. "Data from" starts at the earliest planned visit in the Celero report${state.auditFrom?' but has been changed':''}; sign-ups before it are set aside under Before start. Sign-ups after "Data till" are held back rather than counted as missing, because the AB report has not had time to pick them up.</p>
+    <p>A business shown as missing was signed up on a visit on or before the cutoff but does not appear in the AB report at all, so it earns no registration and no commission until it does.</p>`);
 
   body.innerHTML=h;
   hint.textContent=`${fmt(missing.length)} of ${fmt(inScope)} Celero sign-ups missing from the AB report`;
@@ -3002,6 +3442,7 @@ function renderAudit(){
   };
   const more=$('#auditMore');
   if(more) more.onclick=()=>{ state.auditLimit+=200; renderAudit(); };
+  fitSoon();
   const sb=$('#auditSearch');
   if(sb) sb.addEventListener('input',e=>{
     clearTimeout(state._aq);
@@ -3032,7 +3473,7 @@ function renderIndustry(){
   const topRate=[...rated].sort((a,b)=>b.act/b.matched-a.act/a.matched)[0];
 
   const tiles=[
-    {e:'\u{1F4DD}',k:'Most sign-ups',v:topReg?esc(topReg.label):'\u2014',c:'var(--reg)',
+    {e:'\u{1F4DD}',k:'Most sign-ups',v:topReg?esc(topReg.label):'\u2014',c:'var(--c-reg)',
       s:topReg?`${fmt(topReg.signups)} of ${fmt(totals.signups)} sign-ups \u00b7 ${pct(topReg.signups,totals.signups)}%`:'No sign-ups'},
     {e:'\u{1F4B7}',k:'Most spend',v:topSpend?esc(topSpend.label):'\u2014',c:'var(--ver)',
       s:topSpend?`${fmtOps(topSpend.spend)} across ${fmt(topSpend.matched)} matched businesses`:'Nothing matched to the AB report'},
@@ -3064,7 +3505,7 @@ function renderIndustry(){
     const rcls=rate==null?'none':(rate>50?'hit':rate>=25?'near':'miss');
     h+=`<tr>
       <td class="agentcell">${esc(g.label)}${g.noId?`<small>${fmt(g.noId)} without a Business ID</small>`:''}</td>
-      <td class="r mbar"><span class="num">${fmt(g.signups)}</span><span class="pct">${pct(g.signups,totals.signups)}%</span><div class="track"><div class="fill" style="width:${(g.signups/maxS*100).toFixed(1)}%;background:var(--reg)"></div></div></td>
+      <td class="r mbar"><span class="num">${fmt(g.signups)}</span><span class="pct">${pct(g.signups,totals.signups)}%</span><div class="track"><div class="fill" style="width:${(g.signups/maxS*100).toFixed(1)}%;background:var(--c-reg)"></div></div></td>
       <td class="r num">${fmt(g.matched)}${g.typo?`<span class="pct" title="Matched after correcting the ID">${fmt(g.typo)} corrected</span>`:''}</td>
       <td class="r num">${fmt(g.act)}</td>
       <td class="r"><span class="pill ${rcls}">${rate==null?'\u2014':rate+'%'}</span></td>
@@ -3074,12 +3515,13 @@ function renderIndustry(){
   }
   h+='</tbody></table></div>';
   const noIdTotal=sectors.reduce((n,g)=>n+g.noId,0);
-  h+=`<p style="font-size:12px;color:var(--ink-3);margin:16px 0 0;line-height:1.6">
-    <b>Sign-ups</b> counts every business in the Celero report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.
-    <b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. ${d.agent==='*'?'Matching uses every business in the AB report.':`Matching is limited to ${esc(agentName(d.agent))}'s businesses.`}
-    Activation rate is shown only as a guide where few businesses are matched; the headline tile ignores sectors with fewer than three.
-  </p>`;
+  h+=explain('industry','How sectors are counted',`
+    <p><b>Sign-ups</b> counts every business in the Celero report, including ${fmt(noIdTotal)} with no Business ID, since those were still signed up.</p>
+    <p><b>Spend</b> uses only businesses that could be matched to the AB report, by the same rules as the audit: an exact ID, a 0/O or 1/I swap, a shared run of ${RUN} characters, or a correction you entered. ${d.agent==='*'?'Matching uses every business in the AB report.':`Matching is limited to ${esc(agentName(d.agent))}'s businesses.`}</p>
+    <p>Activation rate is shown only as a guide where few businesses are matched; the headline tile ignores sectors with fewer than three.</p>`);
+
   body.innerHTML=h;
+  fitSoon();
   hint.textContent=`${fmt(sectors.length)} sector${sectors.length===1?'':'s'} \u00b7 ${fmt(totals.signups)} sign-ups \u00b7 ${fmt(totals.matched)} matched to the AB report \u00b7 from the Celero report`;
   body.querySelectorAll('th[data-isort]').forEach(t=>t.addEventListener('click',()=>{
     const k=t.dataset.isort;
@@ -3090,7 +3532,7 @@ function renderIndustry(){
 
 function renderSalaries(){
   const t=$('#salaryTable'), note=$('#salaryNote'), hint=$('#salaryHint');
-  const {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt}=salaryData();
+  const {periods,per,seats,undated,beyond,unattributed,pending,pendingAmt,nb,current,asAt,est,nextKey}=salaryData();
   if(!seats.length){ t.innerHTML=''; note.innerHTML=''; hint.textContent=''; return; }
 
   const n=Number(state.salaryMonths)||0;
@@ -3107,10 +3549,29 @@ function renderSalaries(){
       // Nothing worked and nothing earned means this person was not here.
       if(!worked&&!comm) return {key:k,off:true,qual:0,act:0,base:0,comm:0,gross:0,tax:0,ni:0,net:0,worked:0,total};
       const base=(baseSalaryFor(seat.id)/12)*(total?worked/total:0);
-      return {key:k,off:false,qual:c.qual,act:c.act,base,comm,worked,total,
+      const out={key:k,off:false,qual:c.qual,act:c.act,base,comm,worked,total,
         partial:k===current,...payslipFor(base+comm)};
+      // The month in progress also shows what it should come to once the
+      // new-rule commission confirming later in it is added, at current spend.
+      if(k===current){
+        const e=(est.get(seat.key)||new Map()).get(k);
+        if(e&&e.amt) out.expect={amt:e.amt,qual:e.qual,net:payslipFor(base+comm+e.amt).net};
+      }
+      return out;
     });
-    book.set(seat.key,{seat,months,
+    /* Next month estimate: a full month's base for the days employed, plus
+       new-rule commission whose one-month window closes in that period and
+       is on track at current spend. Not counted in the totals. */
+    let next=null;
+    if(nextKey){
+      const {worked,total}=monthWorkingDays(nextKey,seat.st);
+      const e=(est.get(seat.key)||new Map()).get(nextKey)||{qual:0,amt:0};
+      if(worked||e.amt){
+        const base=(baseSalaryFor(seat.id)/12)*(total?worked/total:0);
+        next={base,comm:e.amt,qual:e.qual,worked,total,...payslipFor(base+e.amt)};
+      }
+    }
+    book.set(seat.key,{seat,months,next,
       net:months.reduce((s,m)=>s+m.net,0),
       comm:months.reduce((s,m)=>s+m.comm,0),
       qual:months.reduce((s,m)=>s+m.qual,0),
@@ -3144,6 +3605,7 @@ function renderSalaries(){
   let h=`<thead><tr><th class="rank no-sort"></th><th data-ssort="name">BDE${arrow('name')}</th>`+
     (multi?'<th class="no-sort">Employed</th>':'')+
     show.map(k=>`<th class="r" data-ssort="m:${k}" title="${esc(periodFull(k))} \u2014 click to sort">${periodLabel(k)}${k===current?' <span class="pill none" style="font-weight:600">so far</span>':''}${arrow('m:'+k)}<br><span style="font-weight:400;color:var(--ink-3)">${k===current?'in progress':'paid '+dshort(periodRange(k).pay)}</span></th>`).join('')+
+    (nextKey?`<th class="r no-sort" title="Estimate for ${esc(periodFull(nextKey))}: base salary plus new-rule commission whose first month closes in that period, at current spend. Not included in the totals.">${periodLabel(nextKey)} <span class="pill none" style="font-weight:600">estimate</span><br><span style="font-weight:400;color:var(--ink-3)">paid ${dshort(periodRange(nextKey).pay)}</span></th>`:'')+
     `<th class="r" data-ssort="qual">Qualifying${arrow('qual')}</th><th class="r" data-ssort="comm">Commission${arrow('comm')}</th><th class="r" data-ssort="total">Total take-home${arrow('total')}</th></tr></thead><tbody>`;
 
   order.forEach((b,i)=>{
@@ -3154,15 +3616,19 @@ function renderSalaries(){
     if(multi) h+=`<td style="color:var(--ink-3);font-size:12px">${esc(stintLabel(b.seat.st)||'throughout')}</td>`;
     h+=b.months.map(m=>m.off
       ? '<td class="r" style="color:var(--ink-3)">—</td>'
-      : `<td class="r num">${money(m.net)}${m.worked<m.total?`<span class="pct">${m.worked}/${m.total}d</span>`:''}</td>`).join('');
+      : `<td class="r num">${money(m.net)}${m.worked<m.total?`<span class="pct">${m.worked}/${m.total}d</span>`:''}${m.expect?`<span class="xnew expect" title="${esc(`${fmt(m.expect.qual)} new-rule commission${m.expect.qual===1?'':'s'} worth ${money(m.expect.amt)} confirm later in this period. At current spend, take-home comes to about ${money(m.expect.net)}.`)}">~${money(m.expect.net)} expected</span>`:''}</td>`).join('');
+    if(nextKey) h+=b.next
+      ? `<td class="r num" style="font-style:italic;color:var(--ink-2)" title="Base ${money(b.next.base)} + commission ${money(b.next.comm)} from ${b.next.qual} business${b.next.qual===1?'':'es'}, before tax">~${money(b.next.net)}${b.next.comm?`<span class="pct">+${money(b.next.comm)}</span>`:''}</td>`
+      : '<td class="r" style="color:var(--ink-3)">—</td>';
     h+=`<td class="r num">${b.qual?`<button class="linknum" data-qual="${esc(b.seat.key)}" data-period="all">${fmt(b.qual)}</button>`:'<span style="color:var(--ink-3)">0</span>'}</td>`;
     h+=`<td class="r num">${money(b.comm)}</td>`;
     h+=`<td class="r num" style="font-weight:600">${money(b.net)}</td>`;
     h+='</tr>';
-    if(open) h+=`<tr class="detail"><td colspan="${show.length+(multi?6:5)}">${salaryDrawer(b)}</td></tr>`;
+    if(open) h+=`<tr class="detail"><td colspan="${show.length+(multi?6:5)+(nextKey?1:0)}">${salaryDrawer(b)}</td></tr>`;
   });
   h+='</tbody>';
   t.innerHTML=h;
+  fitSoon();
   hint.textContent=`${order.length} ${order.length===1?'person':'people'} \u00b7 ${show.length} pay period${show.length===1?'':'s'} to ${periodLabel(current)} \u00b7 select a row for the breakdown`;
   /* Under the new rule many activations are not paid yet, or not paid in the
      month they happened. Without this, a drop in qualifying numbers looks like
@@ -3182,20 +3648,22 @@ function renderSalaries(){
     </div>`;
     state._nbox=box;
   }else state._nbox='';
-  note.innerHTML=(state._nbox||'')+`<p style="color:var(--ink-3);font-size:12px;margin:0;line-height:1.6">
-    Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.
-    Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.
-    ${commCfg().testAll?`<b style="color:var(--amber)">What-if view: every activation is judged by the new commission rules, including those registered before ${new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}. These are not the salaries actually owed.</b> `:''}
-    Businesses registered before ${new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.
-    A dash means that person was not employed and earned nothing that month.
-    Tax and National Insurance are estimates on a month-by-month basis at the rates in Settings; real PAYE is cumulative across the tax year and Scottish rates differ.
-    <br>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far.
-    ${unattributed?`<br><b>${fmt(unattributed)} activation${unattributed===1?'':'s'} earn nobody commission</b>, because the business registered or spent outside any employment period for that agent code.`:''}
-    <br>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.
-    ${pending?`<br><b>${fmt(pending)} new-rule activation${pending===1?' is':'s are'} still within ${pending===1?'its':'their'} first month</b> and not yet confirmed${pendingAmt?`, worth ${money(pendingAmt)} on current spend`:''}. ${pending===1?'It':'They'} will appear once the window closes, and the amount may rise if the customer spends more before then.`:''}
-    ${undated?`<br>${fmt(undated)} activation${undated===1?'':'s'} have no readable date and cannot be placed in a period.`:''}
-    ${beyond?`<br>${fmt(beyond)} activation${beyond===1?'':'s'} are dated after the end of the report and have been left out.`:''}
-  </p>`;
+  const cutShort=new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const cutLong=new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const alerts=[];
+  if(commCfg().testAll) alerts.push(['amber',`<b>What-if view: every activation is judged by the new commission rules, including those registered before ${cutLong}. These are not the salaries actually owed.</b>`]);
+  if(pending) alerts.push(['',`<b>${fmt(pending)} new-rule activation${pending===1?' is':'s are'} still within ${pending===1?'its':'their'} first month</b> and not yet confirmed${pendingAmt?`, worth ${money(pendingAmt)} on current spend`:''}. ${pending===1?'It':'They'} will appear once the window closes, and the amount may rise if the customer spends more before then. Those on track already count towards the expected and estimate figures.`]);
+  if(unattributed) alerts.push(['warn',`<b>${fmt(unattributed)} activation${unattributed===1?'':'s'} earn nobody commission</b>, because the business registered or spent outside any employment period for that agent code.`]);
+  if(undated) alerts.push(['',`${fmt(undated)} activation${undated===1?'':'s'} have no readable date and cannot be placed in a period.`]);
+  if(beyond) alerts.push(['',`${fmt(beyond)} activation${beyond===1?'':'s'} are dated after the end of the report and have been left out.`]);
+  note.innerHTML=(state._nbox||'')+notesList(alerts)+explain('salary','How salaries are worked out',`
+    <p>Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.</p>
+    <p>Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.</p>
+    <p>Businesses registered before ${cutShort} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.</p>
+    <p>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.</p>
+    <p>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far. Where new-rule commission is due to confirm later in that period, the cell also shows the <b>expected</b> take-home, at the customer's spend so far.</p>
+    ${nextKey?`<p>The ${periodLabel(nextKey)} column is an estimate: base salary for the days employed plus new-rule commission whose first month closes in that period, at the customer's spend so far. It rises if customers spend more, and it is not included in the totals.</p>`:''}
+    <p>A dash means that person was not employed and earned nothing that month. Tax and National Insurance are estimates on a month-by-month basis at the rates in Settings; real PAYE is cumulative across the tax year and Scottish rates differ.</p>`);
 }
 
 function salaryDrawer(b){
@@ -3231,7 +3699,7 @@ function salaryDrawer(b){
       <td class="r num">${money2(m.gross)}</td>
       <td class="r num" style="color:var(--warn)">${money2(m.tax)}</td>
       <td class="r num" style="color:var(--warn)">${money2(m.ni)}</td>
-      <td class="r num" style="font-weight:600">${money2(m.net)}</td>
+      <td class="r num" style="font-weight:600">${money2(m.net)}${m.expect?`<span class="xnew expect">~${money2(m.expect.net)} expected</span>`:''}</td>
     </tr>`;
   }
   const tot=worked.reduce((a,m)=>({act:a.act+m.act,qual:a.qual+m.qual,base:a.base+m.base,
@@ -3302,6 +3770,7 @@ function renderDetail(rows){
     : '';
   const bm=$('#btnMore');
   if(bm) bm.onclick=()=>{ state.detailLimit+=200; renderDetail(filteredAll()); };
+  fitSoon();
 }
 
 function renderFoot(){
@@ -3948,6 +4417,7 @@ $('#leagueTable').addEventListener('click',e=>{
     renderLeague(filtered(),activeKeys());
   }
 });
+$('#showWeekends').onchange=e=>{ state.showWeekends=e.target.checked; saveView(); render(); };
 $('#salaryMonths').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   [...$('#salaryMonths').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
@@ -3988,11 +4458,42 @@ const NAV_ALL=['sec-summary','sec-league','sec-trend','sec-spend','sec-industry'
 const NAV=()=>NAV_ALL.filter(id=>(id!=='sec-salary'||salaryOn())&&(id!=='sec-industry'||!!state.crm));
 /* Sections must clear the sticky header when scrolled to, and the header
    changes height as it wraps, so measure it rather than guessing. */
+/* A table that fits its card needs no sideways scroll, and without one its
+   header row can stay pinned under the top bar while you scroll down a long
+   list. Tables too wide for the screen keep their sideways scroll instead. */
+let fitRaf=0;
+function fitTables(){
+  document.querySelectorAll('main .tablewrap').forEach(w=>{
+    const t=w.querySelector(':scope > table'); if(!t) return;
+    w.classList.remove('fits');
+    if(w.clientWidth&&t.scrollWidth<=w.clientWidth+1) w.classList.add('fits');
+  });
+}
+function fitSoon(){ cancelAnimationFrame(fitRaf); fitRaf=requestAnimationFrame(fitTables); }
+/* The section buttons stay on one line. When their full names do not fit,
+   every button but the current one drops to its icon. */
+function fitNav(){
+  const bar=document.querySelector('.topbar'), nav=$('#secnav');
+  if(!bar||!nav) return;
+  bar.classList.remove('compact');
+  if(!nav.classList.contains('hidden')&&nav.scrollWidth>nav.clientWidth+1) bar.classList.add('compact');
+}
 function measureStick(){
   const t=document.querySelector('.topbar');
   if(t) document.documentElement.style.setProperty('--stick',(t.offsetHeight+14)+'px');
 }
 window.addEventListener('resize',measureStick);
+window.addEventListener('resize',()=>{ fitSoon(); fitNav(); });
+/* The main chart is drawn to the width of its card, so redraw it when the
+   window is resized enough to matter. */
+let trendRsz=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(trendRsz);
+  trendRsz=setTimeout(()=>{
+    if(!state.rows.length||state.view==='audit'||state.trendMode!=='team') return;
+    if(Math.abs(chartW()-(state._trendW||0))>24) renderTrend(filtered(),activeKeys());
+  },160);
+});
 $('#secnav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-go]'); if(!b) return;
   const el=document.getElementById(b.dataset.go);
@@ -4130,6 +4631,7 @@ if(state.rows.length) reconcileFilters();
   put('#trendMode',state.trendMode);
   put('#salaryMonths',String(state.salaryMonths));
   put('#detailShow',state.detailShow);
+  const ws=$('#showWeekends'); if(ws) ws.checked=state.showWeekends!==false;
   const q=$('#search'); if(q) q.value=state.filters.q||'';
 })();
 render();
