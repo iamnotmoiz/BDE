@@ -578,6 +578,10 @@ tbody tr:hover .rank.medal{transform:scale(1.12)}
 .delta.flat,.delta.soft{color:var(--ink-3)}
 .wk-sofar{font-weight:500;color:var(--ink-3);font-size:11px;margin-left:4px}
 .expect{display:block;font-size:11.5px;color:var(--ink-2);font-style:italic;font-weight:500;margin-top:2px}
+/* The month in progress: expected take-home leads, earned-so-far sits below. */
+.expv{display:inline-block;font-weight:650;color:var(--reg);background:var(--accent-soft);padding:1px 8px;border-radius:7px}
+.sofar{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;font-weight:400}
+.pill.exp{background:var(--accent-soft);color:var(--reg)}
 
 /* ---------- drawer row ---------- */
 /* Only the drawer's own cell is flattened; tables inside it keep their padding. */
@@ -3651,7 +3655,7 @@ function renderSalaries(){
   }
   // People with no employment overlap in the shown window drop out of the table.
   const sk=state.salarySort.key, sd=state.salarySort.dir;
-  const monthOf=(b,k)=>{ const m=b.months.find(x=>x.key===k); return m&&!m.off?m.net:-1; };
+  const monthOf=(b,k)=>{ const m=b.months.find(x=>x.key===k); return m&&!m.off?(m.expect?m.expect.net:m.net):-1; };
   const sortVal=b=>{
     if(sk==='name') return stintName(b.seat.id,b.seat.st).toLowerCase();
     if(sk==='qual') return b.qual;
@@ -3676,7 +3680,7 @@ function renderSalaries(){
   const arrow=k=>k===sk?`<span class="arrow">${sd<0?'\u25bc':'\u25b2'}</span>`:'';
   let h=`<thead><tr><th class="rank no-sort"></th><th data-ssort="name">BDE${arrow('name')}</th>`+
     (multi?'<th class="no-sort">Employed</th>':'')+
-    show.map(k=>`<th class="r" data-ssort="m:${k}" title="${esc(periodFull(k))} \u2014 click to sort">${periodLabel(k)}${k===current?' <span class="pill none" style="font-weight:600">so far</span>':''}${arrow('m:'+k)}<br><span style="font-weight:400;color:var(--ink-3)">${k===current?'in progress':'paid '+dshort(periodRange(k).pay)}</span></th>`).join('')+
+    show.map(k=>`<th class="r" data-ssort="m:${k}" title="${esc(periodFull(k))} \u2014 click to sort">${periodLabel(k)}${k===current?' <span class="pill exp" style="font-weight:600">expected</span>':''}${arrow('m:'+k)}<br><span style="font-weight:400;color:var(--ink-3)">${k===current?'in progress':'paid '+dshort(periodRange(k).pay)}</span></th>`).join('')+
     (nextKey?`<th class="r no-sort" title="Estimate for ${esc(periodFull(nextKey))}: base salary plus new-rule commission whose first month closes in that period, at current spend. Not included in the totals.">${periodLabel(nextKey)} <span class="pill none" style="font-weight:600">estimate</span><br><span style="font-weight:400;color:var(--ink-3)">paid ${dshort(periodRange(nextKey).pay)}</span></th>`:'')+
     `<th class="r" data-ssort="qual">Qualifying${arrow('qual')}</th><th class="r" data-ssort="comm">Commission${arrow('comm')}</th><th class="r" data-ssort="total">Total take-home${arrow('total')}</th></tr></thead><tbody>`;
 
@@ -3686,9 +3690,20 @@ function renderSalaries(){
     h+=`<td class="rank num">${i+1}</td>`;
     h+=`<td class="agentcell">${esc(stintName(b.seat.id,b.seat.st))}</td>`;
     if(multi) h+=`<td style="color:var(--ink-3);font-size:12px">${esc(stintLabel(b.seat.st)||'throughout')}</td>`;
-    h+=b.months.map(m=>m.off
-      ? '<td class="r" style="color:var(--ink-3)">—</td>'
-      : `<td class="r num">${money(m.net)}${m.worked<m.total?`<span class="pct">${m.worked}/${m.total}d</span>`:''}${m.expect?`<span class="xnew expect" title="${esc(`${fmt(m.expect.qual)} new-rule commission${m.expect.qual===1?'':'s'} worth ${money(m.expect.amt)} confirm later in this period. At current spend, take-home comes to about ${money(m.expect.net)}.`)}">~${money(m.expect.net)} expected</span>`:''}</td>`).join('');
+    h+=b.months.map(m=>{
+      if(m.off) return '<td class="r" style="color:var(--ink-3)">—</td>';
+      const days=m.worked<m.total?`<span class="pct">${m.worked}/${m.total}d</span>`:'';
+      if(!m.partial) return `<td class="r num">${money(m.net)}${days}</td>`;
+      /* The month in progress leads with what it is expected to pay: what has
+         been confirmed so far, plus new-rule commission that has already
+         qualified and is confirmed later in this period, when its first month
+         closes. Nothing that has not qualified yet is counted. */
+      const e=m.expect;
+      const tip=e
+        ? `Expected take-home ${money(e.net)}: ${money(m.net)} confirmed so far, plus ${money(e.amt)} commission from ${fmt(e.qual)} business${e.qual===1?'':'es'} that ${e.qual===1?'has':'have'} already qualified and ${e.qual===1?'is':'are'} confirmed later in this period, when ${e.qual===1?'its':'their'} first month closes.`
+        : `Expected take-home ${money(m.net)}: everything confirmed so far. No other commission has qualified for this period yet.`;
+      return `<td class="r num" title="${esc(tip)}"><span class="expv">${money(e?e.net:m.net)}</span>${days}${e?`<span class="sofar">${money(m.net)} so far</span>`:''}</td>`;
+    }).join('');
     if(nextKey) h+=b.next
       ? `<td class="r num" style="font-style:italic;color:var(--ink-2)" title="Base ${money(b.next.base)} + commission ${money(b.next.comm)} from ${b.next.qual} business${b.next.qual===1?'':'es'}, before tax">~${money(b.next.net)}${b.next.comm?`<span class="pct">+${money(b.next.comm)}</span>`:''}</td>`
       : '<td class="r" style="color:var(--ink-3)">—</td>';
@@ -3736,7 +3751,7 @@ function renderSalaries(){
     <p>Businesses registered before ${cutShort} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.</p>
     <p>Spend is the AB report's own figure for each window: <b>F30d_ops</b>, the first 30 days, for the new rule and <b>F90d_ops</b>, the first 90 days, for the old rule. Money spent after the deadline never counts towards commission. While a business's window is still open and the report has no figure for it yet, its spend so far is used.</p>
     <p>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.</p>
-    <p>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far. Where new-rule commission is due to confirm later in that period, the cell also shows the <b>expected</b> take-home, at the customer's spend so far.</p>
+    <p>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress. Its cell leads with the <b>expected</b> take-home: everything confirmed so far, plus new-rule commission that has already qualified and is confirmed later in that period, when the business's first month closes. It counts only spend already made, so it can rise if customers spend more, but nothing is included that has not qualified. The smaller figure underneath is the take-home confirmed so far. Qualifying, Commission and Total take-home count confirmed figures only.</p>
     ${nextKey?`<p>The ${periodLabel(nextKey)} column is an estimate: base salary for the days employed plus new-rule commission whose first month closes in that period, at the customer's spend so far. It rises if customers spend more, and it is not included in the totals.</p>`:''}
     <p>A dash means that person was not employed and earned nothing that month. Tax and National Insurance are estimates on a month-by-month basis at the rates in Settings; real PAYE is cumulative across the tax year and Scottish rates differ.</p>`);
 }
@@ -3765,16 +3780,16 @@ function salaryDrawer(b){
       continue;
     }
     h+=`<tr>
-      <td>${monthName(m.key)}${m.partial?' <span class="pill none">so far</span>':''}<br><span style="color:var(--ink-3);font-size:11.5px">commission ${dshort(r.start)}\u2013${dshort(r.end)}${m.worked<m.total?` \u00b7 worked ${m.worked} of ${m.total} working days`:''}</span></td>
+      <td>${monthName(m.key)}${m.partial?' <span class="pill exp">expected</span>':''}<br><span style="color:var(--ink-3);font-size:11.5px">commission ${dshort(r.start)}\u2013${dshort(r.end)}${m.worked<m.total?` \u00b7 worked ${m.worked} of ${m.total} working days`:''}</span></td>
       <td style="color:var(--ink-3)">${m.partial?'not yet paid':dshort(r.pay)+' '+r.pay.getFullYear()}</td>
       <td class="r num">${fmt(m.act)}</td>
       <td class="r num">${m.qual?`<button class="linknum" data-qual="${esc(b.seat.key)}" data-period="${m.key}">${fmt(m.qual)}</button>`:'<span style="color:var(--ink-3)">0</span>'}</td>
       <td class="r num">${money2(m.base)}</td>
-      <td class="r num">${m.comm?money2(m.comm):'<span style="color:var(--ink-3)">—</span>'}</td>
+      <td class="r num">${m.comm?money2(m.comm):'<span style="color:var(--ink-3)">—</span>'}${m.partial&&m.expect?`<span class="sofar" title="Already qualified; confirmed later in this period">+${money2(m.expect.amt)} to confirm</span>`:''}</td>
       <td class="r num">${money2(m.gross)}</td>
       <td class="r num" style="color:var(--warn)">${money2(m.tax)}</td>
       <td class="r num" style="color:var(--warn)">${money2(m.ni)}</td>
-      <td class="r num" style="font-weight:600">${money2(m.net)}${m.expect?`<span class="xnew expect">~${money2(m.expect.net)} expected</span>`:''}</td>
+      <td class="r num" style="font-weight:600">${m.partial?`<span class="expv">${money2(m.expect?m.expect.net:m.net)}</span>${m.expect?`<span class="sofar">${money2(m.net)} so far</span>`:''}`:money2(m.net)}</td>
     </tr>`;
   }
   const tot=worked.reduce((a,m)=>({act:a.act+m.act,qual:a.qual+m.qual,base:a.base+m.base,
