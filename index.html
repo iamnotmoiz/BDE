@@ -1132,8 +1132,11 @@ function sweepOldVersions(){
 /* =======================================================================
    Row shape — stored as flat arrays to keep the saved payload small.
    ======================================================================= */
-const F={WEEK:0,YEAR:1,AGENT:2,NAME:3,POST:4,REGD:5,ACTD:6,OPS:7,MU:8,CAMP:9,GID:10};
-const NF=11;
+/* O30 and O90 are the AB report's spend in a business's first 30 and 90
+   days (F30d_ops, F90d_ops). They are null when the report has no such
+   column, and absent from rows saved before they were read. */
+const F={WEEK:0,YEAR:1,AGENT:2,NAME:3,POST:4,REGD:5,ACTD:6,OPS:7,MU:8,CAMP:9,GID:10,O30:11,O90:12};
+const NF=13;
 
 const state={
   rows:[], meta:null,
@@ -1204,7 +1207,10 @@ const commRate=()=>COMMISSION_PER;
                the business activates within oldMonths (3) of registering.
      New rule: a tiered amount by spend, provided the business activates
                within newMonths (1) of registering.
-   Outside its window an activation earns nothing, however much is spent. */
+   Outside its window an activation earns nothing, however much is spent.
+   Spend is the AB report's figure for the window (see commSpend): 30 days
+   for the new rule, 90 days for the old, so money spent after the deadline
+   never earns commission. */
 const DEFAULT_TIERS=[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}];
 function commCfg(){
   const c=state.settings.comm||{};
@@ -1232,30 +1238,77 @@ function tierFor(ops,tiers){
   for(const t of tiers) if(ops>=t.from) amt=t.amt;
   return amt;
 }
+/* ---------- spend that counts towards commission ----------
+   The AB report gives each business's spend in its first 30 days (F30d_ops)
+   and first 90 days (F90d_ops). Commission is judged on the one matching the
+   rule: 30 days for the new rule, 90 days for the old. A customer who spends
+   more after the deadline therefore no longer looks as if they qualify.
+     - While a window is still open and the report has no figure for it yet,
+       the business's spend so far is used: all of it falls inside the window.
+     - A report without these columns, or one saved before they were read,
+       is judged on total net OPS, as it always was. */
+let _asAt=0, _asAtRows=null;
+function reportDate(){
+  if(_asAtRows===state.rows) return _asAt;
+  let reg=0, act=0;
+  for(const r of state.rows){
+    if(isGlitch(r)) continue;
+    if(r[F.REGD]>reg) reg=r[F.REGD];
+    if(r[F.ACTD]>act) act=r[F.ACTD];
+  }
+  _asAtRows=state.rows; _asAt=reg||act;
+  return _asAt;
+}
+function commSpend(r,isNew,close){
+  const col=r[isNew?F.O30:F.O90];
+  const total=r[F.OPS]||0;
+  if(col==null) return {v:total,basis:'total'};
+  if(!col&&close>reportDate()) return {v:total,basis:'sofar'};
+  return {v:+col||0,basis:isNew?'30':'90'};
+}
+/* Whether the loaded report carries each column. */
+let _spendCols=null, _spendColsRows=null;
+function spendCols(){
+  if(_spendColsRows===state.rows) return _spendCols;
+  let o30=false, o90=false;
+  for(const r of state.rows){
+    if(r[F.O30]!=null) o30=true;
+    if(r[F.O90]!=null) o90=true;
+    if(o30&&o90) break;
+  }
+  _spendColsRows=state.rows; _spendCols={o30,o90};
+  return _spendCols;
+}
+const SPEND_BASIS={'30':'in its first 30 days','90':'in its first 90 days',sofar:'so far, with its window still open',total:'in total net OPS'};
+const SPEND_SHORT={'30':'first 30 days','90':'first 90 days',sofar:'so far',total:'total net OPS'};
+const spendNote=cm=>cm&&cm.basis?`${fmtOps(cm.spend)} ${SPEND_BASIS[cm.basis]}`:'';
 /* forceNew applies the new rule regardless of registration date, for the
    "what if" view of past salaries. */
 function commissionFor(r,forceNew){
-  const reg=r[F.REGD], act=r[F.ACTD], ops=r[F.OPS]||0;
+  const reg=r[F.REGD], act=r[F.ACTD];
   // Without both dates the window cannot be checked, so nothing is claimed.
-  if(!reg||!act||act<0) return {ok:false,amt:0,rule:null,why:'no date'};
+  if(!reg||!act||act<0) return {ok:false,amt:0,rule:null,why:'no date',spend:0,basis:null};
   const c=commCfg();
   const cut=new Date(c.cutover+'T00:00:00').getTime();
   const isNew=forceNew||reg>=cut;
-  const months=isNew?c.newMonths:c.oldMonths;
-  if(act>windowEnd(reg,months)) return {ok:false,amt:0,rule:isNew?'new':'old',why:'late'};
+  const close=windowEnd(reg,isNew?c.newMonths:c.oldMonths);
+  const sp=commSpend(r,isNew,close);
+  const base={rule:isNew?'new':'old',spend:sp.v,basis:sp.basis};
+  if(act>close) return {...base,ok:false,amt:0,why:'late'};
   if(isNew){
-    const amt=tierFor(ops,c.tiers);
-    return {ok:amt>0,amt,rule:'new',why:amt>0?'':'low'};
+    const amt=tierFor(sp.v,c.tiers);
+    return {...base,ok:amt>0,amt,why:amt>0?'':'low'};
   }
-  const ok=ops>=commMin();
-  return {ok,amt:ok?COMMISSION_PER:0,rule:'old',why:ok?'':'low'};
+  const ok=sp.v>=commMin();
+  return {...base,ok,amt:ok?COMMISSION_PER:0,why:ok?'':'low'};
 }
 const qualifies=r=>commissionFor(r).ok;
-/* The old rule applied to any business, for comparison. */
+/* The old rule applied to any business, for comparison: its 90-day spend. */
 function oldRuleOk(r){
-  const reg=r[F.REGD], act=r[F.ACTD], ops=r[F.OPS]||0;
+  const reg=r[F.REGD], act=r[F.ACTD];
   if(!reg||!act||act<0) return false;
-  return act<=windowEnd(reg,commCfg().oldMonths) && ops>=commMin();
+  const close=windowEnd(reg,commCfg().oldMonths);
+  return act<=close && commSpend(r,false,close).v>=commMin();
 }
 /* An agent code is a seat, not a person: staff leave and the code is reused.
    Each agent therefore has a list of employment periods. Commission belongs
@@ -1607,6 +1660,8 @@ const HMAP={
   agentid:'agent', agent:'agent', bdeid:'agent',
   landingrefmarker:'ref',
   totalnetops:'ops', netops:'ops',
+  f30dops:'o30', f30dnetops:'o30', f30daysops:'o30', f30ops:'o30', ops30d:'o30', netops30d:'o30',
+  f90dops:'o90', f90dnetops:'o90', f90daysops:'o90', f90ops:'o90', ops90d:'o90', netops90d:'o90',
   ismultiuser:'mu', multiuser:'mu'
 };
 function campaignFrom(ref){
@@ -1624,6 +1679,13 @@ function buildRows(matrix){
   if(idx.agent===undefined) throw new Error("No agent_id column found. Check the export includes the standard Amazon Business columns.");
 
   const g=(r,k)=>idx[k]===undefined?'':r[idx[k]];
+  // A spend column that is in the file reads a blank cell as no spend; one
+  // that is not in the file stays null, so commission falls back to total OPS.
+  const amountOf=(r,k)=>{
+    if(idx[k]===undefined) return null;
+    const v=g(r,k);
+    return (v===''||v==null)?0:(Number(String(v).replace(/[^0-9.\-]/g,''))||0);
+  };
   const dt=detectDateOrder(matrix,idx);
   const out=[]; let skipped=0, undated=0;
   for(let i=1;i<matrix.length;i++){
@@ -1658,10 +1720,12 @@ function buildRows(matrix){
     row[F.MU]=yes(g(r,'mu'));
     row[F.CAMP]=campaignFrom(g(r,'ref'));
     row[F.GID]=String(g(r,'gid')||'').trim();
+    row[F.O30]=amountOf(r,'o30');
+    row[F.O90]=amountOf(r,'o90');
     out.push(row);
   }
   if(!out.length) throw new Error('No usable rows found. Every row needs an agent_id and a week or registration date.');
-  return {rows:out,skipped,dates:dt,undated};
+  return {rows:out,skipped,dates:dt,undated,spend:{o30:idx.o30!==undefined,o90:idx.o90!==undefined}};
 }
 
 async function handleFile(file){
@@ -1672,7 +1736,7 @@ async function handleFile(file){
     }else{
       matrix=parseCSV(await file.text(), /\.tsv$/i.test(file.name)?'\t':null);
     }
-    const {rows,skipped,dates,undated}=buildRows(matrix);
+    const {rows,skipped,dates,undated,spend}=buildRows(matrix);
 
     state.rows=rows;
     state.meta={file:file.name,at:Date.now(),n:rows.length,
@@ -1692,6 +1756,9 @@ async function handleFile(file){
     msg+=' \u00b7 dates read as '+(dates.order==='dmy'?'day/month/year':'month/day/year');
     if(filterCount()) msg+=' \u00b7 filters still applied';
     if(adjusted.length) msg+=' ('+[...new Set(adjusted)].join(' and ')+' adjusted)';
+    msg+=(spend.o30&&spend.o90)?' · commission uses 30 and 90-day spend'
+        :(spend.o30||spend.o90)?' · only one of F30d_ops and F90d_ops found'
+        :' · no F30d_ops or F90d_ops column, so commission uses total net OPS';
     toast(msg, dates.mixed);
   }catch(err){
     console.error(err);
@@ -2897,7 +2964,7 @@ function renderTotals(rows,keys){
       x:trend(ts.reg,'var(--c-reg)','Registrations')},
     {e:'\u{26A1}',k:'Activations',c:'var(--act)',v:fmt(win.act),s:win.act?(byRegBasis()?'Registrations from these weeks that have since spent':'Customers who spent in these weeks, whenever they registered'):'Nothing filled in the activation_date column',
       x:trend(ts.act,'var(--act)','Activations')},
-    {e:'\u{1F4B7}',k:'Commission qualified',c:'var(--ver)',v:fmt(win.comm),s:`Of those, the ones spending ${fmtOps(commMin())} or more`,
+    {e:'\u{1F4B7}',k:'Commission qualified',c:'var(--ver)',v:fmt(win.comm),s:(spendCols().o30||spendCols().o90)?'Of those, the ones whose 30 or 90-day spend earns commission':`Of those, the ones that earn commission`,
       x:trend(ts.comm,'var(--ver)','Commission qualified')},
     {e:'\u{1F3AF}',k:'Days on target',c:'var(--ink)',v:hits.pct==null?'—':Math.round(hits.pct)+'%',
       s:hits.active?`${fmt(hits.hit)} of ${fmt(hits.active)} active day${hits.active===1?'':'s'} reached ${fmt1(state.settings.dailyTarget)} sign-ups`:'No activity in this range',
@@ -2910,6 +2977,11 @@ function renderTotals(rows,keys){
     const gl=filteredAll().filter(isGlitch).length;
     if(gl) msgs.push(`${fmt(gl)} row${gl===1?'':'s'} named "Your Business Name" ${gl===1?'is a':'are'} glitch${gl===1?'':'es'} in the AB report and ${gl===1?'is':'are'} left out of every figure. ${gl===1?'It is':'They are'} flagged in red in Registered businesses.`);
     if(t.nopost) msgs.push(`${fmt(t.nopost)} row${t.nopost===1?'':'s'} have no postcode, so they are not counted as registrations.`);
+    const sc=spendCols();
+    if(!sc.o30||!sc.o90){
+      const miss=[!sc.o30?'F30d_ops':'',!sc.o90?'F90d_ops':''].filter(Boolean).join(' or ');
+      msgs.push(`This report has no ${miss} column, so ${!sc.o30&&!sc.o90?'commission is':(!sc.o30?'new-rule commission is':'old-rule commission is')} judged on total net OPS, which can include money spent after the deadline. If your AB report has the column, upload it again.`);
+    }
     if(t.actNoDate) msgs.push(`${fmt(t.actNoDate)} activation${t.actNoDate===1?'':'s'} hold a value in activation_date that carries no date, such as a duration like 46:31.7. They still count as activations, but cannot be placed on the timeline. Re-saving the report as .xlsx usually preserves the full date.`);
     if(state.meta&&state.meta.dateMixed) msgs.push(`This file mixes day-first and month-first dates. They have been read as ${state.meta.dateOrder==='dmy'?'day/month/year':'month/day/year'}; check the Registered column before relying on it.`);
     w.hidden=!msgs.length;
@@ -2974,7 +3046,7 @@ function renderLeague(rows,keys){
   if(anyAct) cols.push({k:'act',l:'Activations',cls:'r',tip:byRegBasis()
     ? 'Businesses registered in the selected weeks that have since spent'
     : 'Customers who spent during the selected weeks, whenever they registered'});
-  if(anyOps) cols.push({k:'comm',l:'Commission qualified',cls:'r',tip:`Of those activations, the ones spending ${money(commMin())} or more`});
+  if(anyOps) cols.push({k:'comm',l:'Commission qualified',cls:'r',tip:`Of those activations, the ones that earn commission on their spend in the first 90 days (old rule) or 30 days (new rule)`});
   if(anyOps) cols.push({k:'ops',l:'Net OPS',cls:'r'});
   cols.push({k:'conv',l:'Conversion',cls:'r',tip:'Activations divided by registrations for these weeks'});
   // While the last week is still under way its count is partial, so the
@@ -3059,7 +3131,7 @@ function drawer(d,keys){
           <td class="num" style="color:var(--ink-3)">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'\u2014'}</td>
           <td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):'yes'}</td>
           <td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">\u2014</span>'}</td>
-          <td>${(c=>c.ok?`<span class="pill hit">${money(c.amt)}</span>`:'')(commissionFor(r))}</td>
+          <td>${(c=>c.ok?`<span class="pill hit" title="${esc(spendNote(c))}">${money(c.amt)}</span>`:'')(commissionFor(r))}</td>
         </tr>`).join('')}</tbody>
       </table></div>`
       :'<p style="font-size:12.5px;color:var(--ink-3);margin:0">No activations in this range.</p>'}
@@ -3641,7 +3713,7 @@ function renderSalaries(){
       <div class="nbgrid">
         <span class="nbk">Confirmed and paid</span><span class="nbv good">${fmt(nb.paid)}</span>
         <span class="nbk">First month still open on ${asAtTxt} \u2014 not paid yet${nb.pendingOk?` (${fmt(nb.pendingOk)} on track at current spend)`:''}</span><span class="nbv">${fmt(nb.pending)}</span>
-        <span class="nbk">Spent under ${money((commCfg().tiers.find(t=>t.amt>0)||{from:76}).from)}</span><span class="nbv">${fmt(nb.low)}</span>
+        <span class="nbk">Spent under ${money((commCfg().tiers.find(t=>t.amt>0)||{from:76}).from)}${spendCols().o30?' in the first 30 days':''}</span><span class="nbv">${fmt(nb.low)}</span>
         <span class="nbk">Activated after the first month</span><span class="nbv">${fmt(nb.late)}</span>
       </div>
       <p>Under the old ${money(commMin())} rule, ${fmt(nb.wouldOld)} of these would have qualified. Confirmed ones are paid in the period their first month closes, so September's period (25 Aug to 24 Sep) only receives businesses registered up to 24 August; later registrations are paid the following period.</p>
@@ -3651,6 +3723,8 @@ function renderSalaries(){
   const cutShort=new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   const cutLong=new Date(commCfg().cutover+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   const alerts=[];
+  const sc=spendCols();
+  if(!sc.o30||!sc.o90) alerts.push(['amber',`<b>No ${[!sc.o30?'F30d_ops':'',!sc.o90?'F90d_ops':''].filter(Boolean).join(' or ')} column in this report</b>, so ${!sc.o30&&!sc.o90?'commission is':(!sc.o30?'new-rule commission is':'old-rule commission is')} judged on total net OPS, which can include money spent after the deadline.`]);
   if(commCfg().testAll) alerts.push(['amber',`<b>What-if view: every activation is judged by the new commission rules, including those registered before ${cutLong}. These are not the salaries actually owed.</b>`]);
   if(pending) alerts.push(['',`<b>${fmt(pending)} new-rule activation${pending===1?' is':'s are'} still within ${pending===1?'its':'their'} first month</b> and not yet confirmed${pendingAmt?`, worth ${money(pendingAmt)} on current spend`:''}. ${pending===1?'It':'They'} will appear once the window closes, and the amount may rise if the customer spends more before then. Those on track already count towards the expected and estimate figures.`]);
   if(unattributed) alerts.push(['warn',`<b>${fmt(unattributed)} activation${unattributed===1?'':'s'} earn nobody commission</b>, because the business registered or spent outside any employment period for that agent code.`]);
@@ -3660,6 +3734,7 @@ function renderSalaries(){
     <p>Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.</p>
     <p>Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.</p>
     <p>Businesses registered before ${cutShort} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.</p>
+    <p>Spend is the AB report's own figure for each window: <b>F30d_ops</b>, the first 30 days, for the new rule and <b>F90d_ops</b>, the first 90 days, for the old rule. Money spent after the deadline never counts towards commission. While a business's window is still open and the report has no figure for it yet, its spend so far is used.</p>
     <p>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.</p>
     <p>The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so ${periodLabel(current)} is still in progress and shows what has been earned so far. Where new-rule commission is due to confirm later in that period, the cell also shows the <b>expected</b> take-home, at the customer's spend so far.</p>
     ${nextKey?`<p>The ${periodLabel(nextKey)} column is an estimate: base salary for the days employed plus new-rule commission whose first month closes in that period, at the customer's spend so far. It rises if customers spend more, and it is not included in the totals.</p>`:''}
@@ -3754,9 +3829,9 @@ function renderDetail(rows){
       <td class="num">${wkLabel(wkKey(r))}</td>
       <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>`+
       (anyAct?`<td class="num">${r[F.ACTD]>0?new Date(r[F.ACTD]).toLocaleDateString('en-GB'):(r[F.ACTD]?'Activated':'<span style="color:var(--ink-3)">—</span>')}</td>`:'')+
-      `<td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}</td>
-      <td>${q&&!bad?`<span class="pill hit">${money(cm.amt)}</span>`:(!bad&&r[F.ACTD]&&cm.why==='late'?'<span class="pill near" title="Spent, but activated after the commission window had closed">Too late</span>'
-         :!bad&&r[F.ACTD]&&cm.why==='low'?'<span class="pill near" title="Spent, but not enough to reach the commission threshold">Below threshold</span>'
+      `<td class="r num">${r[F.OPS]?fmtOps(r[F.OPS]):'<span style="color:var(--ink-3)">—</span>'}${!bad&&r[F.ACTD]&&(cm.basis==='30'||cm.basis==='90')&&Math.round(cm.spend)!==Math.round(r[F.OPS]||0)?`<small class="bizid" title="The spend commission is judged on">${fmtOps(cm.spend)} in ${cm.basis} days</small>`:''}</td>
+      <td>${q&&!bad?`<span class="pill hit" title="${esc(spendNote(cm))}">${money(cm.amt)}</span>`:(!bad&&r[F.ACTD]&&cm.why==='late'?'<span class="pill near" title="Spent, but activated after the commission window had closed">Too late</span>'
+         :!bad&&r[F.ACTD]&&cm.why==='low'?`<span class="pill near" title="${esc('Spent '+spendNote(cm)+', not enough to reach the commission threshold')}">Below threshold</span>`
          :!bad&&r[F.ACTD]&&cm.why==='no date'?'<span class="pill none" title="Activated, but the date cannot be read, so the commission window cannot be checked">Date unreadable</span>'
          :'<span style="color:var(--ink-3)">—</span>')}</td></tr>`;
   }
@@ -3803,7 +3878,7 @@ function showQualifying(seatKey,periodKey){
   for(const k of keys) for(const r of (mp.get(k)||{rows:[]}).rows||[]) rows.push({k,r});
   rows.sort((a,b)=>a.r[F.ACTD]-b.r[F.ACTD]);
   const test=commCfg().testAll;
-  const spend=rows.reduce((n,x)=>n+x.r[F.OPS],0);
+  const spend=rows.reduce((n,x)=>n+commissionFor(x.r,test).spend,0);
   const amtOf=x=>commissionFor(x.r,test).amt;
   const totalAmt=rows.reduce((n,x)=>n+amtOf(x),0);
 
@@ -3820,13 +3895,13 @@ function showQualifying(seatKey,periodKey){
     </header>
     <div class="body" style="padding-top:16px">
       <p style="margin-bottom:14px">${esc(scope)}. Each of these qualified for commission${test?', judged here by the new rules as a what-if':''}.
-        <b>${fmt(rows.length)} qualifying \u00b7 ${money(totalAmt)}</b> commission, on ${money2(spend)} of customer spend.</p>
+        <b>${fmt(rows.length)} qualifying \u00b7 ${money(totalAmt)}</b> commission, on ${money2(spend)} of spend counted towards it.</p>
       ${rows.length?`<div class="tablewrap" style="max-height:52vh;overflow:auto">
       <table style="font-size:12.5px">
         <thead><tr>
           <th class="no-sort">Business</th><th class="no-sort">Business ID</th>
           <th class="no-sort">Postcode</th><th class="no-sort">Registered</th>
-          <th class="no-sort">Activated</th><th class="r no-sort">Spend</th>
+          <th class="no-sort">Activated</th><th class="r no-sort">Spend counted</th>
           <th class="r no-sort">Commission</th>${periodKey==='all'?'<th class="no-sort">Paid in</th>':''}
         </tr></thead>
         <tbody>${rows.map(({k,r})=>`<tr>
@@ -3835,7 +3910,7 @@ function showQualifying(seatKey,periodKey){
           <td>${r[F.POST]?esc(r[F.POST]):'<span style="color:var(--warn)">missing</span>'}</td>
           <td class="num">${r[F.REGD]?new Date(r[F.REGD]).toLocaleDateString('en-GB'):'—'}</td>
           <td class="num">${new Date(r[F.ACTD]).toLocaleDateString('en-GB')}</td>
-          <td class="r num">${money2(r[F.OPS])}</td>
+          ${(c=>`<td class="r num">${money2(c.spend)}<small class="bizid">${SPEND_SHORT[c.basis]||''}</small></td>`)(commissionFor(r,test))}
           <td class="r num">${money(amtOf({r}))}<small class="bizid">${commissionFor(r,test).rule==='new'?'new tier':'old rate'}</small></td>
           ${periodKey==='all'?`<td>${periodLabel(k)}${k===current?' (so far)':''}</td>`:''}
         </tr>`).join('')}</tbody>
@@ -3885,15 +3960,17 @@ function exportAgent(id){
     toast(`No AB report rows for ${name} (#${id})${from!==-Infinity?' from '+ukDateTime(from).slice(0,10):''}.`,true);
     return;
   }
+  const sc=spendCols();
   const head=['week_num','group_id','business_name','postal_code','registered_date','agent_id',
-              'activation_date','total_net_ops','is_multi_user','bde_name'];
+              'activation_date','total_net_ops',...(sc.o30?['F30d_ops']:[]),...(sc.o90?['F90d_ops']:[]),'is_multi_user','bde_name'];
   const lines=[head.join(',')];
   for(const r of rows){
     // An activation date that could not be read is kept as a note, not left
     // blank, since blank would wrongly read as "never activated".
     const act = r[F.ACTD]>0 ? ukDateTime(r[F.ACTD]) : (r[F.ACTD] ? 'activated, date unreadable' : '');
     lines.push([r[F.WEEK],r[F.GID],r[F.NAME],r[F.POST],ukDateTime(r[F.REGD]),r[F.AGENT],
-                act,r[F.OPS]||'',r[F.MU]?'1':'0',name].map(csvCell).join(','));
+                act,r[F.OPS]||'',...(sc.o30?[r[F.O30]==null?'':r[F.O30]]:[]),...(sc.o90?[r[F.O90]==null?'':r[F.O90]]:[]),
+                r[F.MU]?'1':'0',name].map(csvCell).join(','));
   }
   // The byte-order mark makes Excel open the file as UTF-8.
   const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
@@ -4008,7 +4085,7 @@ function openSettings(){
         <summary><span class="emo">&#128181;</span>Commission rules</summary>
         <div class="setgrid">
         <div class="field"><label for="setComm">Old commission qualified at (£)
-          <i class="info" tabindex="0" data-tip="Old rule only: a business registered before the new rules start must spend at least this much to qualify. Businesses on the new rule use the tier bands below instead.">i</i></label>
+          <i class="info" tabindex="0" data-tip="Old rule only: a business registered before the new rules start must spend at least this much in its first 90 days (the F90d_ops column) to qualify. Businesses on the new rule use the tier bands below instead.">i</i></label>
           <input type="number" id="setComm" min="0" step="1" value="${esc(state.settings.commMin)}"></div>
           <div class="field"><label for="cmCut">New rules start on
             <i class="info" tabindex="0" data-tip="Decided by the date a business registered. Anything registered before this stays on the old rule for good, even if it activates afterwards.">i</i></label>
@@ -4021,7 +4098,7 @@ function openSettings(){
             <input type="number" id="cmNew" min="0" max="24" step="1" value="${esc(commCfg().newMonths)}"></div>
         </div>
         <h4 class="seth" style="margin-top:16px"><span class="emo">&#128202;</span>New rule tiers
-          <i class="info" tabindex="0" data-tip="A business earns the amount for the highest tier its spend reaches. Spend is the business's total net OPS in the AB report.">i</i></h4>
+          <i class="info" tabindex="0" data-tip="A business earns the amount for the highest tier its spend reaches. Spend is what it spent in its first 30 days, the F30d_ops column in the AB report, so money spent later does not count.">i</i></h4>
         <div class="tiergrid">
           <span class="tierhead">Spend from (£)</span><span class="tierhead">Commission (£)</span>
           ${commCfg().tiers.map((t,i)=>`
