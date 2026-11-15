@@ -1089,14 +1089,24 @@ let persistent=true;
 const mem={};
 const store={
   get(k){
+    // A value held in memory is newer than anything the browser kept.
+    if(k in mem) return mem[k];
     if(persistent){ try{ return localStorage.getItem(k); }catch(e){ persistent=false; } }
-    return k in mem ? mem[k] : null;
+    return null;
   },
   set(k,v){
     if(persistent){
-      try{ localStorage.setItem(k,v); return true; }
+      try{ localStorage.setItem(k,v); delete mem[k]; return true; }
       catch(e){
-        if(e && (e.name==='QuotaExceededError'||e.code===22)){ mem[k]=v; return 'quota'; }
+        if(e && (e.name==='QuotaExceededError'||e.code===22)){
+          /* Too big. Drop the previous copy first, which frees its space, and
+             try again. If it still does not fit, the previous copy stays
+             dropped: otherwise a refresh would bring back an older report
+             under the new file's name. */
+          try{ localStorage.removeItem(k); localStorage.setItem(k,v); delete mem[k]; return true; }catch(e2){}
+          try{ localStorage.removeItem(k); }catch(e3){}
+          mem[k]=v; return 'quota';
+        }
         persistent=false;
       }
     }
@@ -1680,6 +1690,10 @@ function buildRows(matrix){
   const header=matrix[0].map(norm);
   const idx={};
   header.forEach((h,i)=>{ const key=HMAP[h]; if(key && idx[key]===undefined) idx[key]=i; });
+  header.forEach((h,i)=>{
+    if(idx.o30===undefined && /30d.*ops|ops.*30d/.test(h)) idx.o30=i;
+    if(idx.o90===undefined && /90d.*ops|ops.*90d/.test(h)) idx.o90=i;
+  });
   if(idx.agent===undefined) throw new Error("No agent_id column found. Check the export includes the standard Amazon Business columns.");
 
   const g=(r,k)=>idx[k]===undefined?'':r[idx[k]];
@@ -1871,16 +1885,44 @@ function paintFilterState(){
   b.classList.toggle('btn-primary',n>0);
   b.classList.toggle('btn-quiet',n===0);
 }
+/* The report's rows are stored gzip-compressed (about a fifth of the size),
+   so a whole-company AB report fits in the browser's storage. Rows saved by
+   earlier versions as plain JSON still load. */
+const GZ='gz1:';
+async function packRows(rows){
+  const json=JSON.stringify(rows);
+  if(typeof CompressionStream==='undefined') return json;
+  const buf=new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let bin='';
+  for(let i=0;i<buf.length;i+=0x8000) bin+=String.fromCharCode.apply(null,buf.subarray(i,i+0x8000));
+  return GZ+btoa(bin);
+}
+async function unpackRows(s){
+  if(!s) return [];
+  if(!s.startsWith(GZ)) return JSON.parse(s)||[];
+  const bin=atob(s.slice(GZ.length));
+  const buf=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+  const text=await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  return JSON.parse(text)||[];
+}
+let saveSeq=0;
 function save(){
   clearStints();
-  const res=store.set(K_DATA,JSON.stringify(state.rows));
   store.set(K_SET,JSON.stringify(state.settings));
   store.set(K_META,JSON.stringify(state.meta));
-  if(res==='quota'){
-    toast('This report is too large to keep on the device. It will work now but will not survive a refresh.',true);
-  }
-  state.quota = (res==='quota');
   renderFoot();
+  // Settings changes call this too; the rows are only written when they changed.
+  if(state._savedRows===state.rows) return;
+  const rows=state.rows, seq=++saveSeq;
+  packRows(rows).then(packed=>{
+    if(seq!==saveSeq) return;          // a newer report has replaced this one
+    const res=store.set(K_DATA,packed);
+    state._savedRows=rows;
+    state.quota=(res==='quota');
+    if(state.quota) toast('This report is too large to keep on the device. It will work now but will not survive a refresh.',true);
+    renderFoot();
+  }).catch(e=>console.error('Saving the report failed',e));
 }
 function load(){
   try{
@@ -1891,7 +1933,8 @@ function load(){
       Object.assign(state.settings,saved);
     }
     const m=store.get(K_META); if(m) state.meta=JSON.parse(m);
-    const d=store.get(K_DATA); if(d) state.rows=JSON.parse(d)||[];
+    const d=store.get(K_DATA);
+    if(d){ if(d.startsWith(GZ)) state._packed=d; else { state.rows=JSON.parse(d)||[]; state._savedRows=state.rows; } }
     const c=store.get(K_CRM); if(c) state.crm=JSON.parse(c);
     const fx=store.get(K_FIX); if(fx) state.fixes=JSON.parse(fx)||{};
     loadView();
@@ -4712,7 +4755,13 @@ function normaliseTeams(){
 /* boot */
 const swept=sweepOldVersions();
 initTheme();
+(async function boot(){
 load();
+if(state._packed){
+  try{ state.rows=await unpackRows(state._packed); state._savedRows=state.rows; }
+  catch(e){ console.warn('Stored report could not be read',e); state.rows=[]; }
+  state._packed=null;
+}
 seedLondonEast();
 const teamsMoved=normaliseTeams();
 if(state.rows.length) reconcileFilters();
@@ -4733,6 +4782,7 @@ if(state.rows.length && state.meta){
   const n=filterCount();
   toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:''));
 }
+})();
 </script>
 </body>
 </html>
