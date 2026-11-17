@@ -309,7 +309,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
   .topbar.compact .secnav button[aria-current="true"]{padding:0 12px}
 }
 /* 3. Phone: every button is an icon and the wordmark steps aside, so all
-      seven sections and the three actions fit on the one line. */
+      eight sections and the three actions fit on the one line. */
 @media (max-width:560px){
   .topbar .btn,.secnav button{min-height:32px}
   .topbar-in{padding:8px 16px;gap:6px}
@@ -318,7 +318,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
   .secnav{gap:1px}
   .topbar-actions{margin-left:auto}
   .secnav button[aria-current="true"] span{display:none}
-  .secnav button,.secnav button[aria-current="true"]{padding:0 6px}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 4px}
   .secnav button[aria-current="true"]{background:var(--accent-soft);color:var(--reg);box-shadow:none}
   .topbar-actions{gap:4px}
   .topbar-actions .btn:not(.is-open){width:33px;padding:0}
@@ -329,7 +329,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
 }
 @media (max-width:380px){
   .topbar-in{padding:8px 8px;gap:4px}
-  .secnav button,.secnav button[aria-current="true"]{padding:0 5px}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 3px}
   .topbar-actions .btn:not(.is-open){width:31px}
   .logo,.logo svg{width:26px;height:26px}
 }
@@ -805,6 +805,83 @@ svg{display:block;max-width:100%}
 .hidden{display:none!important}
 .foot{max-width:1320px;margin:0 auto;padding:26px 24px 0;font-size:12px;color:var(--ink-3);line-height:1.6;text-align:center}
 
+/* ---------- comparison ---------- */
+.cmpbar{margin-bottom:12px}
+.cmpbar .vs{align-self:flex-end;line-height:var(--ctl);font-size:12px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.cmpbar .rng{display:flex;align-items:center;gap:6px}
+.cmpbar .rng span{color:var(--ink-3)}
+.cmpbar .rng input{width:auto;min-width:138px}
+.pdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0;flex:none}
+.pdot.x{background:var(--reg)}
+.pdot.y{border:1.8px solid var(--ink-3);background:var(--surface)}
+.cmpperiods{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12.5px;color:var(--ink-2);margin:0 0 16px}
+.cmpperiods b{color:var(--ink);font-weight:600}
+.cmpperiods .vs2{color:var(--ink-3)}
+#sec-compare .notice{margin:0 0 16px}
+.cmptiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px}
+.ctile{border:1px solid var(--rule-2);border-radius:var(--r-md);padding:13px 15px 12px;background:var(--surface);min-width:0}
+.ctile .ck{font-size:12px;color:var(--ink-2);font-weight:500}
+.ctile .ck span{color:var(--ink-3);font-weight:400}
+.ctile .cvrow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:5px}
+.ctile .cv{font-size:24px;font-weight:650;letter-spacing:-.015em;font-variant-numeric:tabular-nums;line-height:1.15}
+.ctile .cs{font-size:12px;color:var(--ink-3);margin-top:3px}
+.ctile .cs2{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.dchip{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:650;line-height:1.5;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.dchip.up{background:var(--hit-bg);color:var(--good)}
+.dchip.down{background:var(--miss-bg);color:var(--warn)}
+.dchip.flat{background:var(--surface-3);color:var(--ink-3)}
+.cmph{font-size:14px;font-weight:650;margin:24px 0 10px;color:var(--ink)}
+.cmph-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px 14px;flex-wrap:wrap;margin:24px 0 10px}
+.cmph-row .cmph{margin:0}
+.cmpkey{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-size:11.5px;color:var(--ink-3)}
+.cmpkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px}
+.cmpkey i:first-child{margin-left:0}
+.cmpkey .k1{background:var(--ink-2)}
+.cmpkey .k2{border:1.8px solid var(--ink-3)}
+.cmpkey .k3{background:var(--good)}
+.cmpkey .k4{background:var(--warn)}
+ul.insights{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.insights li{position:relative;padding:10px 14px 10px 38px;border:1px solid var(--rule-2);border-radius:var(--r-md);
+  font-size:13.5px;line-height:1.55;color:var(--ink-2);background:var(--surface)}
+ul.insights li b{color:var(--ink);font-weight:600}
+ul.insights li::before{content:'\2192';position:absolute;left:12px;top:11px;width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;line-height:1;
+  background:var(--surface-3);color:var(--ink-3)}
+ul.insights li.up::before{content:'\2191';background:var(--hit-bg);color:var(--good)}
+ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(--warn)}
+.mchips{margin:0 0 12px;overflow-x:auto;scrollbar-width:none}
+.mchips::-webkit-scrollbar{display:none}
+.dbwrap{overflow:hidden;margin-bottom:18px}
+.dbwrap svg{display:block}
+.db-hit{fill:transparent}
+.db-row:hover .db-hit{fill:var(--surface-2)}
+#cmpTable td .dchip{margin-left:6px}
+#cmpTable .cnum{font-weight:600;font-variant-numeric:tabular-nums}
+#cmpTable .was{display:block;font-size:11px;color:var(--ink-3);margin-top:1px}
+#cmpTable th.sel{color:var(--ink)}
+#cmpTable td.sel{background:var(--detail-bg)}
+#cmpTable tbody tr:hover td.sel{background:var(--surface-2)}
+@media (max-width:760px){
+  #cmpTable td.agentcell,#cmpTable thead th:first-child{
+    position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:6px 0 8px -8px rgba(0,0,0,.25);
+  }
+  #cmpTable thead th:first-child{z-index:3;background:var(--surface-2)}
+  #cmpTable tbody tr:hover td.agentcell{background:var(--surface-2)}
+}
+@media (max-width:560px){
+  .cmpbar .vs{display:none}
+  .cmpbar .field{flex:1 1 100%}
+  .cmpbar .field .seg{width:100%}
+  .cmpbar .field .seg button{flex:1}
+  .cmpbar .rng input{flex:1 1 0;min-width:0}
+  .cmptiles{grid-template-columns:1fr 1fr;gap:10px}
+  .ctile{padding:11px 12px 10px}
+  .ctile .cv{font-size:20px}
+  ul.insights li{font-size:13px;padding:9px 12px 9px 34px}
+  ul.insights li::before{left:10px;top:11px}
+}
+
 /* ---------- phones ---------- */
 @media (max-width:760px){
   /* The name column stays put while the figures scroll beneath it. */
@@ -890,6 +967,7 @@ svg{display:block;max-width:100%}
     <nav class="secnav hidden" id="secnav" aria-label="Jump to section">
       <button data-go="sec-summary"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg><span>Summary</span></button>
       <button data-go="sec-league"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 14V7M8 14V2.5M11.5 14v-4.5"/><path d="M1.5 14.5h13"/></svg><span>Leaderboard</span></button>
+      <button data-go="sec-compare"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h10.5M10 2.5 12.5 5 10 7.5"/><path d="M14 11H3.5M6 8.5 3.5 11 6 13.5"/></svg><span>Compare</span></button>
       <button data-go="sec-trend"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 11.5 5.5 6l3 3 5.5-7"/><path d="M1.5 14.5h13"/></svg><span>Graphs</span></button>
       <button data-go="sec-spend"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6 8h3.5M6.6 11.2h4M9.6 11.2c-2 0-3-1-3-2.8V6.9c0-1.3.9-2.2 2.2-2.2 1 0 1.7.4 2.1 1"/></svg><span>Spend</span></button>
       <button data-go="sec-industry" class="hidden"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 14.5h13M2.5 14.5V7l3.5 2.2V7l3.5 2.2V3.5h4v11"/></svg><span>Industry</span></button>
@@ -987,6 +1065,23 @@ svg{display:block;max-width:100%}
         </div>
       </div>
       <div class="tablewrap"><table id="leagueTable"></table></div>
+    </section>
+
+    <!-- comparison -->
+    <section class="panel" id="sec-compare">
+      <div class="panel-head">
+        <div class="ph-title">
+          <h2><span class="emo">⚖️</span>Comparison</h2>
+          <span class="hint" id="cmpHint"></span>
+        </div>
+        <div class="ph-tools">
+          <div class="seg" id="cmpMode" role="group" aria-label="Compare by">
+            <button data-k="month" aria-pressed="true">Months</button>
+            <button data-k="range" aria-pressed="false">Dates</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" id="cmpBody"></div>
     </section>
 
     <!-- trend -->
@@ -1167,7 +1262,8 @@ const state={
   trendMode:'team', grain:'week', drawerGrain:'week', detailShow:'all', openAgent:null, openSalary:null, salaryMonths:6, showWeekends:true, detailLimit:60,
   view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
-  salarySort:{key:'total',dir:-1}
+  salarySort:{key:'total',dir:-1},
+  cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1}
 };
 
 /* =======================================================================
@@ -1796,7 +1892,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom, cmp:state.cmp
   }));
   paintFilterState();
 }
@@ -1829,6 +1925,16 @@ function loadView(){
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
     if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
+    if(v.cmp&&typeof v.cmp==='object'){
+      const c=v.cmp;
+      const isD=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)?x:null;
+      const isM=n=>Number.isInteger(n)&&n%100>=1&&n%100<=12&&n>200000&&n<300000?n:null;
+      state.cmp={mode:c.mode==='range'?'range':'month', xm:isM(c.xm), ym:isM(c.ym),
+        xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
+        norm:c.norm==='day'||c.norm==='total'?c.norm:'auto',
+        metric:['reg','perDay','target','act','comm','a14','spendPer'].includes(c.metric)?c.metric:'reg',
+        dir:c.dir===1?1:-1};
+    }
   }catch(e){ console.warn('Saved filters could not be read',e); }
 }
 /* A restored filter may point at weeks or BDEs that a newly uploaded file does
@@ -2899,6 +3005,7 @@ function render(){
   const rows=filtered(), keys=activeKeys();
   renderTotals(rows,keys);
   renderLeague(rows,keys);
+  renderCompare();
   renderTrend(rows,keys);
   renderQuality(rows);
   renderIndustry();
@@ -4588,8 +4695,398 @@ $('#search').addEventListener('input',e=>{
   sq=setTimeout(()=>{ state.filters.q=e.target.value; state.detailLimit=60; saveView(); renderDetail(filteredAll()); },180);
 });
 
+/* =======================================================================
+   Comparison: one period against another
+   -----------------------------------------------------------------------
+   Two periods, chosen as calendar months or as any two date ranges, for the
+   BDEs and teams in the filters (the week range above does not apply here).
+   Raw totals mislead when the periods differ in length or one is still in
+   progress, so counts can be shown per working day, and the change in
+   registrations is split into effort (days worked) and output per day.
+   ======================================================================= */
+const addDays=(t,n)=>{ const d=new Date(t); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return d.getTime(); };
+const monthKeyOf=t=>{ const d=new Date(t); return d.getFullYear()*100+d.getMonth()+1; };
+const monthStart=k=>new Date(Math.floor(k/100),k%100-1,1).getTime();
+const monthEnd=k=>new Date(Math.floor(k/100),k%100,1).getTime()-1;
+const monthLabel=k=>new Date(Math.floor(k/100),k%100-1,1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+const prevMonthKey=k=>k%100===1?(Math.floor(k/100)-1)*100+12:k-1;
+const nextMonthKey=k=>k%100===12?(Math.floor(k/100)+1)*100+1:k+1;
+const dShort=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const parseYmd=s=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||''); return m?new Date(+m[1],+m[2]-1,+m[3]).getTime():null; };
+function dataMonths(span){
+  if(!span) return [];
+  const out=[], last=monthKeyOf(span[1]);
+  for(let k=monthKeyOf(span[0]);k<=last;k=nextMonthKey(k)) out.push(k);
+  return out;
+}
+/* Monday to Friday days from lo to hi, both inclusive. */
+function workingDays(lo,hi){
+  let n=0; const d=new Date(lo); d.setHours(0,0,0,0);
+  while(d.getTime()<=hi){ const w=d.getDay(); if(w>=1&&w<=5) n++; d.setDate(d.getDate()+1); }
+  return n;
+}
+/* The two periods: [this period, the one it is compared with]. */
+function cmpPeriods(span){
+  const c=state.cmp, months=dataMonths(span);
+  if(!months.length) return null;
+  if(c.mode==='month'){
+    const xm=months.includes(c.xm)?c.xm:months[months.length-1];
+    const ym=(c.ym&&c.ym!==xm&&months.includes(c.ym))?c.ym:prevMonthKey(xm);
+    return [{from:monthStart(xm),to:monthEnd(xm),name:monthLabel(xm),m:xm},
+            {from:monthStart(ym),to:monthEnd(ym),name:monthLabel(ym),m:ym}];
+  }
+  // Date ranges. Until chosen: the last four weeks of the report against the
+  // four before; a comparison range left unset is the same length, just before.
+  const end=midnight(span[1]);
+  let xf=parseYmd(c.xf), xt=parseYmd(c.xt), yf=parseYmd(c.yf), yt=parseYmd(c.yt);
+  if(xf==null||xt==null||xf>xt){ xt=end; xf=addDays(end,-27); }
+  if(yf==null||yt==null||yf>yt){ const len=Math.round((xt-xf)/86400000); yt=addDays(xf,-1); yf=addDays(yt,-len); }
+  const yr=new Date(end).getFullYear();
+  const nm=(a,b)=>{
+    const ya=new Date(a).getFullYear(), yb=new Date(b).getFullYear();
+    return a===b?dShort(a)+(yb!==yr?' '+yb:''):`${dShort(a)}${ya!==yb?' '+ya:''} – ${dShort(b)}${ya!==yb||yb!==yr?' '+yb:''}`;
+  };
+  return [{from:xf,to:addDays(xt,1)-1,name:nm(xf,xt)},{from:yf,to:addDays(yt,1)-1,name:nm(yf,yt)}];
+}
+function cmpStats(P,span){
+  const lo=P.from, hi=P.to;
+  const startT=midnight(span[0]), endT=addDays(span[1],1)-1;
+  const effLo=Math.max(lo,startT), effHi=Math.min(hi,endT);
+  const wd=effHi>=effLo?workingDays(effLo,effHi):0;
+  // A business signed up by this day has had 14 days in which to spend.
+  const mature=addDays(span[1],-13)-1;
+  const per=new Map();
+  const get=id=>{ let a=per.get(id); if(!a){ a={id,reg:0,days:new Set(),rows:[],act:0,comm:0,open:0,ops:0,m14:0,a14:0}; per.set(id,a); } return a; };
+  const regBasis=byRegBasis(), cfg=commCfg(), asAt=reportDate();
+  // An activation that has not qualified yet may still do so while its
+  // spending window is open, so a recent period's figure can rise.
+  const addAct=(a,r)=>{
+    a.act++; a.ops+=r[F.OPS];
+    const cm=commissionFor(r);
+    if(cm.ok) a.comm++;
+    else if(cm.why==='low'&&windowEnd(r[F.REGD],cm.rule==='new'?cfg.newMonths:cfg.oldMonths)>asAt) a.open++;
+  };
+  for(const r of state.rows){
+    if(isGlitch(r)||!agentInView(r[F.AGENT])) continue;
+    const t=r[F.REGD];
+    if(r[F.POST]&&t>=lo&&t<=hi){
+      const a=get(r[F.AGENT]); a.reg++; a.days.add(dayKey(r)); a.rows.push(r);
+      if(t<=mature){ a.m14++; if(r[F.ACTD]>0&&r[F.ACTD]-t<=14*86400000) a.a14++; }
+      if(regBasis&&r[F.ACTD]) addAct(a,r);
+    }
+    // Activations follow the dashboard's setting, as in the league table.
+    if(!regBasis&&r[F.ACTD]>0&&r[F.ACTD]>=lo&&r[F.ACTD]<=hi){
+      addAct(get(r[F.AGENT]),r);
+    }
+  }
+  const team={reg:0,nDays:0,act:0,comm:0,open:0,ops:0,m14:0,a14:0,hit:0,active:0};
+  for(const a of per.values()){
+    const h=dayHitStats(a.rows); a.hit=h.hit; a.active=h.active; a.nDays=a.days.size;
+    for(const k of Object.keys(team)) team[k]+=a[k];
+  }
+  return {per,team,wd,full:workingDays(lo,hi),cut:effHi<hi||effLo>lo,lo,hi};
+}
+/* The measures. kind: n = a count (can be shown per working day), r = a
+   rate, p = a percentage (changes in points). */
+const CMP_METRICS={
+  reg:{l:'Registrations',kind:'n',v:a=>a.reg,tip:'Businesses signed up in the period'},
+  perDay:{l:'Per day worked',kind:'r',v:a=>a.nDays?a.reg/a.nDays:null,f:fmt1,tip:'Sign-ups on each day the BDE signed anyone up: output, whatever the number of days worked'},
+  target:{l:'Days on target',kind:'p',v:a=>a.active?a.hit/a.active*100:null,tip:'Share of days worked that reached the daily sign-up target'},
+  act:{l:'Activations',kind:'n',v:a=>a.act,tip:'Customers who spent in the period, whenever they registered'},
+  comm:{l:'Commission qualified',kind:'n',v:a=>a.comm,tip:'Activations in the period that earn commission'},
+  a14:{l:'Spent within 14 days',kind:'p',v:a=>a.m14>=5?a.a14/a.m14*100:null,tip:'Of businesses signed up at least 14 days before the report ends, the share that spent within 14 days of registering (needs five or more)'},
+  spendPer:{l:'Spend per activation',kind:'r',v:a=>a.act?a.ops/a.act:null,f:fmtOps,tip:'Net OPS of the period’s activations divided by their number'}
+};
+const CMP_ORDER=['reg','perDay','target','act','comm','a14','spendPer'];
+let cmpNormEff='total';
+const cmpPerDay=()=>cmpNormEff==='day';
+function cmpVal(key,a,S){
+  const m=CMP_METRICS[key], v=m.v(a);
+  if(v==null) return null;
+  return (m.kind==='n'&&cmpPerDay())?(S.wd?v/S.wd:null):v;
+}
+function cmpFmt(key,v){
+  if(v==null) return '—';
+  const m=CMP_METRICS[key];
+  if(m.kind==='p') return Math.round(v)+'%';
+  if(m.kind==='n') return cmpPerDay()?fmt1(v):fmt(v);
+  return m.f(v);
+}
+const sgn=v=>v>0?'+':v<0?'−':'';
+/* A change: points for percentages, otherwise the percentage change. Up is
+   better for every measure here. */
+function cmpChip(key,x,y){
+  if(x==null) return '';
+  if(y==null) return '<span class="dchip flat">new</span>';
+  const m=CMP_METRICS[key], d=x-y;
+  let txt, s;
+  if(m.kind==='p'){ s=Math.round(d); txt=`${sgn(s)}${Math.abs(s)} pts`; }
+  else if(y){ s=Math.round(d/y*100); txt=`${sgn(s)}${Math.abs(s)}%`; }
+  else{ s=d; txt=d?'new':'0'; }
+  return `<span class="dchip ${s>0?'up':s<0?'down':'flat'}">${txt}</span>`;
+}
+const pctCh=(x,y)=>y?(x/y-1)*100:null;
+const sgnPct=v=>`${sgn(Math.round(v))}${Math.abs(Math.round(v))}%`;
+
+/* A plain reading of what changed for the team as a whole. */
+function cmpInsights(X,Y,PX,PY){
+  const out=[], tx=X.team, ty=Y.team;
+  if(!ty.reg&&!ty.act) return out;
+  const norm=cmpPerDay()&&X.wd&&Y.wd;
+  const nx=v=>norm?v/X.wd:v, ny=v=>norm?v/Y.wd:v;
+  const unit=norm?' a working day':'';
+  // 1. Registrations = effort (days worked) × output (sign-ups per day worked).
+  if(tx.reg&&ty.reg&&tx.nDays&&ty.nDays){
+    const rc=pctCh(nx(tx.reg),ny(ty.reg));
+    const ex=nx(tx.nDays), ey=ny(ty.nDays), ec=pctCh(ex,ey);
+    const px=tx.reg/tx.nDays, py=ty.reg/ty.nDays, pc=pctCh(px,py);
+    const eff=`${ec>=0?'more':'fewer'} ${norm?'BDEs working each day':'days worked'} (${sgnPct(ec)}: ${fmt1(ex)} against ${fmt1(ey)})`;
+    const out1=`${pc>=0?'more':'fewer'} sign-ups per day worked (${sgnPct(pc)}: ${fmt1(px)} against ${fmt1(py)})`;
+    // Shares of the change on a log scale, so the two parts add up exactly.
+    const le=Math.log(ex/ey), lp=Math.log(px/py);
+    let why;
+    if(Math.abs(le)<0.01&&Math.abs(lp)<0.01) why='Effort and output per day were both about the same.';
+    else{
+      const effBig=Math.abs(le)>=Math.abs(lp), small=effBig?lp:le;
+      const [a,b]=effBig?[eff,out1]:[out1,eff];
+      if(Math.abs(small)<0.01) why=`Mostly from ${a}, with ${effBig?'output per day':'effort'} about the same.`;
+      else if(Math.sign(le)===Math.sign(lp)) why=`Mostly from ${a}, and ${b}.`;
+      else why=`${a[0].toUpperCase()+a.slice(1)} outweighed ${b}.`;
+    }
+    out.push([rc>0.5?'up':rc<-0.5?'down':'flat',`<b>Registrations ${Math.abs(rc)<0.5?'level':(rc>0?'up ':'down ')+Math.abs(Math.round(rc))+'%'}</b>${unit} (${fmt1(nx(tx.reg))} against ${fmt1(ny(ty.reg))}). ${why}`]);
+  }
+  // 2. Days on target.
+  if(tx.active&&ty.active){
+    const a=tx.hit/tx.active*100, b=ty.hit/ty.active*100, d=Math.round(a-b);
+    out.push([d>0?'up':d<0?'down':'flat',`<b>${Math.round(a)}% of days worked on target</b>, against ${Math.round(b)}% (${sgn(d)}${Math.abs(d)} pts).`]);
+  }
+  // 3. Activations, and how quickly new sign-ups spend.
+  if(tx.act||ty.act){
+    const ac=pctCh(nx(tx.act),ny(ty.act));
+    let s=ac!=null?`<b>Activations ${Math.abs(ac)<0.5?'level':(ac>0?'up ':'down ')+Math.abs(Math.round(ac))+'%'}</b>${unit} (${fmt1(nx(tx.act))} against ${fmt1(ny(ty.act))})`:`<b>${fmt(tx.act)} activations</b>, none before`;
+    if(tx.m14>=5&&ty.m14>=5){
+      const a=tx.a14/tx.m14*100, b=ty.a14/ty.m14*100;
+      s+=`. ${Math.round(a)}% of new sign-ups spent within 14 days, against ${Math.round(b)}%: ${a>=b+1?'new customers are being activated faster':a<=b-1?'new customers are slower to spend':'about as fast as before'}.`;
+    }else s+='.';
+    out.push([ac==null||Math.abs(ac)<0.5?'flat':ac>0?'up':'down',s]);
+  }
+  // 4. The quality of what activates.
+  if(tx.act&&ty.act){
+    const qa=tx.comm/tx.act*100, qb=ty.comm/ty.act*100, d=Math.round(qa-qb);
+    const op=[[tx,PX],[ty,PY]].filter(([t])=>t.open).map(([t,Pp])=>`${fmt(t.open)} in ${esc(Pp.name)}`);
+    const openNote=op.length?` Not final yet: ${op.join(' and ')} have not qualified but are still inside their spending window, so ${op.length>1?'both figures':'that figure'} can still rise.`:'';
+    out.push([d>0?'up':d<0?'down':'flat',`<b>${Math.round(qa)}% of activations earned commission</b>, against ${Math.round(qb)}%. Average spend per activation ${fmtOps(tx.ops/tx.act)} against ${fmtOps(ty.ops/ty.act)}.${openNote}`]);
+  }
+  // 5. Who moved, on output per day worked (three or more days in both).
+  const movers=[];
+  for(const [id,a] of X.per){ const b=Y.per.get(id); if(!b||a.nDays<3||b.nDays<3) continue;
+    movers.push({id,x:a.reg/a.nDays,y:b.reg/b.nDays}); }
+  if(movers.length>=2){
+    movers.sort((p,q)=>(q.x-q.y)-(p.x-p.y));
+    const ups=movers.filter(m=>m.x>m.y+0.05).length;
+    let s=`<b>${ups} of ${movers.length} BDEs</b> signed up more per day worked.`;
+    const up=movers[0], dn=movers[movers.length-1];
+    if(up.x>up.y+0.05) s+=` Biggest rise: ${esc(agentName(up.id))}, ${fmt1(up.y)} → ${fmt1(up.x)}.`;
+    if(dn.x<dn.y-0.05) s+=` Biggest drop: ${esc(agentName(dn.id))}, ${fmt1(dn.y)} → ${fmt1(dn.x)}.`;
+    out.push([ups*2>movers.length?'up':ups*2<movers.length?'down':'flat',s]);
+  }
+  // 6. Anyone signing up in only one of the two.
+  const only=(A,B)=>[...A.per.values()].filter(a=>a.reg&&!(B.per.get(a.id)||{}).reg).map(a=>esc(agentName(a.id)));
+  const list=v=>v.length>5?`${v.length} BDEs`:v.join(', ');
+  const ox=only(X,Y), oy=only(Y,X);
+  if(ox.length||oy.length) out.push(['flat',[ox.length?`Signing up in ${esc(PX.name)} only: ${list(ox)}.`:'',oy.length?`In ${esc(PY.name)} only: ${list(oy)}.`:''].filter(Boolean).join(' ')]);
+  return out;
+}
+
+/* Dumbbell: each BDE's earlier figure (hollow) joined to this period's (solid). */
+function cmpDumbbell(key,list,X,Y,PX,PY,W){
+  const m=CMP_METRICS[key];
+  const rows=list.map(a=>({id:a.id,x:cmpVal(key,a,X),y:Y.per.get(a.id)?cmpVal(key,Y.per.get(a.id),Y):null}))
+    .filter(r=>r.x!=null||r.y!=null).sort((p,q)=>(q.x??-1)-(p.x??-1)||(q.y??-1)-(p.y??-1));
+  if(!rows.length) return `<p class="auditempty">No figures for ${esc(m.l.toLowerCase())} in either period.</p>`;
+  const top=Math.max(...rows.flatMap(r=>[r.x||0,r.y||0]));
+  let step, max;
+  if(m.kind==='p'){ step=25; max=100; }
+  else{
+    const raw=(top||1)/4, p10=Math.pow(10,Math.floor(Math.log10(raw)));
+    step=[1,2,2.5,5,10].map(k=>k*p10).find(v=>v>=raw);
+    if(m.kind==='n'&&!cmpPerDay()) step=Math.max(1,Math.round(step));
+    max=Math.max(step,Math.ceil(top/step-1e-9)*step);
+  }
+  const nT=Math.round(max/step);
+  const two=W>=520;
+  const rowH=28, T=26, B=6, L=Math.round(Math.min(160,Math.max(92,W*0.2))), R=two?Math.round(Math.min(150,Math.max(112,W*0.15))):56;
+  const H=T+rows.length*rowH+B, iw=W-L-R-10;
+  const sx=v=>L+Math.max(0,Math.min(1,v/max))*iw;
+  const maxCh=Math.floor((L-16)/6.6);
+  const cut=s=>s.length>maxCh?s.slice(0,maxCh-1).trimEnd()+'…':s;
+  const c1=two?W-R/2-4:W-6, c2=W-6;
+  let g='';
+  for(let i=0;i<=nT;i++){
+    const v=step*i, xx=sx(v);
+    g+=`<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${T-6}" y2="${H-B}" stroke="var(--rule-2)"/>`;
+    if(two||i%2===0||nT<=3) g+=`<text x="${xx.toFixed(1)}" y="${T-12}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${m.kind==='p'?Math.round(v)+'%':cmpFmt(key,v)}</text>`;
+  }
+  rows.forEach((r,i)=>{
+    const cy=T+i*rowH+rowH/2;
+    const col=r.x==null||r.y==null||Math.abs(r.x-r.y)<1e-9?'var(--ink-3)':r.x>r.y?'var(--good)':'var(--warn)';
+    const nm=agentName(r.id);
+    g+=`<g class="db-row"><title>${esc(`${nm}: ${cmpFmt(key,r.x)} in ${PX.name}, ${cmpFmt(key,r.y)} in ${PY.name}`)}</title>`;
+    g+=`<rect class="db-hit" x="0" y="${(cy-rowH/2).toFixed(1)}" width="${W}" height="${rowH}" rx="6"/>`;
+    g+=`<text x="${L-14}" y="${(cy+4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--ink)">${esc(cut(nm))}</text>`;
+    if(r.x!=null&&r.y!=null) g+=`<line x1="${sx(r.y).toFixed(1)}" x2="${sx(r.x).toFixed(1)}" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="3" stroke-linecap="round" opacity=".5"/>`;
+    if(r.y!=null) g+=`<circle cx="${sx(r.y).toFixed(1)}" cy="${cy}" r="4.5" fill="var(--surface)" stroke="var(--ink-3)" stroke-width="1.8"/>`;
+    if(r.x!=null) g+=`<circle cx="${sx(r.x).toFixed(1)}" cy="${cy}" r="5.5" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>`;
+    g+=`<text x="${c1.toFixed(1)}" y="${(cy+4).toFixed(1)}" text-anchor="end" font-size="12" font-weight="600" fill="var(--ink)">${cmpFmt(key,r.x)}</text>`;
+    if(two) g+=`<text x="${c2.toFixed(1)}" y="${(cy+4).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--ink-3)">${cmpFmt(key,r.y)}</text>`;
+    g+='</g>';
+  });
+  const short=(s,alt)=>s.length>9?alt:s;
+  g+=`<text x="${c1.toFixed(1)}" y="${T-12}" text-anchor="end" font-size="10.5" font-weight="600" fill="var(--ink-2)">${esc(two?short(PX.name,'Now'):'Now')}</text>`;
+  if(two) g+=`<text x="${c2.toFixed(1)}" y="${T-12}" text-anchor="end" font-size="10.5" fill="var(--ink-3)">${esc(short(PY.name,'Before'))}</text>`;
+  return `<svg class="dumbbell" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(m.l)} for each BDE, ${esc(PX.name)} against ${esc(PY.name)}">${g}</svg>`;
+}
+function cmpW(){
+  const b=$('#cmpBody'); if(!b||!b.clientWidth) return 900;
+  const cs=getComputedStyle(b);
+  return Math.max(280,Math.floor(b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)));
+}
+
+function renderCompare(){
+  const body=$('#cmpBody'), hint=$('#cmpHint'); if(!body) return;
+  const c=state.cmp;
+  [...$('#cmpMode').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===c.mode)));
+  const span=dataSpan();
+  const P=span&&cmpPeriods(span);
+  if(!P){ body.innerHTML='<p class="auditempty">Upload a report to compare periods.</p>'; hint.textContent=''; return; }
+  const [PX,PY]=P;
+  const X=cmpStats(PX,span), Y=cmpStats(PY,span);
+  // Totals mislead when the periods have different numbers of working days,
+  // so unless chosen, counts go per working day when they differ by a tenth.
+  cmpNormEff=c.norm==='day'||c.norm==='total'?c.norm
+    :(X.wd&&Y.wd&&Math.abs(X.wd-Y.wd)/Math.max(X.wd,Y.wd)>0.1?'day':'total');
+  const months=dataMonths(span);
+  const mOpts=(sel,skip)=>months.filter(k=>k!==skip).map(k=>`<option value="${k}"${k===sel?' selected':''}>${monthLabel(k)}</option>`).join('');
+  let h=`<div class="toolbar cmpbar">`;
+  if(c.mode==='month'){
+    const yExtra=months.includes(PY.m)?'':`<option value="${PY.m}" selected>${monthLabel(PY.m)}</option>`;
+    h+=`<div class="field"><label for="cmpXm"><span class="pdot x"></span>This period</label><select id="cmpXm">${mOpts(PX.m)}</select></div>
+      <span class="vs" aria-hidden="true">vs</span>
+      <div class="field"><label for="cmpYm"><span class="pdot y"></span>Compared with</label><select id="cmpYm">${yExtra}${mOpts(PY.m,PX.m)}</select></div>`;
+  }else{
+    h+=`<div class="field"><label for="cmpXf"><span class="pdot x"></span>This period</label><div class="rng"><input type="date" id="cmpXf" aria-label="This period from" value="${ymd(PX.from)}"><span aria-hidden="true">–</span><input type="date" id="cmpXt" aria-label="This period to" value="${ymd(PX.to)}"></div></div>
+      <span class="vs" aria-hidden="true">vs</span>
+      <div class="field"><label for="cmpYf"><span class="pdot y"></span>Compared with</label><div class="rng"><input type="date" id="cmpYf" aria-label="Compared with from" value="${ymd(PY.from)}"><span aria-hidden="true">–</span><input type="date" id="cmpYt" aria-label="Compared with to" value="${ymd(PY.to)}"></div></div>
+      <div class="field"><label for="cmpQuick">Quick pick</label><select id="cmpQuick"><option value="">Choose…</option><option value="7">Last 7 days vs the 7 before</option><option value="14">Last 14 days vs the 14 before</option><option value="28">Last 4 weeks vs the 4 before</option><option value="91">Last 13 weeks vs the 13 before</option></select></div>`;
+  }
+  h+=`<div class="field"><label>Counts</label><div class="seg" id="cmpNorm"><button data-k="total" aria-pressed="${!cmpPerDay()}">Totals</button><button data-k="day" aria-pressed="${cmpPerDay()}">Per working day</button></div></div>
+  </div>`;
+  const cover=S=>S.cut?`${S.wd} of ${S.full} working days in the report`:`${S.wd} working day${S.wd===1?'':'s'}`;
+  h+=`<p class="cmpperiods"><span><span class="pdot x"></span><b>${esc(PX.name)}</b> · ${cover(X)}</span><span class="vs2">against</span><span><span class="pdot y"></span><b>${esc(PY.name)}</b> · ${cover(Y)}</span></p>`;
+  const empty=!Y.team.reg&&!Y.team.act;
+  if(empty){
+    h+=`<div class="notice info"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>Nothing in the report for ${esc(PY.name)} with these filters. The report starts on ${dShort(span[0])} ${new Date(span[0]).getFullYear()}, so choose a period from then on.</p></div></div>`;
+  }else if(X.cut||Y.cut){
+    h+=`<div class="notice amber"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>${esc((X.cut?PX:PY).name)}${X.cut&&Y.cut?' and '+esc(PY.name):''} ${X.cut&&Y.cut?'are':'is'} only partly in the report. ${cmpPerDay()?'Counts are shown per working day so the two compare fairly.':'Switch counts to <b>Per working day</b> to compare them fairly.'}</p></div></div>`;
+  }
+  // Team tiles.
+  const tile=(key,label)=>{
+    const m=CMP_METRICS[key], x=cmpVal(key,X.team,X), y=cmpVal(key,Y.team,Y);
+    let sub='';
+    if(m.kind==='n'&&X.wd&&Y.wd) sub=cmpPerDay()?`${fmt(m.v(X.team))} against ${fmt(m.v(Y.team))} in total`:`${fmt1(m.v(X.team)/X.wd)} against ${fmt1(m.v(Y.team)/Y.wd)} a working day`;
+    if(key==='a14'&&x==null) sub='Too few sign-ups 14 days old yet';
+    if(key==='comm'&&X.team.open) sub+=`${sub?'. ':''}${fmt(X.team.open)} more could still qualify`;
+    return `<div class="ctile" title="${esc(m.tip)}"><div class="ck">${label}${m.kind==='n'&&cmpPerDay()?' <span>a day</span>':''}</div>
+      <div class="cvrow"><span class="cv">${cmpFmt(key,x)}</span>${cmpChip(key,x,y)}</div>
+      <div class="cs">against ${cmpFmt(key,y)}</div>${sub?`<div class="cs2">${sub}</div>`:''}</div>`;
+  };
+  h+=`<div class="cmptiles">${tile('reg','📝 Registrations')}${tile('perDay','⚡ Sign-ups per day worked')}${tile('target','🎯 Days on target')}${tile('act','🛒 Activations')}${tile('comm','✅ Commission qualified')}${tile('a14','⏱️ Spent within 14 days')}</div>`;
+  // What changed.
+  const ins=empty?[]:cmpInsights(X,Y,PX,PY);
+  if(ins.length) h+=`<h3 class="cmph">What changed</h3><ul class="insights">${ins.map(([t,s])=>`<li class="${t}">${s}</li>`).join('')}</ul>`;
+  // Each BDE.
+  const zero={reg:0,nDays:0,act:0,comm:0,open:0,ops:0,m14:0,a14:0,hit:0,active:0};
+  const list=[...new Set([...X.per.keys(),...Y.per.keys()])].map(id=>X.per.get(id)||{...zero,id});
+  const key=CMP_METRICS[c.metric]?c.metric:'reg';
+  h+=`<div class="cmph-row"><h3 class="cmph">Each BDE</h3><span class="cmpkey"><i class="k1"></i>${esc(PX.name)}<i class="k2"></i>${esc(PY.name)}<i class="k3"></i>better<i class="k4"></i>worse</span></div>
+    <div class="seg mchips" id="cmpMetric" role="group" aria-label="Measure to chart">${CMP_ORDER.map(k=>`<button data-k="${k}" aria-pressed="${k===key}">${CMP_METRICS[k].l}</button>`).join('')}</div>
+    <div class="dbwrap" id="cmpChart">${cmpDumbbell(key,list,X,Y,PX,PY,cmpW())}</div>`;
+  state._cmpW=cmpW();
+  // The table, sorted by the change in the chosen measure.
+  const change=a=>{ const x=cmpVal(key,a,X), b=Y.per.get(a.id), y=b?cmpVal(key,b,Y):null;
+    return x==null||y==null?null:(CMP_METRICS[key].kind==='p'?x-y:(y?x/y-1:(x>0?Infinity:0))); };
+  const dir=c.dir===1?1:-1;
+  list.sort((p,q)=>{ const a=change(p), b=change(q);
+    if(a===b) return agentName(p.id).localeCompare(agentName(q.id));
+    if(a==null) return 1; if(b==null) return -1; return dir*(a-b); });
+  h+=`<div class="tablewrap"><table id="cmpTable"><thead><tr><th class="no-sort">BDE</th>${CMP_ORDER.map(k=>`<th class="r${k===key?' sel':''}" data-cmp="${k}" title="${esc(CMP_METRICS[k].tip)}. Click to sort by the change.">${CMP_METRICS[k].l}${CMP_METRICS[k].kind==='n'&&cmpPerDay()?'<span class="wk-sofar">a day</span>':''}${k===key?`<span class="arrow">${dir<0?'▼':'▲'}</span>`:''}</th>`).join('')}</tr></thead><tbody>`;
+  for(const a of list){
+    const b=Y.per.get(a.id);
+    h+=`<tr><td class="agentcell">${esc(agentName(a.id))}<small>${a.nDays} day${a.nDays===1?'':'s'} worked, ${b?b.nDays:0} before</small></td>`;
+    for(const k of CMP_ORDER){
+      const x=cmpVal(k,a,X), y=b?cmpVal(k,b,Y):null;
+      h+=`<td class="r${k===key?' sel':''}"><span class="cnum">${cmpFmt(k,x)}</span>${cmpChip(k,x,y)}<small class="was">${y==null?'—':'from '+cmpFmt(k,y)}</small></td>`;
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>';
+  h+=explain('compare','How the comparison works',`
+    <p>Both periods cover the BDEs and teams chosen in the filters at the top; the week range there does not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>
+    <p><b>Per working day</b> divides each count by the weekdays the period covers in the report, so a month still in progress, or two ranges of different length, compare fairly. It is chosen for you when the two differ in length by more than a tenth.</p>
+    <p><b>Sign-ups per day worked</b> is output: sign-ups on the days a BDE signed anyone up. Registrations move with effort (days worked, or BDEs working each day) and with output per day; <b>What changed</b> says which of the two drove the change.</p>
+    <p><b>Spent within 14 days</b> counts only businesses signed up at least 14 days before the report ends, and needs five of them, so every business has had the same time to spend and a recent period is not unfairly low.</p>
+    <p>Changes are in percent, or in points for percentages. Green is better, red is worse.</p>`);
+  body.innerHTML=h;
+  hint.textContent=`${PX.name} against ${PY.name} · ${list.length} BDE${list.length===1?'':'s'} · click a column to sort by its change`;
+  fitSoon();
+}
+$('#sec-compare').addEventListener('click',e=>{
+  const c=state.cmp;
+  const b=e.target.closest('button[data-k]');
+  const th=e.target.closest('th[data-cmp]');
+  if(b&&b.closest('#cmpMode')){ if(c.mode===b.dataset.k) return; c.mode=b.dataset.k; }
+  else if(b&&b.closest('#cmpNorm')){ c.norm=b.dataset.k; }
+  else if(b&&b.closest('#cmpMetric')){ if(c.metric===b.dataset.k) return; c.metric=b.dataset.k; c.dir=-1; }
+  else if(th){ const k=th.dataset.cmp; if(c.metric===k) c.dir=c.dir===1?-1:1; else{ c.metric=k; c.dir=-1; } }
+  else return;
+  saveView(); renderCompare();
+});
+$('#sec-compare').addEventListener('change',e=>{
+  const c=state.cmp, t=e.target, span=dataSpan(); if(!span) return;
+  const P=cmpPeriods(span);
+  if(t.id==='cmpXm'){
+    const old=P[0].m, nx=Number(t.value);
+    // Move the comparison month along with it, unless it was chosen apart.
+    if(!c.ym||c.ym===prevMonthKey(old)) c.ym=prevMonthKey(nx);
+    c.xm=nx;
+  }else if(t.id==='cmpYm'){ c.ym=Number(t.value); }
+  else if(t.id==='cmpXf'||t.id==='cmpXt'){
+    const f=$('#cmpXf').value, to=$('#cmpXt').value;
+    if(!parseYmd(f)||!parseYmd(to)) return;
+    c.xf=f<=to?f:to; c.xt=f<=to?to:f;
+  }else if(t.id==='cmpYf'||t.id==='cmpYt'){
+    const f=$('#cmpYf').value, to=$('#cmpYt').value;
+    if(!parseYmd(f)||!parseYmd(to)) return;
+    c.yf=f<=to?f:to; c.yt=f<=to?to:f;
+  }else if(t.id==='cmpQuick'){
+    const n=Number(t.value); if(!n) return;
+    const end=midnight(span[1]);
+    c.xt=ymd(end); c.xf=ymd(addDays(end,-(n-1)));
+    c.yt=ymd(addDays(end,-n)); c.yf=ymd(addDays(end,-(2*n-1)));
+  }else return;
+  saveView(); renderCompare();
+});
+let cmpRsz=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(cmpRsz);
+  cmpRsz=setTimeout(()=>{
+    if(!state.rows.length||state.view==='audit') return;
+    if(Math.abs(cmpW()-(state._cmpW||0))>24) renderCompare();
+  },160);
+});
+
 /* ---- section navigation ---- */
-const NAV_ALL=['sec-summary','sec-league','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
+const NAV_ALL=['sec-summary','sec-league','sec-compare','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
 const NAV=()=>NAV_ALL.filter(id=>(id!=='sec-salary'||salaryOn())&&(id!=='sec-industry'||!!state.crm));
 /* Sections must clear the sticky header when scrolled to, and the header
    changes height as it wraps, so measure it rather than guessing. */
