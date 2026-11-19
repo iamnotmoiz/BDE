@@ -723,6 +723,7 @@ svg{display:block;max-width:100%}
 .setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .modal .body>.seth:first-child{margin-top:0}
 .setnote{font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.55}
+input[type=number].inl{width:62px;min-width:0;min-height:28px;padding:2px 6px;margin:0 3px;font-size:13px}
 .setmore{margin-top:16px;border:1px solid var(--rule-2);border-radius:var(--r-md);padding:11px 14px;background:var(--surface)}
 .setmore[open]{background:var(--surface-2)}
 .setmore summary{font-size:13.5px;font-weight:600;cursor:pointer}
@@ -1546,7 +1547,37 @@ function stints(id){
   return out;
 }
 const TEAMS=['Team 1','Team 2','Team 3','Team 4','Inactive'];
-const teamOf=id=>(state.settings.teams||{})[id]||'';
+/* Anyone not in a team who signed up fewer than a set number of businesses
+   in the last weeks of the report counts as Inactive. It is worked out afresh
+   from each report, so someone who picks up again leaves Inactive by
+   themselves; a team chosen in Settings always wins. */
+const AI_DEFAULT={on:true,min:15,weeks:4};
+const aiCfg=()=>{
+  const c=Object.assign({},AI_DEFAULT,state.settings.autoInactive||{});
+  return {on:c.on!==false, min:Math.max(0,+c.min||0), weeks:Math.max(1,Math.round(+c.weeks)||AI_DEFAULT.weeks)};
+};
+let _aiRows=null, _aiKey='', _aiCounts=null;
+function recentRegs(){
+  const c=aiCfg(), key=c.weeks+'';
+  if(_aiRows===state.rows&&_aiKey===key) return _aiCounts;
+  const m=new Map(), end=reportDate();
+  if(end){
+    const from=new Date(end); from.setHours(0,0,0,0); from.setDate(from.getDate()-(c.weeks*7-1));
+    const lo=from.getTime();
+    for(const r of state.rows){
+      if(!r[F.POST]||isGlitch(r)) continue;
+      const t=r[F.REGD]; if(t>=lo&&t<=end) m.set(r[F.AGENT],(m.get(r[F.AGENT])||0)+1);
+    }
+  }
+  _aiRows=state.rows; _aiKey=key; _aiCounts=m;
+  return m;
+}
+function autoInactive(id){
+  const c=aiCfg();
+  if(!c.on||!state.rows.length||(state.settings.teams||{})[id]) return false;
+  return (recentRegs().get(id)||0)<c.min;
+}
+const teamOf=id=>(state.settings.teams||{})[id]||(autoInactive(id)?'Inactive':'');
 /* Teams keep a fixed internal key ("Team 1") and carry a display name on top.
    Renaming therefore never breaks saved assignments or filters. */
 const teamLabel=t=>{
@@ -4425,6 +4456,15 @@ function openSettings(){
       `:''}
       <h4 class="seth"><span class="emo">&#128101;</span>Each BDE
         <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
+      <label class="setswitch">
+        <input type="checkbox" id="aiOn"${aiCfg().on?' checked':''}>
+        <span>Put BDEs with no team into Inactive when they have fewer than
+          <input type="number" id="aiMin" class="inl" min="0" step="1" value="${esc(aiCfg().min)}" aria-label="Fewest registrations">
+          registrations in the last
+          <input type="number" id="aiWeeks" class="inl" min="1" max="52" step="1" value="${esc(aiCfg().weeks)}" aria-label="Weeks">
+          weeks of the report
+          <i class="info" tabindex="0" data-tip="Checked again with every report, counting back from its latest sign-up, so someone who picks up again comes out of Inactive by themselves. Anyone you have put in a team stays in it. Inactive is not a team: it is left out of Everyone else and of the teams offered under Team growth.">i</i></span>
+      </label>
       <div class="teamnames">
         ${TEAMS.filter(t=>t!=='Inactive').map(t=>`<div class="field"><label for="tn-${esc(t.replace(/\s/g,''))}">${esc(t)} name</label>
           <input type="text" id="tn-${esc(t.replace(/\s/g,''))}" data-team-name="${esc(t)}" value="${esc((state.settings.teamNames||{})[t]||'')}" placeholder="${esc(t)}"></div>`).join('')}
@@ -4437,8 +4477,8 @@ function openSettings(){
           <input type="text" data-emp-name="${esc(a)}|0" value="${esc(x.n||'')}" placeholder="Agent ${esc(a)}">
           <input type="date" data-emp-start="${esc(a)}|0" value="${esc(x.s||'')}">
           <select data-emp-team="${esc(a)}">
-            <option value="">No team</option>
-            ${TEAMS.map(t=>`<option value="${esc(t)}"${teamOf(a)===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
+            <option value="">${autoInactive(a)?'Inactive (auto)':'No team'}</option>
+            ${TEAMS.map(t=>`<option value="${esc(t)}"${(state.settings.teams||{})[a]===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
           </select>
           <button class="btn act iconly hovername dlbtn" data-export="${esc(a)}" data-name="Download AB rows" aria-label="Download this BDE's AB report rows as CSV">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5V11M4.8 7.8 8 11l3.2-3.2"/><path d="M2.5 11.5v1.2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1.2"/></svg>
@@ -4482,6 +4522,11 @@ function openSettings(){
         tiers
       };
       readEmployment(wrap);
+      const aiOn=wrap.querySelector('#aiOn');
+      if(aiOn){
+        const c=aiCfg(), n=(id,d)=>{ const v=wrap.querySelector(id).value; return v===''||!isFinite(+v)?d:+v; };
+        state.settings.autoInactive={on:aiOn.checked, min:Math.max(0,Math.round(n('#aiMin',c.min))), weeks:Math.min(52,Math.max(1,Math.round(n('#aiWeeks',c.weeks))))};
+      }
       /* A field that is not on the page (the salary sections are hidden until
          unlocked) keeps its current value. Falling back to a default here would
          quietly reset your figures whenever any other setting changed. */
@@ -5223,7 +5268,7 @@ const tcLabel=k=>k===TC_OTHERS?'Everyone else':teamLabel(k);
 function tcGroups(){
   const ags=allAgents(), by={};
   for(const a of ags){ const t=teamOf(a); (by[t]=by[t]||[]).push(a); }
-  const list=[...TEAMS,''].filter(t=>by[t]&&by[t].length).map(t=>({key:t,ids:by[t]}));
+  const list=[...TEAMS,''].filter(t=>t!=='Inactive'&&by[t]&&by[t].length).map(t=>({key:t,ids:by[t]}));
   return {list,by,ags};
 }
 function tcMembers(key,aKey,G){
@@ -5234,7 +5279,7 @@ function tcMembers(key,aKey,G){
    first real team against the next one, or against everyone else. */
 function tcPick(G){
   const c=state.tcmp, keys=G.list.map(g=>g.key);
-  const real=keys.filter(k=>k&&k!=='Inactive');
+  const real=keys.filter(k=>k);
   const a=keys.includes(c.a)?c.a:(real[0]??keys[0]);
   let b=c.b;
   if(!(b===TC_OTHERS||(keys.includes(b)&&b!==a))) b=real.find(k=>k!==a)??TC_OTHERS;
@@ -5661,7 +5706,7 @@ function renderTeams(){
     <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Per day worked</b> divides them by the days the team’s BDEs signed anyone up, which takes out holidays, sickness and people joining or leaving.</p>
     <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
     <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
-    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from the Inactive team. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
+    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from anyone Inactive (set in Settings, or no team and too few sign-ups lately). The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
   body.innerHTML=h;
   hint.textContent=`${labA} against ${labB} · ${PB.name} → ${PA.name}`;
   fitSoon();
