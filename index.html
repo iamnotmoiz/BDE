@@ -309,7 +309,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
   .topbar.compact .secnav button[aria-current="true"]{padding:0 12px}
 }
 /* 3. Phone: every button is an icon and the wordmark steps aside, so all
-      eight sections and the three actions fit on the one line. */
+      nine sections and the three actions fit on the one line. */
 @media (max-width:560px){
   .topbar .btn,.secnav button{min-height:32px}
   .topbar-in{padding:8px 16px;gap:6px}
@@ -318,7 +318,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
   .secnav{gap:1px}
   .topbar-actions{margin-left:auto}
   .secnav button[aria-current="true"] span{display:none}
-  .secnav button,.secnav button[aria-current="true"]{padding:0 4px}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 3px}
   .secnav button[aria-current="true"]{background:var(--accent-soft);color:var(--reg);box-shadow:none}
   .topbar-actions{gap:4px}
   .topbar-actions .btn:not(.is-open){width:33px;padding:0}
@@ -329,7 +329,7 @@ tbody tr:hover .pill{transform:scale(1.04)}
 }
 @media (max-width:380px){
   .topbar-in{padding:8px 8px;gap:4px}
-  .secnav button,.secnav button[aria-current="true"]{padding:0 3px}
+  .secnav button,.secnav button[aria-current="true"]{padding:0 2px}
   .topbar-actions .btn:not(.is-open){width:31px}
   .logo,.logo svg{width:26px;height:26px}
 }
@@ -874,12 +874,98 @@ ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(
   .cmpbar .field{flex:1 1 100%}
   .cmpbar .field .seg{width:100%}
   .cmpbar .field .seg button{flex:1}
-  .cmpbar .rng input{flex:1 1 0;min-width:0}
+  .cmpbar .field{min-width:0}
+  .cmpbar .rng input{flex:1 1 0;min-width:0;width:0}
   .cmptiles{grid-template-columns:1fr 1fr;gap:10px}
   .ctile{padding:11px 12px 10px}
   .ctile .cv{font-size:20px}
   ul.insights li{font-size:13px;padding:9px 12px 9px 34px}
   ul.insights li::before{left:10px;top:11px}
+}
+
+/* ---------- team growth ---------- */
+/* Nine sections: at tablet widths the current one drops its label too when
+   the bar would otherwise overflow, and on the smallest phones the icons
+   tighten up. */
+@media (min-width:561px) and (max-width:900px){
+  .topbar.compact .secnav button[aria-current="true"] span{display:none}
+  .topbar.compact .secnav button[aria-current="true"]{padding:0 10px}
+}
+@media (max-width:380px){
+  .secnav{gap:0}
+  .secnav button{border:0}
+  .secnav button svg{width:14px;height:14px}
+}
+:root{--tc-a:var(--ver);--tc-b:var(--act)}
+.tcbar{margin-bottom:12px}
+.tcbar+.tcbar{margin-top:-2px}
+.tcbar .vs{align-self:flex-end;line-height:var(--ctl);font-size:12px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.tcbar .rng{display:flex;align-items:center;gap:6px}
+.tcbar .rng span{color:var(--ink-3)}
+.tcbar .rng input{width:auto;min-width:138px}
+.tsw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;flex:none}
+.tsw.a{background:var(--tc-a)}
+.tsw.b{background:var(--tc-b)}
+.cmpkey .tsw{margin:0 2px 0 8px}
+.cmpkey .tsw:first-child{margin-left:0}
+.cmpkey .dash{display:inline-block;width:16px;border-top:2px dashed var(--ink-3);margin:0 2px 0 8px}
+#sec-teams .notice{margin:0 0 16px}
+.cmph .cmphint{font-weight:400;color:var(--ink-3);font-size:12.5px;margin-left:8px}
+.tcverdict{border:1px solid var(--rule-2);border-left:4px solid var(--ink-3);border-radius:var(--r-md);padding:16px 18px;background:var(--surface)}
+.tcverdict.up{border-left-color:var(--good)}
+.tcverdict.down{border-left-color:var(--warn)}
+.tvhead{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.3;color:var(--ink)}
+.tvteams{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0 4px}
+.tvteam{background:var(--surface-2);border-radius:var(--r-sm);padding:10px 12px}
+.tvn{font-size:12px;color:var(--ink-2);font-weight:600;display:flex;align-items:center}
+.tvv{font-size:20px;font-weight:650;letter-spacing:-.01em;margin-top:3px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tvv .arr{color:var(--ink-3);font-weight:400}
+.tvs{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.dchip.big{font-size:12.5px;padding:2px 8px}
+.tcverdict p{margin:10px 0 0;font-size:13.5px;line-height:1.55;color:var(--ink-2)}
+.tcverdict .chance{display:block;padding:8px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+.tcverdict .chance.real{background:var(--hit-bg)}
+.tcverdict .chance.maybe{background:var(--near-bg)}
+.tcverdict .chance b{color:var(--ink)}
+ul.insights li.warn::before{content:'!';background:var(--near-bg);color:var(--near-fg)}
+.tcchart{display:block}
+#tcMatrix thead th{position:static;cursor:default}
+#tcMatrix thead th.c{text-align:center}
+#tcMatrix thead th.grp{font-size:12.5px;color:var(--ink)}
+#tcMatrix thead tr:first-child th.grp.a{box-shadow:inset 0 -2px 0 var(--tc-a)}
+#tcMatrix thead tr:first-child th.grp.b{box-shadow:inset 0 -2px 0 var(--tc-b)}
+#tcMatrix thead tr:first-child th[rowspan]{vertical-align:bottom}
+#tcMatrix thead tr+tr th{top:auto}
+#tcMatrix td:nth-child(4),#tcMatrix th:nth-child(3){border-right:1px solid var(--rule-2)}
+#tcMatrix tbody td:nth-child(7){border-right:1px solid var(--rule-2)}
+#tcMatrix tbody tr{cursor:pointer}
+#tcMatrix tbody tr.sel td{background:var(--detail-bg)}
+#tcMatrix tbody tr.sel td.agentcell{box-shadow:inset 3px 0 0 var(--reg)}
+#tcMatrix .cnum,#tcPeople .cnum{font-weight:600;font-variant-numeric:tabular-nums}
+#tcMatrix .was{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
+#tcMatrix td .dchip{min-width:0}
+#tcPeople td .tsw{vertical-align:0}
+#tcPeople .tsw.ph{display:none}
+@media (max-width:760px){
+  #tcMatrix td.agentcell,#tcMatrix thead th:first-child,#tcPeople td.agentcell,#tcPeople thead th:first-child{
+    position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:6px 0 8px -8px rgba(0,0,0,.25);
+  }
+  #tcMatrix thead th:first-child,#tcPeople thead th:first-child{z-index:3;background:var(--surface-2)}
+}
+@media (max-width:560px){
+  .tcbar .vs{display:none}
+  .tcbar .field{flex:1 1 100%}
+  .tcbar .field select{width:100%}
+  .tcbar .field .seg{width:100%}
+  .tcbar .field .seg button{flex:1 1 0;padding:3px 6px;white-space:normal;line-height:1.15;font-size:12.5px}
+  .tcbar .field{min-width:0}
+  .tcbar .rng input{flex:1 1 0;min-width:0;width:0}
+  .tcverdict{padding:13px 14px}
+  .tvhead{font-size:17px}
+  .tvv{font-size:18px}
+  #tcPeople th:nth-child(2),#tcPeople td:nth-child(2){display:none}
+  #tcPeople .tsw.ph{display:inline-block}
+  #tcPeople td.agentcell{white-space:normal;min-width:130px;max-width:160px}
 }
 
 /* ---------- phones ---------- */
@@ -968,6 +1054,7 @@ ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(
       <button data-go="sec-summary"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg><span>Summary</span></button>
       <button data-go="sec-league"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 14V7M8 14V2.5M11.5 14v-4.5"/><path d="M1.5 14.5h13"/></svg><span>Leaderboard</span></button>
       <button data-go="sec-compare"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h10.5M10 2.5 12.5 5 10 7.5"/><path d="M14 11H3.5M6 8.5 3.5 11 6 13.5"/></svg><span>Compare</span></button>
+      <button data-go="sec-teams"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.2"/><path d="M1.5 13.5c0-2.3 1.8-4 4-4s4 1.7 4 4"/><circle cx="11.3" cy="5.6" r="1.8"/><path d="M10.6 9.6c.2 0 .5-.1.7-.1 1.9 0 3.2 1.6 3.2 3.6"/></svg><span>Teams</span></button>
       <button data-go="sec-trend"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 11.5 5.5 6l3 3 5.5-7"/><path d="M1.5 14.5h13"/></svg><span>Graphs</span></button>
       <button data-go="sec-spend"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6 8h3.5M6.6 11.2h4M9.6 11.2c-2 0-3-1-3-2.8V6.9c0-1.3.9-2.2 2.2-2.2 1 0 1.7.4 2.1 1"/></svg><span>Spend</span></button>
       <button data-go="sec-industry" class="hidden"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 14.5h13M2.5 14.5V7l3.5 2.2V7l3.5 2.2V3.5h4v11"/></svg><span>Industry</span></button>
@@ -1082,6 +1169,23 @@ ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(
         </div>
       </div>
       <div class="panel-body" id="cmpBody"></div>
+    </section>
+
+    <!-- team growth -->
+    <section class="panel" id="sec-teams">
+      <div class="panel-head">
+        <div class="ph-title">
+          <h2><span class="emo">👥</span>Team growth</h2>
+          <span class="hint" id="tcHint"></span>
+        </div>
+        <div class="ph-tools">
+          <div class="seg" id="tcMode" role="group" aria-label="Periods by">
+            <button data-k="month" aria-pressed="false">Months</button>
+            <button data-k="range" aria-pressed="true">Dates</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" id="tcBody"></div>
     </section>
 
     <!-- trend -->
@@ -1263,7 +1367,8 @@ const state={
   view:'dashboard', crm:null, auditShow:'missing', auditLimit:150, auditTill:null, fixes:{},
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1},
-  cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1}
+  cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1},
+  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'act'}
 };
 
 /* =======================================================================
@@ -1892,7 +1997,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom, cmp:state.cmp
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom, cmp:state.cmp, tcmp:state.tcmp
   }));
   paintFilterState();
 }
@@ -1934,6 +2039,16 @@ function loadView(){
         norm:c.norm==='day'||c.norm==='total'?c.norm:'auto',
         metric:['reg','perDay','target','act','comm','a14','spendPer'].includes(c.metric)?c.metric:'reg',
         dir:c.dir===1?1:-1};
+    }
+    if(v.tcmp&&typeof v.tcmp==='object'){
+      const c=v.tcmp;
+      const isD=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)?x:null;
+      const isM=n=>Number.isInteger(n)&&n%100>=1&&n%100<=12&&n>200000&&n<300000?n:null;
+      const isT=x=>typeof x==='string'&&(x==='*'||x===''||TEAMS.includes(x))?x:null;
+      state.tcmp={a:isT(c.a), b:isT(c.b), mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
+        xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
+        norm:['total','wd','worked'].includes(c.norm)?c.norm:'auto',
+        metric:['reg','perDay','target','act','comm','a14','spendPer'].includes(c.metric)?c.metric:'act'};
     }
   }catch(e){ console.warn('Saved filters could not be read',e); }
 }
@@ -3006,6 +3121,7 @@ function render(){
   renderTotals(rows,keys);
   renderLeague(rows,keys);
   renderCompare();
+  renderTeams();
   renderTrend(rows,keys);
   renderQuality(rows);
   renderIndustry();
@@ -4726,8 +4842,8 @@ function workingDays(lo,hi){
   return n;
 }
 /* The two periods: [this period, the one it is compared with]. */
-function cmpPeriods(span){
-  const c=state.cmp, months=dataMonths(span);
+function cmpPeriods(span,c=state.cmp){
+  const months=dataMonths(span);
   if(!months.length) return null;
   if(c.mode==='month'){
     const xm=months.includes(c.xm)?c.xm:months[months.length-1];
@@ -4748,7 +4864,7 @@ function cmpPeriods(span){
   };
   return [{from:xf,to:addDays(xt,1)-1,name:nm(xf,xt)},{from:yf,to:addDays(yt,1)-1,name:nm(yf,yt)}];
 }
-function cmpStats(P,span){
+function cmpStats(P,span,inc=agentInView,src=state.rows){
   const lo=P.from, hi=P.to;
   const startT=midnight(span[0]), endT=addDays(span[1],1)-1;
   const effLo=Math.max(lo,startT), effHi=Math.min(hi,endT);
@@ -4766,8 +4882,8 @@ function cmpStats(P,span){
     if(cm.ok) a.comm++;
     else if(cm.why==='low'&&windowEnd(r[F.REGD],cm.rule==='new'?cfg.newMonths:cfg.oldMonths)>asAt) a.open++;
   };
-  for(const r of state.rows){
-    if(isGlitch(r)||!agentInView(r[F.AGENT])) continue;
+  for(const r of src){
+    if(isGlitch(r)||!inc(r[F.AGENT])) continue;
     const t=r[F.REGD];
     if(r[F.POST]&&t>=lo&&t<=hi){
       const a=get(r[F.AGENT]); a.reg++; a.days.add(dayKey(r)); a.rows.push(r);
@@ -4949,7 +5065,7 @@ function cmpDumbbell(key,list,X,Y,PX,PY,W){
 function cmpW(){
   const b=$('#cmpBody'); if(!b||!b.clientWidth) return 900;
   const cs=getComputedStyle(b);
-  return Math.max(280,Math.floor(b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)));
+  return Math.max(220,Math.floor(b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)));
 }
 
 function renderCompare(){
@@ -5051,30 +5167,35 @@ $('#sec-compare').addEventListener('click',e=>{
   else return;
   saveView(); renderCompare();
 });
-$('#sec-compare').addEventListener('change',e=>{
-  const c=state.cmp, t=e.target, span=dataSpan(); if(!span) return;
-  const P=cmpPeriods(span);
-  if(t.id==='cmpXm'){
-    const old=P[0].m, nx=Number(t.value);
-    // Move the comparison month along with it, unless it was chosen apart.
+/* The period pickers of both comparison sections; pre is the id prefix.
+   Returns false when the input is not one of them or is half filled in. */
+function periodInput(c,t,pre,span){
+  const id=t.id;
+  if(id===pre+'Xm'){
+    const old=cmpPeriods(span,c)[0].m, nx=Number(t.value);
+    // Move the earlier month along with it, unless it was chosen apart.
     if(!c.ym||c.ym===prevMonthKey(old)) c.ym=prevMonthKey(nx);
     c.xm=nx;
-  }else if(t.id==='cmpYm'){ c.ym=Number(t.value); }
-  else if(t.id==='cmpXf'||t.id==='cmpXt'){
-    const f=$('#cmpXf').value, to=$('#cmpXt').value;
-    if(!parseYmd(f)||!parseYmd(to)) return;
+  }else if(id===pre+'Ym'){ c.ym=Number(t.value); }
+  else if(id===pre+'Xf'||id===pre+'Xt'){
+    const f=$('#'+pre+'Xf').value, to=$('#'+pre+'Xt').value;
+    if(!parseYmd(f)||!parseYmd(to)) return false;
     c.xf=f<=to?f:to; c.xt=f<=to?to:f;
-  }else if(t.id==='cmpYf'||t.id==='cmpYt'){
-    const f=$('#cmpYf').value, to=$('#cmpYt').value;
-    if(!parseYmd(f)||!parseYmd(to)) return;
+  }else if(id===pre+'Yf'||id===pre+'Yt'){
+    const f=$('#'+pre+'Yf').value, to=$('#'+pre+'Yt').value;
+    if(!parseYmd(f)||!parseYmd(to)) return false;
     c.yf=f<=to?f:to; c.yt=f<=to?to:f;
-  }else if(t.id==='cmpQuick'){
-    const n=Number(t.value); if(!n) return;
+  }else if(id===pre+'Quick'){
+    const n=Number(t.value); if(!n) return false;
     const end=midnight(span[1]);
     c.xt=ymd(end); c.xf=ymd(addDays(end,-(n-1)));
     c.yt=ymd(addDays(end,-n)); c.yf=ymd(addDays(end,-(2*n-1)));
-  }else return;
-  saveView(); renderCompare();
+  }else return false;
+  return true;
+}
+$('#sec-compare').addEventListener('change',e=>{
+  const span=dataSpan(); if(!span) return;
+  if(periodInput(state.cmp,e.target,'cmp',span)){ saveView(); renderCompare(); }
 });
 let cmpRsz=null;
 window.addEventListener('resize',()=>{
@@ -5085,8 +5206,493 @@ window.addEventListener('resize',()=>{
   },160);
 });
 
+/* =======================================================================
+   Team growth: one team against another over the same two periods
+   -----------------------------------------------------------------------
+   Each team's change from Before to After is measured, then the first team's
+   change is set against the second's. Whatever affected both teams alike
+   (a quiet month, a holiday, the AB programme itself) shows up in the second
+   team too, so what is left is the first team's own difference: the effect of
+   a trial, for example. Teams are as set in Settings; the filters at the top
+   do not apply here.
+   ======================================================================= */
+const TC_OTHERS='*';
+const TC_NOUN={reg:'registrations',perDay:'sign-ups per day worked',target:'days on target',act:'activations',
+  comm:'commission-qualified activations',a14:'the share spending within 14 days',spendPer:'spend per activation'};
+const tcLabel=k=>k===TC_OTHERS?'Everyone else':teamLabel(k);
+function tcGroups(){
+  const ags=allAgents(), by={};
+  for(const a of ags){ const t=teamOf(a); (by[t]=by[t]||[]).push(a); }
+  const list=[...TEAMS,''].filter(t=>by[t]&&by[t].length).map(t=>({key:t,ids:by[t]}));
+  return {list,by,ags};
+}
+function tcMembers(key,aKey,G){
+  if(key===TC_OTHERS) return G.ags.filter(id=>teamOf(id)!==aKey&&teamOf(id)!=='Inactive');
+  return (G.by[key]||[]).slice();
+}
+/* The two teams in use: the saved choice when it still exists, otherwise the
+   first real team against the next one, or against everyone else. */
+function tcPick(G){
+  const c=state.tcmp, keys=G.list.map(g=>g.key);
+  const real=keys.filter(k=>k&&k!=='Inactive');
+  const a=keys.includes(c.a)?c.a:(real[0]??keys[0]);
+  let b=c.b;
+  if(!(b===TC_OTHERS||(keys.includes(b)&&b!==a))) b=real.find(k=>k!==a)??TC_OTHERS;
+  return {a,b};
+}
+function tcSum(S,ids){
+  const t={reg:0,nDays:0,act:0,comm:0,open:0,ops:0,m14:0,a14:0,hit:0,active:0,heads:0};
+  for(const id of ids){
+    const a=S.per.get(id); if(!a) continue;
+    for(const k of Object.keys(t)) if(k!=='heads') t[k]+=a[k]||0;
+    if(a.reg) t.heads++;
+  }
+  return t;
+}
+/* Counts as chosen: as they are, per working day, or per day worked. */
+let tcNormEff='total';
+function tcVal(key,t,wd){
+  const m=CMP_METRICS[key], v=m.v(t);
+  if(v==null) return null;
+  if(m.kind!=='n') return v;
+  if(tcNormEff==='wd') return wd?v/wd:null;
+  if(tcNormEff==='worked') return t.nDays?v/t.nDays:null;
+  return v;
+}
+const fmtSmall=v=>Math.abs(v)<1?nf.format(Math.round(v*100)/100):fmt1(v);
+function tcFmt(key,v){
+  if(v==null) return '—';
+  const m=CMP_METRICS[key];
+  if(m.kind==='p') return Math.round(v)+'%';
+  if(m.kind==='n') return tcNormEff==='total'?fmt(v):fmtSmall(v);
+  return key==='perDay'?fmtSmall(v):m.f(v);
+}
+const tcUnit=key=>{
+  const n=CMP_METRICS[key].kind!=='n'?'':tcNormEff==='wd'?' a working day':tcNormEff==='worked'?' per day worked':'';
+  return n;
+};
+function tcGrowth(key,b,a){
+  if(a==null||b==null) return null;
+  return CMP_METRICS[key].kind==='p'?Math.round(a)-Math.round(b):(b?a/b-1:null);
+}
+function tcChip(key,g,big){
+  if(g==null) return '';
+  const p=CMP_METRICS[key].kind==='p';
+  const s=p?Math.round(g):Math.round(g*100);
+  return `<span class="dchip ${s>0?'up':s<0?'down':'flat'}${big?' big':''}">${sgn(s)}${Math.abs(s)}${p?' pts':'%'}</span>`;
+}
+/* How the first team did against the second. For counts and rates it is the
+   ratio of the two teams' growth, so it does not depend on team size or on
+   the length of the periods; for percentages it is the difference in points. */
+function tcEffect(key,A0,A1,B0,B1){
+  if([A0,A1,B0,B1].some(v=>v==null)) return null;
+  if(CMP_METRICS[key].kind==='p') return {pts:(Math.round(A1)-Math.round(A0))-(Math.round(B1)-Math.round(B0))};
+  if(!A0||!B0||!B1) return null;
+  const f=B1/B0;
+  return {rel:(A1/A0)/f-1, expected:A0*f, extra:A1-A0*f};
+}
+/* A rough check on chance for counts. Daily figures go up and down; how much
+   they do, measured from the data itself, says how far apart two teams could
+   end up by luck alone. Returns the likely range of the effect (95%). */
+function tcChance(c,phi,rel){
+  if(Math.min(c.a0,c.a1,c.b0,c.b1)<1) return null;
+  const se=Math.sqrt(phi*(1/c.a0+1/c.a1+1/c.b0+1/c.b1)), l=Math.log(1+rel);
+  return {lo:Math.exp(l-1.96*se)-1, hi:Math.exp(l+1.96*se)-1};
+}
+/* Day-to-day spread of each count, as variance over mean (1 is pure chance;
+   bigger means lumpier days). Pooled over both teams and both periods. */
+function tcDispersion(src,P,span,groups){
+  const regBasis=byRegBasis(), endT=addDays(span[1],1)-1, startT=midnight(span[0]);
+  const team=new Map(); groups.forEach((ids,gi)=>ids.forEach(id=>{ if(!team.has(id)) team.set(id,gi); }));
+  const cells=[];
+  P.forEach((p,pi)=>groups.forEach((_,gi)=>{
+    const lo=Math.max(p.from,startT), hi=Math.min(p.to,endT);
+    cells[pi*groups.length+gi]=hi<lo?null:{lo,hi,reg:new Map(),act:new Map(),comm:new Map()};
+  }));
+  const bump=(m,t)=>{ const d=midnight(t); m.set(d,(m.get(d)||0)+1); };
+  for(const r of src){
+    const gi=team.get(r[F.AGENT]); if(gi==null) continue;
+    const t=r[F.REGD], at=regBasis?(r[F.POST]&&r[F.ACTD]?t:0):(r[F.ACTD]>0?r[F.ACTD]:0);
+    let q=null;
+    for(let pi=0;pi<P.length;pi++){
+      const c=cells[pi*groups.length+gi]; if(!c) continue;
+      if(r[F.POST]&&t>=c.lo&&t<=c.hi) bump(c.reg,t);
+      if(at&&at>=c.lo&&at<=c.hi){ bump(c.act,at); if(q==null) q=qualifies(r); if(q) bump(c.comm,at); }
+    }
+  }
+  const phi={};
+  for(const k of ['reg','act','comm']){
+    const v=[];
+    for(const c of cells){
+      if(!c) continue;
+      const xs=[];
+      for(let d=c.lo;d<=c.hi;d=addDays(d,1)){
+        const w=new Date(d).getDay();
+        if((k==='reg'||regBasis)&&(w===0||w===6)) continue;
+        xs.push(c[k].get(d)||0);
+      }
+      if(xs.length<5) continue;
+      const m=xs.reduce((s,x)=>s+x,0)/xs.length; if(!m) continue;
+      const vv=xs.reduce((s,x)=>s+(x-m)*(x-m),0)/(xs.length-1);
+      v.push(vv/m);
+    }
+    phi[k]=v.length?Math.max(1,v.reduce((s,x)=>s+x,0)/v.length):1;
+  }
+  return phi;
+}
+/* Slices of each period for the chart: days when the periods are short,
+   otherwise weeks counted from each period's first day. */
+function tcChunks(P,span){
+  const out=[], endT=addDays(span[1],1)-1, startT=midnight(span[0]);
+  P.forEach((p,side)=>{
+    const lo=Math.max(p.from,startT), hi=Math.min(p.to,endT);
+    if(hi<lo) return;
+    const days=Math.round((midnight(hi)-midnight(lo))/864e5)+1;
+    const step=days<=21?1:7;
+    const part=[];
+    for(let d=midnight(lo);d<=hi;d=addDays(d,step)){
+      const to=Math.min(addDays(d,step)-1,hi);
+      if(step===1){ const w=new Date(d).getDay(); if(w===0||w===6) continue; }
+      part.push({from:d,to,side});
+    }
+    // A short last week joins the one before it.
+    if(step===7&&part.length>1){
+      const l=part[part.length-1];
+      if(Math.round((midnight(l.to)-l.from)/864e5)+1<4){ part[part.length-2].to=l.to; part.pop(); }
+    }
+    out.push(...part);
+  });
+  return out;
+}
+function tcChart(key,chunks,ref,lab,W){
+  const m=CMP_METRICS[key], idx=m.kind!=='p';
+  // Each slice as a value, then indexed so each team's Before = 100.
+  const val=(t,wd)=>{
+    const v=m.v(t); if(v==null) return null;
+    if(m.kind!=='n') return v;
+    if(tcNormEff==='worked') return t.nDays?v/t.nDays:null;
+    return wd?v/wd:null;
+  };
+  const pts=chunks.map(c=>{
+    const a=val(c.A,c.wd), b=val(c.B,c.wd);
+    return {...c, a:a==null||!idx?a:(ref.a0?a/ref.a0*100:null), b:b==null||!idx?b:(ref.b0?b/ref.b0*100:null), ra:a, rb:b};
+  });
+  const ys=pts.flatMap(p=>[p.a,p.b]).filter(v=>v!=null);
+  const after=idx?[ref.a1!=null&&ref.a0?ref.a1/ref.a0*100:null, ref.b1!=null&&ref.b0?ref.b1/ref.b0*100:null]:[ref.a1,ref.b1];
+  const before=idx?[100,100]:[ref.a0,ref.b0];
+  const all=[...ys,...after.filter(v=>v!=null),...before.filter(v=>v!=null)];
+  if(!all.length) return '<p class="auditempty">No figures for this measure in these periods.</p>';
+  let lo=Math.min(...all), hi=Math.max(...all);
+  const padv=Math.max((hi-lo)*0.12,idx?5:2); lo-=padv; hi+=padv;
+  if(m.kind==='p'){ lo=Math.max(0,lo); hi=Math.min(100,hi); }
+  if(idx) lo=Math.max(0,lo);
+  const raw=(hi-lo)/4, p10=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,5,10].map(k=>k*p10).find(v=>v>=raw);
+  lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+  const narrow=W<560;
+  const T=28, B=30, L=narrow?36:44, R=narrow?62:118, H=narrow?240:270;
+  const iw=W-L-R, ih=H-T-B;
+  const nb=pts.filter(p=>p.side===0).length, gap=0.8;
+  const slot=iw/Math.max(1,pts.length+gap);
+  const X=i=>L+slot*(i+0.5+(i>=nb?gap:0));
+  const Y=v=>T+ih-(v-lo)/(hi-lo)*ih;
+  const div=L+slot*(nb+gap/2);
+  let g='';
+  // After region, axis and grid.
+  g+=`<rect x="${div.toFixed(1)}" y="${T-4}" width="${(W-R-div).toFixed(1)}" height="${ih+4}" fill="var(--surface-2)"/>`;
+  for(let v=lo;v<=hi+1e-9;v+=step){
+    const y=Y(v).toFixed(1);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--rule-2)"/>`;
+    g+=`<text x="${L-6}" y="${(+y+3.5).toFixed(1)}" text-anchor="end" font-size="10.5" fill="var(--ink-3)">${idx?Math.round(v):Math.round(v)+'%'}</text>`;
+  }
+  g+=`<line x1="${div.toFixed(1)}" x2="${div.toFixed(1)}" y1="${T-12}" y2="${T+ih}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
+  g+=`<text x="${(div-6).toFixed(1)}" y="${T-14}" text-anchor="end" font-size="10.5" font-weight="600" fill="var(--ink-2)">Before</text>`;
+  g+=`<text x="${(div+6).toFixed(1)}" y="${T-14}" font-size="10.5" font-weight="600" fill="var(--ink-2)">After</text>`;
+  // Averages: the Before level, and each team's level After.
+  const ax0=L, ax1=div, bx0=div, bx1=W-R;
+  const cols=['var(--tc-a)','var(--tc-b)'];
+  if(idx){
+    const y=Y(100).toFixed(1);
+    g+=`<line x1="${ax0}" x2="${ax1.toFixed(1)}" y1="${y}" y2="${y}" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  }else{
+    before.forEach((v,i)=>{ if(v==null) return; const y=Y(v).toFixed(1);
+      g+=`<line x1="${ax0}" x2="${ax1.toFixed(1)}" y1="${y}" y2="${y}" stroke="${cols[i]}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7"/>`; });
+  }
+  after.forEach((v,i)=>{ if(v==null) return; const y=Y(v).toFixed(1);
+    g+=`<line x1="${bx0.toFixed(1)}" x2="${bx1.toFixed(1)}" y1="${y}" y2="${y}" stroke="${cols[i]}" stroke-width="1.8" stroke-dasharray="5 4" opacity=".8"/>`; });
+  // The two teams, week by week (or day by day), broken at the change.
+  const fmtV=v=>m.kind==='n'?(tcNormEff==='worked'?fmtSmall(v)+' per day worked':fmtSmall(v)+' a working day'):tcFmt(key,v);
+  ['a','b'].forEach((k,i)=>{
+    for(const side of [0,1]){
+      const seg=pts.map((p,j)=>({p,j})).filter(o=>o.p.side===side&&o.p[k]!=null);
+      if(seg.length>1) g+=`<path d="${seg.map((o,n)=>(n?'L':'M')+X(o.j).toFixed(1)+' '+Y(o.p[k]).toFixed(1)).join(' ')}" fill="none" stroke="${cols[i]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      for(const o of seg){
+        const rng=o.p.from===midnight(o.p.to)?dShort(o.p.from):`${dShort(o.p.from)} – ${dShort(o.p.to)}`;
+        g+=`<circle cx="${X(o.j).toFixed(1)}" cy="${Y(o.p[k]).toFixed(1)}" r="3.4" fill="${cols[i]}" stroke="var(--surface)" stroke-width="1.2"><title>${esc(`${lab[i]}, ${rng}: ${fmtV(k==='a'?o.p.ra:o.p.rb)}${idx?` (${Math.round(o.p[k])} against Before = 100)`:''}`)}</title></circle>`;
+      }
+    }
+  });
+  // Labels at the right: each team's change.
+  const tags=after.map((v,i)=>v==null?null:{i,y:Y(v),t:idx?`${v>=100?'+':'−'}${Math.abs(Math.round(v-100))}%`:`${Math.round(v)}%`}).filter(Boolean);
+  if(tags.length===2&&Math.abs(tags[0].y-tags[1].y)<26){
+    const mid=(tags[0].y+tags[1].y)/2, up=tags[0].y<=tags[1].y?0:1;
+    tags[up].y=mid-13; tags[1-up].y=mid+13;
+  }
+  for(const t of tags){
+    g+=`<text x="${(W-R+8).toFixed(1)}" y="${(t.y-1).toFixed(1)}" font-size="12.5" font-weight="700" fill="${cols[t.i]}">${t.t}</text>`;
+    if(!narrow) g+=`<text x="${(W-R+8).toFixed(1)}" y="${(t.y+12).toFixed(1)}" font-size="10.5" fill="var(--ink-3)">${esc(lab[t.i].length>16?lab[t.i].slice(0,15)+'…':lab[t.i])}</text>`;
+  }
+  // Dates along the bottom, thinned to fit.
+  const every=Math.max(1,Math.ceil(54/slot));
+  pts.forEach((p,j)=>{ if(j%every&&j!==nb) return;
+    g+=`<text x="${X(j).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${dShort(p.from)}</text>`; });
+  return `<svg class="tcchart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(m.l)} for ${esc(lab[0])} and ${esc(lab[1])}, before and after">${g}</svg>`;
+}
+function tcW(){
+  const b=$('#tcBody'); if(!b||!b.clientWidth) return 900;
+  const cs=getComputedStyle(b);
+  return Math.max(220,Math.floor(b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)));
+}
+
+let tcMemo={rows:null,key:''};
+function renderTeams(){
+  const body=$('#tcBody'), hint=$('#tcHint'); if(!body) return;
+  const c=state.tcmp;
+  const memo=JSON.stringify([c,state.settings,tcW(),state.rows.length]);
+  if(tcMemo.rows===state.rows&&tcMemo.key===memo&&body.firstChild) return;
+  tcMemo.rows=state.rows; tcMemo.key=memo;
+  [...$('#tcMode').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===c.mode)));
+  const span=dataSpan();
+  const P=span&&cmpPeriods(span,c);
+  if(!P){ body.innerHTML='<p class="auditempty">Upload a report to compare teams.</p>'; hint.textContent=''; return; }
+  const G=tcGroups();
+  const {a,b}=tcPick(G);
+  const idsA=a==null?[]:tcMembers(a,a,G), idsB=a==null?[]:tcMembers(b,a,G);
+  const labA=tcLabel(a), labB=tcLabel(b);
+  const [PA,PB]=P;  // After (the later period), Before
+  // Controls.
+  const teamOpt=(sel,skip)=>G.list.filter(g=>g.key!==skip).map(g=>`<option value="${esc(g.key)}"${g.key===sel?' selected':''}>${esc(teamLabel(g.key))} (${g.ids.length})</option>`).join('');
+  const months=dataMonths(span);
+  const mOpts=(sel,skip)=>months.filter(k=>k!==skip).map(k=>`<option value="${k}"${k===sel?' selected':''}>${monthLabel(k)}</option>`).join('');
+  let h=`<div class="toolbar tcbar">
+    <div class="field"><label for="tcA"><span class="tsw a"></span>Team</label><select id="tcA">${teamOpt(a)}</select></div>
+    <span class="vs" aria-hidden="true">vs</span>
+    <div class="field"><label for="tcB"><span class="tsw b"></span>Against</label><select id="tcB">${teamOpt(b,a)}<option value="${TC_OTHERS}"${b===TC_OTHERS?' selected':''}>Everyone else (${tcMembers(TC_OTHERS,a,G).length})</option></select></div>
+  </div><div class="toolbar tcbar">`;
+  if(c.mode==='month'){
+    const yExtra=months.includes(PB.m)?'':`<option value="${PB.m}" selected>${monthLabel(PB.m)}</option>`;
+    h+=`<div class="field"><label for="tcYm">Before</label><select id="tcYm">${yExtra}${mOpts(PB.m,PA.m)}</select></div>
+      <span class="vs" aria-hidden="true">→</span>
+      <div class="field"><label for="tcXm">After</label><select id="tcXm">${mOpts(PA.m)}</select></div>`;
+  }else{
+    h+=`<div class="field"><label for="tcYf">Before</label><div class="rng"><input type="date" id="tcYf" aria-label="Before, from" value="${ymd(PB.from)}"><span aria-hidden="true">–</span><input type="date" id="tcYt" aria-label="Before, to" value="${ymd(PB.to)}"></div></div>
+      <span class="vs" aria-hidden="true">→</span>
+      <div class="field"><label for="tcXf">After</label><div class="rng"><input type="date" id="tcXf" aria-label="After, from" value="${ymd(PA.from)}"><span aria-hidden="true">–</span><input type="date" id="tcXt" aria-label="After, to" value="${ymd(PA.to)}"></div></div>
+      <div class="field"><label for="tcQuick">Quick pick</label><select id="tcQuick"><option value="">Choose…</option><option value="7">Last 7 days and the 7 before</option><option value="14">Last 14 days and the 14 before</option><option value="28">Last 4 weeks and the 4 before</option><option value="56">Last 8 weeks and the 8 before</option><option value="91">Last 13 weeks and the 13 before</option></select></div>`;
+  }
+  if(!idsA.length||!idsB.length){
+    body.innerHTML=h+`</div><div class="notice info"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>${!idsA.length?'No BDEs are in a team yet.':`No one to compare ${esc(labA)} with.`} Put BDEs into teams in Settings to compare one team with another.</p></div></div>`;
+    hint.textContent=''; return;
+  }
+  // Only the rows these two teams could need.
+  const inA=new Set(idsA), inB=new Set(idsB), both=new Set([...idsA,...idsB]);
+  const lo=Math.min(PA.from,PB.from), hi=Math.max(PA.to,PB.to);
+  const src=state.rows.filter(r=>both.has(r[F.AGENT])&&!isGlitch(r)&&((r[F.REGD]>=lo&&r[F.REGD]<=hi)||(r[F.ACTD]>=lo&&r[F.ACTD]<=hi)));
+  const inc=id=>both.has(id);
+  const part=Q=>src.filter(r=>(r[F.REGD]>=Q.from&&r[F.REGD]<=Q.to)||(r[F.ACTD]>=Q.from&&r[F.ACTD]<=Q.to));
+  const SA=cmpStats(PA,span,inc,part(PA)), SB=cmpStats(PB,span,inc,part(PB));
+  const A0=tcSum(SB,idsA), A1=tcSum(SA,idsA), B0=tcSum(SB,idsB), B1=tcSum(SA,idsB);
+  tcNormEff=c.norm==='wd'||c.norm==='worked'||c.norm==='total'?c.norm
+    :(SA.wd&&SB.wd&&Math.abs(SA.wd-SB.wd)/Math.max(SA.wd,SB.wd)>0.1?'wd':'total');
+  h+=`<div class="field"><label>Counts</label><div class="seg" id="tcNorm"><button data-k="total" aria-pressed="${tcNormEff==='total'}">Totals</button><button data-k="wd" aria-pressed="${tcNormEff==='wd'}">Per working day</button><button data-k="worked" aria-pressed="${tcNormEff==='worked'}" title="Each count divided by the days the team's BDEs signed anyone up, which takes out holidays and changes in headcount">Per day worked</button></div></div></div>`;
+  const cover=S=>S.cut?`${S.wd} of ${S.full} working days in the report`:`${S.wd} working day${S.wd===1?'':'s'}`;
+  h+=`<p class="cmpperiods"><span><b>Before</b> ${esc(PB.name)} · ${cover(SB)}</span><span class="vs2">→</span><span><b>After</b> ${esc(PA.name)} · ${cover(SA)}</span></p>`;
+  if(!B0.reg&&!B0.act&&!A0.reg&&!A0.act){
+    body.innerHTML=h+`<div class="notice info"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>Nothing in the report for the Before period (${esc(PB.name)}). The report starts on ${dShort(span[0])} ${new Date(span[0]).getFullYear()}.</p></div></div>`;
+    hint.textContent=''; return;
+  }
+  const key=CMP_METRICS[c.metric]?c.metric:'act', m=CMP_METRICS[key];
+  const v=(k,t,S)=>tcVal(k,t,S.wd);
+  const va0=v(key,A0,SB), va1=v(key,A1,SA), vb0=v(key,B0,SB), vb1=v(key,B1,SA);
+  const gA=tcGrowth(key,va0,va1), gB=tcGrowth(key,vb0,vb1);
+  const eff=tcEffect(key,va0,va1,vb0,vb1);
+  const phi=tcDispersion(src,[PB,PA],span,[idsA,idsB]);
+  // The headline.
+  const tone=x=>x==null?'flat':x>0.02?'up':x<-0.02?'down':'flat';
+  let vt='flat', head, lines=[];
+  const teamBox=(lab,cls,b0,b1,g,S0,S1,t0,t1)=>`<div class="tvteam"><div class="tvn"><span class="tsw ${cls}"></span>${esc(lab)}</div>
+      <div class="tvv">${tcFmt(key,b0)} <span class="arr">→</span> ${tcFmt(key,b1)} ${tcChip(key,g,true)}</div>
+      <div class="tvs">${t1.heads} BDE${t1.heads===1?'':'s'} signing up after, ${t0.heads} before</div></div>`;
+  if(eff&&eff.rel!=null){
+    const s=Math.round(eff.rel*100);
+    vt=tone(eff.rel);
+    head=Math.abs(s)<2?`${esc(labA)} and ${esc(labB)} changed about the same on ${TC_NOUN[key]}`
+      :`${esc(labA)} did ${Math.abs(s)}% ${s>0?'better':'worse'} than ${esc(labB)} on ${TC_NOUN[key]}`;
+    const rate=`${gB>=0?'+':'−'}${Math.abs(Math.round(gB*100))}%`;
+    if(m.kind==='n'){
+      lines.push(`Had ${esc(labA)} changed at the same rate as ${esc(labB)} (${rate}), it would have had ${tcFmt(key,eff.expected)} ${TC_NOUN[key]}${tcUnit(key)}. It had ${tcFmt(key,va1)}: ${tcFmt(key,Math.abs(eff.extra))} ${eff.extra>=0?'more':'fewer'}.`);
+    }else{
+      const what=key==='perDay'?' sign-ups per day worked':' per activation';
+      lines.push(`Had ${esc(labA)} changed at the same rate as ${esc(labB)} (${rate}), it would have averaged ${tcFmt(key,eff.expected)}${what}. It averaged ${tcFmt(key,va1)}.`);
+    }
+    if(m.kind==='n'){
+      const cnt={a0:m.v(A0),a1:m.v(A1),b0:m.v(B0),b1:m.v(B1)};
+      const ch=tcChance(cnt,phi[key],eff.rel);
+      if(!ch) lines.push('<span class="chance">Too few to tell whether this is more than chance.</span>');
+      else{
+        const real=ch.lo>0||ch.hi<0;
+        const r=x=>`${x>=0?'+':'−'}${Math.abs(Math.round(x*100))}%`;
+        lines.push(`<span class="chance ${real?'real':'maybe'}"><b>${real?'Larger than normal ups and downs.':'Could still be chance.'}</b> Allowing for how much the daily figures vary, ${esc(labA)}’s real difference is likely between ${r(ch.lo)} and ${r(ch.hi)}${real?'':', a range that includes no difference at all'}.</span>`);
+      }
+    }
+  }else if(eff&&eff.pts!=null){
+    const d=Math.round(eff.pts); vt=d>=2?'up':d<=-2?'down':'flat';
+    head=Math.abs(d)<2?`${esc(labA)} and ${esc(labB)} changed about the same on ${TC_NOUN[key]}`
+      :`${esc(labA)} did ${Math.abs(d)} points ${d>0?'better':'worse'} than ${esc(labB)} on ${TC_NOUN[key]}`;
+    lines.push(`${esc(labA)} went from ${tcFmt(key,va0)} to ${tcFmt(key,va1)}; ${esc(labB)} from ${tcFmt(key,vb0)} to ${tcFmt(key,vb1)}.`);
+  }else{
+    head=`Not enough to compare ${TC_NOUN[key]} for both teams in both periods`;
+  }
+  h+=`<div class="tcverdict ${vt}"><div class="tvhead">${head}</div>
+    <div class="tvteams">${teamBox(labA,'a',va0,va1,gA,SB,SA,A0,A1)}${teamBox(labB,'b',vb0,vb1,gB,SB,SA,B0,B1)}</div>
+    ${lines.map(l=>`<p>${l}</p>`).join('')}</div>`;
+
+  // Chart: week by week, each team against its own Before level.
+  const chunks=tcChunks([PB,PA],span).map(ch=>{
+    const S=cmpStats(ch,span,inc,part(ch));
+    const wd=workingDays(ch.from,ch.to);
+    return {...ch,wd,A:tcSum(S,idsA),B:tcSum(S,idsB)};
+  });
+  const ref={};
+  const refVal=(t,S)=>{ const x=m.v(t); if(x==null) return null; if(m.kind!=='n') return x; return tcNormEff==='worked'?(t.nDays?x/t.nDays:null):(S.wd?x/S.wd:null); };
+  ref.a0=refVal(A0,SB); ref.a1=refVal(A1,SA); ref.b0=refVal(B0,SB); ref.b1=refVal(B1,SA);
+  h+=`<div class="cmph-row"><h3 class="cmph">Week by week</h3><span class="cmpkey"><span class="tsw a"></span>${esc(labA)}<span class="tsw b"></span>${esc(labB)}<span class="dash"></span>${m.kind==='p'?'average':'average After · Before = 100'}</span></div>
+    <div class="seg mchips" id="tcMetric" role="group" aria-label="Measure">${CMP_ORDER.map(k=>`<button data-k="${k}" aria-pressed="${k===key}">${CMP_METRICS[k].l}</button>`).join('')}</div>
+    <div class="dbwrap" id="tcChart">${tcChart(key,chunks,ref,[labA,labB],tcW())}</div>`;
+  state._tcW=tcW();
+
+  // What else to know.
+  const notes=[];
+  // Were the two teams moving together before the change?
+  {
+    const half=Math.floor((Math.min(PB.to,addDays(span[1],1)-1)-Math.max(PB.from,midnight(span[0])))/864e5/2);
+    const mid=addDays(Math.max(PB.from,midnight(span[0])),half+1);
+    if(half>=3){
+      const h1={from:Math.max(PB.from,midnight(span[0])),to:mid-1}, h2={from:mid,to:PB.to};
+      const S1=cmpStats(h1,span,inc,part(h1)), S2=cmpStats(h2,span,inc,part(h2));
+      const hv=(t,S)=>{ const x=m.v(t); if(x==null) return null; if(m.kind!=='n') return x; return tcNormEff==='worked'?(t.nDays?x/t.nDays:null):(S.wd?x/S.wd:null); };
+      const a1=tcSum(S1,idsA), a2=tcSum(S2,idsA), b1=tcSum(S1,idsB), b2=tcSum(S2,idsB);
+      const pe=tcEffect(key,hv(a1,S1),hv(a2,S2),hv(b1,S1),hv(b2,S2));
+      const enough=m.kind==='p'?Math.min(a1.active,a2.active,b1.active,b2.active)>=5:Math.min(a1.reg,a2.reg,b1.reg,b2.reg)>=10;
+      if(pe&&enough){
+        const big=pe.rel!=null?Math.abs(pe.rel)>0.15:Math.abs(pe.pts)>8;
+        const amt=pe.rel!=null?`${Math.abs(Math.round(pe.rel*100))}%`:`${Math.abs(Math.round(pe.pts))} points`;
+        const dir=(pe.rel??pe.pts)>0;
+        notes.push(big?['amber',`<b>The teams were already drifting apart before.</b> Within the Before period, ${esc(labA)} was moving ${amt} ${dir?'ahead of':'behind'} ${esc(labB)}, so part of the difference above may be that trend carrying on rather than the change itself.`]
+          :['up',`<b>The two teams moved in step before the change</b> (within ${amt} of each other across the Before period), which makes the comparison fairer.`]);
+      }
+    }
+  }
+  // Is the change broad or down to one or two people?
+  const perB=(id,S)=>{ const x=S.per.get(id); return x?x:null; };
+  const pv=(k,x,S)=>{ if(!x) return null; const r=CMP_METRICS[k].v(x); if(r==null) return null; if(CMP_METRICS[k].kind!=='n') return r;
+    return tcNormEff==='wd'?(S.wd?r/S.wd:null):tcNormEff==='worked'?(x.nDays?r/x.nDays:null):r; };
+  const breadth=(ids)=>{ let up=0,n=0; const d=[];
+    for(const id of ids){ const x0=pv(key,perB(id,SB),SB), x1=pv(key,perB(id,SA),SA);
+      if(x0==null||x1==null) continue; n++; if(x1>x0+1e-9) up++; d.push({id,d:x1-x0}); }
+    return {up,n,d}; };
+  const brA=breadth(idsA), brB=breadth(idsB);
+  if(brA.n&&brB.n) notes.push([brA.up/brA.n>brB.up/brB.n+0.1?'up':brA.up/brA.n<brB.up/brB.n-0.1?'down':'flat',
+    `<b>${brA.up} of ${brA.n}</b> in ${esc(labA)} improved on ${TC_NOUN[key]}, against <b>${brB.up} of ${brB.n}</b> in ${esc(labB)}.`]);
+  if(m.kind==='n'&&tcNormEff!=='worked'&&va1!=null&&va0!=null&&brA.d.length>=3){
+    const tot=va1-va0, top=brA.d.slice().sort((p,q)=>tot>=0?q.d-p.d:p.d-q.d)[0];
+    if(Math.abs(tot)>0&&top&&Math.sign(top.d)===Math.sign(tot)&&top.d/tot>=0.5)
+      notes.push(['amber',`<b>Much of ${esc(labA)}’s ${tot>0?'rise':'fall'} is one person:</b> ${esc(agentName(top.id))} accounts for ${tcFmt(key,Math.abs(top.d))} of the team’s ${tcFmt(key,Math.abs(tot))} ${tot>0?'extra':'fewer'} ${TC_NOUN[key]}${tcUnit(key)}.`]);
+  }
+  // Headcount and days worked.
+  if(tcNormEff!=='worked'&&m.kind==='n'){
+    const dA=A0.nDays&&SB.wd&&SA.wd?(A1.nDays/SA.wd)/(A0.nDays/SB.wd)-1:null, dB=B0.nDays&&SB.wd&&SA.wd?(B1.nDays/SA.wd)/(B0.nDays/SB.wd)-1:null;
+    if(dA!=null&&dB!=null&&Math.abs(dA-dB)>0.1)
+      notes.push(['amber',`<b>Days worked changed unevenly:</b> ${esc(labA)} ${dA>=0?'+':'−'}${Math.abs(Math.round(dA*100))}%, ${esc(labB)} ${dB>=0?'+':'−'}${Math.abs(Math.round(dB*100))}% (a working day). Choose <b>Per day worked</b> to compare output with holidays and headcount taken out.`]);
+  }
+  if(key==='comm'&&(A1.open||B1.open)) notes.push(['flat',`Not final yet: ${fmt(A1.open+B1.open)} activations in the After period have not qualified but are still inside their spending window.`]);
+  if(key==='a14'&&(va1==null||vb1==null)) notes.push(['flat','Spent within 14 days needs sign-ups at least 14 days old; the After period is too recent for it.']);
+  if(notes.length) h+=`<h3 class="cmph">Worth knowing</h3><ul class="insights">${notes.map(([t,s])=>`<li class="${t==='amber'?'warn':t}">${s}</li>`).join('')}</ul>`;
+
+  // Every measure.
+  h+=`<h3 class="cmph">Every measure</h3><div class="tablewrap"><table id="tcMatrix"><thead>
+    <tr><th class="no-sort" rowspan="2">Measure</th><th class="no-sort c grp a" colspan="3"><span class="tsw a"></span>${esc(labA)}</th><th class="no-sort c grp b" colspan="3"><span class="tsw b"></span>${esc(labB)}</th><th class="no-sort r grp" rowspan="2">${esc(labA)}<br>against ${esc(labB)}</th></tr>
+    <tr><th class="no-sort r">Before</th><th class="no-sort r">After</th><th class="no-sort r">Change</th><th class="no-sort r">Before</th><th class="no-sort r">After</th><th class="no-sort r">Change</th></tr></thead><tbody>`;
+  for(const k of CMP_ORDER){
+    const x0=v(k,A0,SB), x1=v(k,A1,SA), y0=v(k,B0,SB), y1=v(k,B1,SA);
+    const e=tcEffect(k,x0,x1,y0,y1), M=CMP_METRICS[k];
+    let ec='<span class="was">—</span>';
+    if(e){
+      const s=e.rel!=null?Math.round(e.rel*100):Math.round(e.pts);
+      ec=`<span class="dchip ${s>0?'up':s<0?'down':'flat'}">${sgn(s)}${Math.abs(s)}${e.rel!=null?'%':' pts'}</span>`;
+      if(M.kind==='n'){ const ch=tcChance({a0:M.v(A0),a1:M.v(A1),b0:M.v(B0),b1:M.v(B1)},phi[k],e.rel);
+        ec+=`<small class="was">${!ch?'too few':ch.lo>0||ch.hi<0?'beyond chance':'could be chance'}</small>`; }
+    }
+    h+=`<tr data-tm="${k}"${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
+      <td class="r">${tcFmt(k,x0)}</td><td class="r cnum">${tcFmt(k,x1)}</td><td class="r">${tcChip(k,tcGrowth(k,x0,x1))}</td>
+      <td class="r">${tcFmt(k,y0)}</td><td class="r cnum">${tcFmt(k,y1)}</td><td class="r">${tcChip(k,tcGrowth(k,y0,y1))}</td>
+      <td class="r">${ec}</td></tr>`;
+  }
+  h+='</tbody></table></div>';
+
+  // Each BDE in the two teams.
+  const rowsB=[];
+  for(const [lab,cls,ids] of [[labA,'a',idsA],[labB,'b',idsB]]){
+    for(const id of ids){
+      const x0=pv(key,perB(id,SB),SB), x1=pv(key,perB(id,SA),SA);
+      const d0=(perB(id,SB)||{}).nDays||0, d1=(perB(id,SA)||{}).nDays||0;
+      if(x0==null&&x1==null&&!d0&&!d1) continue;
+      rowsB.push({id,lab,cls,x0,x1,g:tcGrowth(key,x0,x1),d0,d1});
+    }
+  }
+  rowsB.sort((p,q)=>(p.cls===q.cls?0:p.cls==='a'?-1:1)||((q.g??-Infinity)-(p.g??-Infinity))||agentName(p.id).localeCompare(agentName(q.id)));
+  h+=`<h3 class="cmph">Each BDE <span class="cmphint">${esc(m.l)}${tcUnit(key)}</span></h3><div class="tablewrap"><table id="tcPeople"><thead><tr><th class="no-sort">BDE</th><th class="no-sort">Team</th><th class="no-sort r">Before</th><th class="no-sort r">After</th><th class="no-sort r">Change</th></tr></thead><tbody>`;
+  for(const r of rowsB){
+    h+=`<tr><td class="agentcell"><span class="tsw ${r.cls} ph"></span>${esc(agentName(r.id))}<small>${r.d1} day${r.d1===1?'':'s'} worked after, ${r.d0} before</small></td><td><span class="tsw ${r.cls}"></span>${esc(r.lab)}</td><td class="r">${tcFmt(key,r.x0)}</td><td class="r cnum">${tcFmt(key,r.x1)}</td><td class="r">${r.g==null?(r.x1!=null&&r.x0==null?'<span class="dchip flat">new</span>':''):tcChip(key,r.g)}</td></tr>`;
+  }
+  h+='</tbody></table></div>';
+  h+=explain('teams','How the team comparison works',`
+    <p>Each team is measured Before and After, and its change is set against the other team’s change over the same dates. Anything that affected both teams alike, such as a quiet month, a bank holiday or a change to the AB programme, shows up in both and cancels out. What is left is how much better or worse the first team did: the effect of a trial, for example. For counts and rates it is the ratio of the two teams’ growth (so team size does not matter); for percentages it is the difference in points.</p>
+    <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Per day worked</b> divides them by the days the team’s BDEs signed anyone up, which takes out holidays, sickness and people joining or leaving.</p>
+    <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
+    <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
+    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from the Inactive team. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
+  body.innerHTML=h;
+  hint.textContent=`${labA} against ${labB} · ${PB.name} → ${PA.name}`;
+  fitSoon();
+}
+$('#sec-teams').addEventListener('click',e=>{
+  const c=state.tcmp, b=e.target.closest('button[data-k]'), tr=e.target.closest('tr[data-tm]');
+  if(b&&b.closest('#tcMode')){ if(c.mode===b.dataset.k) return; c.mode=b.dataset.k; }
+  else if(b&&b.closest('#tcNorm')){ c.norm=b.dataset.k; }
+  else if(b&&b.closest('#tcMetric')){ if(c.metric===b.dataset.k) return; c.metric=b.dataset.k; }
+  else if(tr){ if(c.metric===tr.dataset.tm) return; c.metric=tr.dataset.tm; }
+  else return;
+  saveView(); renderTeams();
+});
+$('#sec-teams').addEventListener('change',e=>{
+  const c=state.tcmp, t=e.target, span=dataSpan(); if(!span) return;
+  if(t.id==='tcA'){ c.a=t.value; if(c.b===c.a) c.b=null; }
+  else if(t.id==='tcB'){ c.b=t.value; }
+  else if(!periodInput(c,t,'tc',span)) return;
+  saveView(); renderTeams();
+});
+let tcRsz=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(tcRsz);
+  tcRsz=setTimeout(()=>{
+    if(!state.rows.length||state.view==='audit') return;
+    if(Math.abs(tcW()-(state._tcW||0))>24) renderTeams();
+  },160);
+});
+
 /* ---- section navigation ---- */
-const NAV_ALL=['sec-summary','sec-league','sec-compare','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
+const NAV_ALL=['sec-summary','sec-league','sec-compare','sec-teams','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
 const NAV=()=>NAV_ALL.filter(id=>(id!=='sec-salary'||salaryOn())&&(id!=='sec-industry'||!!state.crm));
 /* Sections must clear the sticky header when scrolled to, and the header
    changes height as it wraps, so measure it rather than guessing. */
