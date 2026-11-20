@@ -963,6 +963,7 @@ ul.insights li.warn::before{content:'!';background:var(--near-bg);color:var(--ne
 #tcMatrix td:nth-child(4),#tcMatrix th:nth-child(3){border-right:1px solid var(--rule-2)}
 #tcMatrix tbody td:nth-child(7){border-right:1px solid var(--rule-2)}
 #tcMatrix tbody tr{cursor:pointer}
+#tcMatrix tbody tr.nolead{cursor:default}
 #tcMatrix tbody tr.sel td{background:var(--detail-bg)}
 #tcMatrix tbody tr.sel td.agentcell{box-shadow:inset 3px 0 0 var(--reg)}
 #tcMatrix .cnum,#tcPeople .cnum{font-weight:600;font-variant-numeric:tabular-nums}
@@ -2169,7 +2170,7 @@ function loadView(){
           by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
         xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
         norm:['total','wd','worked'].includes(c.norm)?c.norm:'worked',
-        metric:['reg','perDay','target','act','comm','a14','spendPer'].includes(c.metric)?c.metric:'act'};
+        metric:['act','comm','reg','target'].includes(c.metric)?c.metric:'act'};
     }
   }catch(e){ console.warn('Saved filters could not be read',e); }
 }
@@ -5704,7 +5705,9 @@ function renderTeams(){
     body.innerHTML=h+`<div class="notice info"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>Nothing in the report for the Before period (${esc(PB.name)}). The report starts on ${dShort(span[0])} ${new Date(span[0]).getFullYear()}.</p></div></div>`;
     hint.textContent=''; return;
   }
-  const key=CMP_METRICS[c.metric]?c.metric:'act', m=CMP_METRICS[key];
+  // The measures that can lead: activations first, then the others that matter most.
+  const TC_LEAD=['act','comm','reg','target'];
+  const key=TC_LEAD.includes(c.metric)?c.metric:'act', m=CMP_METRICS[key];
   const v=(k,t,S)=>tcVal(k,t,S.wd);
   const va0=v(key,A0,SB), va1=v(key,A1,SA), vb0=v(key,B0,SB), vb1=v(key,B1,SA);
   const gA=tcGrowth(key,va0,va1), gB=tcGrowth(key,vb0,vb1);
@@ -5760,7 +5763,7 @@ function renderTeams(){
   const refVal=(t,S)=>{ const x=m.v(t); if(x==null) return null; if(m.kind!=='n') return x; return tcNormEff==='worked'?(t.nDays?x/t.nDays:null):(S.wd?x/S.wd:null); };
   ref.a0=refVal(A0,SB); ref.a1=refVal(A1,SA); ref.b0=refVal(B0,SB); ref.b1=refVal(B1,SA);
   h+=`<div class="cmph-row"><h3 class="cmph">Week by week</h3><span class="cmpkey"><span class="tsw a"></span>${esc(labA)}<span class="tsw b"></span>${esc(labB)}<span class="dash"></span>${m.kind==='p'?'average':'average After · Before = 100'}</span></div>
-    <div class="seg mchips" id="tcMetric" role="group" aria-label="Measure">${CMP_ORDER.map(k=>`<button data-k="${k}" aria-pressed="${k===key}">${CMP_METRICS[k].l}</button>`).join('')}</div>
+    <div class="seg mchips" id="tcMetric" role="group" aria-label="Measure">${TC_LEAD.map(k=>`<button data-k="${k}" aria-pressed="${k===key}">${CMP_METRICS[k].l}</button>`).join('')}</div>
     <div class="dbwrap" id="tcChart">${tcChart(key,chunks,ref,[labA,labB],tcW())}</div>`;
   state._tcW=tcW();
 
@@ -5833,7 +5836,7 @@ function renderTeams(){
       if(M.kind==='n'){ const ch=tcChance({a0:M.v(A0),a1:M.v(A1),b0:M.v(B0),b1:M.v(B1)},phi[k],e.rel);
         ec+=`<small class="was">${!ch?'too few':ch.lo>0||ch.hi<0?'beyond chance':'could be chance'}</small>`; }
     }
-    h+=`<tr data-tm="${k}"${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
+    h+=`<tr${TC_LEAD.includes(k)?` data-tm="${k}"`:' class="nolead"'}${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
       <td class="r">${tcFmt(k,x0)}</td><td class="r cnum">${tcFmt(k,x1)}</td><td class="r">${tcChip(k,tcGrowth(k,x0,x1))}</td>
       <td class="r">${tcFmt(k,y0)}</td><td class="r cnum">${tcFmt(k,y1)}</td><td class="r">${tcChip(k,tcGrowth(k,y0,y1))}</td>
       <td class="r">${ec}</td></tr>`;
