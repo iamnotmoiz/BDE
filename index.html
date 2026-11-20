@@ -6066,7 +6066,7 @@ function askCode(){
    already entered are kept. */
 const LONDON_EAST={'101':'Eram','102':'Esiri','119':'Yaqoob','121':'Tahawar','123':'Muhaad',
   '129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie','147':'Darius',
-  '140':'Damola','153':'Martan'};
+  '140':'Damola','153':'Martin'};
 /* New to London East since it was first set up: added once to settings
    already saved. Someone already put in another team by hand stays there. */
 const JOINED_LONDON_EAST=['140','153'];
@@ -6077,6 +6077,13 @@ const JOINED_LONDON_EAST=['140','153'];
 const LEFT_LONDON_EAST={'139':'keep','127':'Mamnur','149':'Jagdish'};
 function seedLondonEast(){
   const S=state.settings;
+  // Agent 153 was first added misspelt as Martan.
+  if((S.names||{})['153']==='Martan'){
+    S.names=Object.assign({},S.names,{'153':'Martin'});
+    const e=(S.employment||{})['153'];
+    if(Array.isArray(e)) S.employment=Object.assign({},S.employment,{'153':e.map(x=>x.n==='Martan'?{...x,n:'Martin'}:x)});
+    clearStints(); store.set(K_SET,JSON.stringify(S));
+  }
   if(S.seededLondonEast){
     const done=new Set(S.leftLE||(S.ameetaLeftLE?['139']:[]));
     let changed=false;
