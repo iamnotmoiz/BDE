@@ -710,6 +710,13 @@ svg{display:block;max-width:100%}
 .modal.confirm .body{padding:24px 24px 4px}
 .modal.confirm h3{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
 .modal.confirm .body p{font-size:14px;line-height:1.55;margin-bottom:18px}
+.codebox{max-width:340px}
+.codebox input[type=password]{font:inherit;font-size:20px;letter-spacing:.3em;text-align:center;width:100%;min-height:44px;
+  padding:6px 10px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);margin:6px 0 0}
+.codebox input[type=password]:focus-visible{outline:none;border-color:var(--reg);box-shadow:0 0 0 3px var(--accent-soft)}
+.codebox .body p.codeerr{min-height:20px;margin:8px 0 10px;font-size:13px;color:var(--warn)}
+@keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.codebox.shake{animation:shake .35s var(--ease)}
 .btn-danger-solid{background:var(--warn);border-color:var(--warn);color:var(--on-danger)}
 .btn-danger-solid:hover{background:var(--danger-hi);border-color:var(--danger-hi)}
 .setrow{display:grid;grid-template-columns:52px 1fr 148px 128px 34px;gap:9px;align-items:center;margin-bottom:8px}
@@ -1408,9 +1415,10 @@ const COMMISSION_PER=25;
    'activation'   - the week the customer actually spent (default)
    'registration' - the week the business signed up, however much later it spent */
 const byRegBasis=()=>state.settings.actBasis==='registration';
-/* Salaries and commission amounts are hidden unless unlocked by clicking the
-   logo five times. The unlock lives in memory only and is never saved, so the
-   page always opens locked: safe to show someone without checking first. */
+/* Salaries, commission amounts and the Comparison section are hidden unless
+   unlocked: five clicks on the logo, then the code. The unlock lives in memory
+   only and is never saved, so the page always opens locked: safe to show
+   someone without checking first. */
 let salaryUnlocked=false;
 const salaryOn=()=>salaryUnlocked;
 const commRate=()=>COMMISSION_PER;
@@ -3139,11 +3147,13 @@ function render(){
   $('#secnav').classList.toggle('hidden',!has||audit);
   // The audit page has its own upload button; showing both invites confusion.
   $('#btnUpload').classList.toggle('hidden',audit);
-  // The Salaries section and its nav button come and go together.
-  const salSec=document.getElementById('sec-salary');
-  if(salSec) salSec.classList.toggle('hidden',!salaryOn());
-  const salNav=document.querySelector('#secnav button[data-go="sec-salary"]');
-  if(salNav) salNav.classList.toggle('hidden',!salaryOn());
+  // Salaries and Comparison, and their nav buttons, show only when unlocked.
+  for(const id of ['sec-salary','sec-compare']){
+    const sec=document.getElementById(id);
+    if(sec) sec.classList.toggle('hidden',!salaryOn());
+    const nav=document.querySelector(`#secnav button[data-go="${id}"]`);
+    if(nav) nav.classList.toggle('hidden',!salaryOn());
+  }
   if(audit){ renderAudit(); paintFilterState(); measureStick(); initReveal(); return; }
   renderFoot();
   if(!has) return;
@@ -3151,7 +3161,7 @@ function render(){
   const rows=filtered(), keys=activeKeys();
   renderTotals(rows,keys);
   renderLeague(rows,keys);
-  renderCompare();
+  if(salaryOn()) renderCompare();
   renderTeams();
   renderTrend(rows,keys);
   renderQuality(rows);
@@ -5246,7 +5256,7 @@ let cmpRsz=null;
 window.addEventListener('resize',()=>{
   clearTimeout(cmpRsz);
   cmpRsz=setTimeout(()=>{
-    if(!state.rows.length||state.view==='audit') return;
+    if(!state.rows.length||state.view==='audit'||!salaryOn()) return;
     if(Math.abs(cmpW()-(state._cmpW||0))>24) renderCompare();
   },160);
 });
@@ -5652,7 +5662,9 @@ function renderTeams(){
   if(m.kind==='n'&&tcNormEff!=='worked'&&va1!=null&&va0!=null&&brA.d.length>=3){
     const tot=va1-va0, top=brA.d.slice().sort((p,q)=>tot>=0?q.d-p.d:p.d-q.d)[0];
     if(Math.abs(tot)>0&&top&&Math.sign(top.d)===Math.sign(tot)&&top.d/tot>=0.5)
-      notes.push(['amber',`<b>Much of ${esc(labA)}’s ${tot>0?'rise':'fall'} is one person:</b> ${esc(agentName(top.id))} accounts for ${tcFmt(key,Math.abs(top.d))} of the team’s ${tcFmt(key,Math.abs(tot))} ${tot>0?'extra':'fewer'} ${TC_NOUN[key]}${tcUnit(key)}.`]);
+      notes.push(['amber',top.d/tot>1
+        ? `<b>${esc(labA)}’s ${tot>0?'rise':'fall'} is one person:</b> ${esc(agentName(top.id))} alone has ${tcFmt(key,Math.abs(top.d))} ${tot>0?'extra':'fewer'} ${TC_NOUN[key]}${tcUnit(key)}, more than the whole team’s ${tcFmt(key,Math.abs(tot))}; the rest of the team ${tot>0?'fell':'rose'}.`
+        : `<b>Much of ${esc(labA)}’s ${tot>0?'rise':'fall'} is one person:</b> ${esc(agentName(top.id))} accounts for ${tcFmt(key,Math.abs(top.d))} of the team’s ${tcFmt(key,Math.abs(tot))} ${tot>0?'extra':'fewer'} ${TC_NOUN[key]}${tcUnit(key)}.`]);
   }
   // Headcount and days worked.
   if(tcNormEff!=='worked'&&m.kind==='n'){
@@ -5738,7 +5750,7 @@ window.addEventListener('resize',()=>{
 
 /* ---- section navigation ---- */
 const NAV_ALL=['sec-summary','sec-league','sec-compare','sec-teams','sec-trend','sec-spend','sec-industry','sec-salary','sec-data'];
-const NAV=()=>NAV_ALL.filter(id=>(id!=='sec-salary'||salaryOn())&&(id!=='sec-industry'||!!state.crm));
+const NAV=()=>NAV_ALL.filter(id=>((id!=='sec-salary'&&id!=='sec-compare')||salaryOn())&&(id!=='sec-industry'||!!state.crm));
 /* Sections must clear the sticky header when scrolled to, and the header
    changes height as it wraps, so measure it rather than guessing. */
 /* A table that fits its card needs no sideways scroll, and without one its
@@ -5836,20 +5848,62 @@ function initReveal(){
   });
 }
 
-/* Five quick clicks on the logo toggle the salary sections. Clicks must come
-   within 1.2 seconds of each other, so ordinary clicking never trips it. No
-   message is shown, only a small pulse on the logo, so nothing on screen
-   hints that anything is hidden. */
+/* Five quick clicks on the logo, then the code, show Salaries and
+   Comparison. Clicks must come within 1.2 seconds of each other, so ordinary
+   clicking never trips it. Five more clicks hide them again, no code needed.
+   The code is kept as a hash so it is not sitting in the page as plain text;
+   this keeps casual viewers out, it is not real security. */
+const UNLOCK_HASH=2652971323;
+function codeHash(t){ let h=2166136261; for(const ch of 'sig:'+t){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619)>>>0; } return h; }
+function askCode(){
+  return new Promise(resolve=>{
+    const wrap=document.createElement('div');
+    wrap.className='scrim';
+    wrap.innerHTML=`<div class="modal confirm codebox" role="dialog" aria-modal="true" aria-labelledby="ucT">
+      <div class="body">
+        <h3 id="ucT">Enter code</h3>
+        <input type="password" id="unlockCode" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="Code">
+        <p class="codeerr" aria-live="polite"></p>
+      </div>
+      <footer>
+        <button class="btn" data-no="1">Cancel</button>
+        <button class="btn btn-primary" data-yes="1">Unlock</button>
+      </footer>
+    </div>`;
+    document.body.appendChild(wrap);
+    const inp=wrap.querySelector('#unlockCode'), err=wrap.querySelector('.codeerr'), box=wrap.querySelector('.codebox');
+    const done=v=>{ wrap.remove(); document.removeEventListener('keydown',key); resolve(v); };
+    const tryIt=()=>{
+      if(codeHash(inp.value.trim())===UNLOCK_HASH) return done(true);
+      err.textContent='That code is not right.';
+      inp.value=''; inp.focus();
+      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    };
+    const key=e=>{ if(e.key==='Escape') done(false); if(e.key==='Enter'){ e.preventDefault(); tryIt(); } };
+    document.addEventListener('keydown',key);
+    wrap.addEventListener('click',e=>{
+      if(e.target===wrap||e.target.closest('[data-no]')) return done(false);
+      if(e.target.closest('[data-yes]')) tryIt();
+    });
+    inp.focus();
+  });
+}
 (function(){
   const logo=document.querySelector('.brand .logo');
   if(!logo) return;
-  let n=0, last=0;
-  logo.addEventListener('click',()=>{
+  let n=0, last=0, asking=false;
+  logo.addEventListener('click',async()=>{
     const now=Date.now();
     n = (now-last<1200) ? n+1 : 1;
     last=now;
-    if(n<5) return;
+    if(n<5||asking) return;
     n=0;
+    if(!salaryUnlocked){
+      asking=true;
+      const ok=await askCode();
+      asking=false;
+      if(!ok) return;
+    }
     salaryUnlocked=!salaryUnlocked;
     logo.classList.remove('pulse'); void logo.offsetWidth; logo.classList.add('pulse');
     render();
