@@ -711,6 +711,20 @@ svg{display:block;max-width:100%}
 .modal.confirm h3{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
 .modal.confirm .body p{font-size:14px;line-height:1.55;margin-bottom:18px}
 .codebox{max-width:340px}
+/* Upload progress */
+.loadscrim{align-items:center;z-index:70;cursor:progress}
+.loadcard{width:min(440px,100%);background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-pop);padding:20px 22px 18px;animation:riseIn .22s var(--ease) both}
+.lc-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.lc-title{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.lc-pct{font-size:13px;font-weight:600;color:var(--reg);font-variant-numeric:tabular-nums}
+.lc-file{font-size:12.5px;color:var(--ink-3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-bar{position:relative;height:8px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin:14px 0 10px}
+.lc-bar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:var(--reg);transition:width .3s var(--ease);overflow:hidden}
+.lc-bar i::after{content:'';position:absolute;inset:0;width:60%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);animation:lcShine 1.1s linear infinite}
+@keyframes lcShine{from{transform:translateX(-100%)}to{transform:translateX(220%)}}
+.lc-step{font-size:13px;color:var(--ink-2);line-height:1.45;min-height:19px}
 .codebox input[type=password]{font:inherit;font-size:20px;letter-spacing:.3em;text-align:center;width:100%;min-height:44px;
   padding:6px 10px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);margin:6px 0 0}
 .codebox input[type=password]:focus-visible{outline:none;border-color:var(--reg);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -1986,14 +2000,66 @@ function buildRows(matrix){
   return {rows:out,skipped,dates:dt,undated,spend:{o30:idx.o30!==undefined,o90:idx.o90!==undefined}};
 }
 
+/* ---------- upload progress ----------
+   Reading and working through a large report takes a few seconds, most of it
+   in steps that hold the page, so a card shows a bar and what is being done.
+   Between steps the page is given a moment to draw it. */
+const loader=(()=>{
+  let el=null;
+  const mb=n=>n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+  return {
+    mb,
+    show(title,file){
+      if(el) el.remove();
+      el=document.createElement('div');
+      el.className='scrim loadscrim';
+      el.innerHTML=`<div class="loadcard" role="status" aria-live="polite" aria-busy="true">
+        <div class="lc-top"><span class="lc-title">${esc(title)}</span><span class="lc-pct">0%</span></div>
+        <div class="lc-file">${esc(file)}</div>
+        <div class="lc-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+        <div class="lc-step">Starting…</div>
+      </div>`;
+      document.body.appendChild(el);
+    },
+    step(pct,text){
+      if(!el) return;
+      const p=Math.max(0,Math.min(100,Math.round(pct)));
+      el.querySelector('.lc-bar i').style.width=p+'%';
+      el.querySelector('.lc-bar').setAttribute('aria-valuenow',p);
+      el.querySelector('.lc-pct').textContent=p+'%';
+      if(text) el.querySelector('.lc-step').textContent=text;
+    },
+    hide(){ if(el){ el.remove(); el=null; } }
+  };
+})();
+const nextPaint=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+/* Reads a file while moving the bar from lo to hi as the bytes arrive. */
+function readWithProgress(file,asText,lo,hi){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onprogress=e=>{ if(e.lengthComputable) loader.step(lo+(hi-lo)*e.loaded/e.total,`Reading the file… ${loader.mb(e.loaded)} of ${loader.mb(e.total)}`); };
+    fr.onload=()=>{ loader.step(hi); resolve(fr.result); };
+    fr.onerror=()=>reject(new Error('That file could not be opened. Try saving it again and uploading the copy.'));
+    asText?fr.readAsText(file):fr.readAsArrayBuffer(file);
+  });
+}
+async function readUpload(file,lo,hi){
+  const xlsx=/\.(xlsx|xlsm)$/i.test(file.name);
+  const data=await readWithProgress(file,!xlsx,lo,hi);
+  loader.step(hi+2,xlsx?'Opening the Excel workbook…':'Splitting the file into rows…');
+  await nextPaint();
+  return {xlsx,data};
+}
+
 async function handleFile(file){
+  let msg=null, msgErr=false;
+  loader.show('Loading AB report',`${file.name} · ${loader.mb(file.size)}`);
   try{
-    let matrix;
-    if(/\.(xlsx|xlsm)$/i.test(file.name)){
-      matrix=await parseXLSX(await file.arrayBuffer());
-    }else{
-      matrix=parseCSV(await file.text(), /\.tsv$/i.test(file.name)?'\t':null);
-    }
+    await nextPaint();
+    const {xlsx,data}=await readUpload(file,0,30);
+    const matrix=xlsx?await parseXLSX(data):parseCSV(data, /\.tsv$/i.test(file.name)?'\t':null);
+    loader.step(45,`Reading ${fmt(Math.max(0,matrix.length-1))} rows: agents, dates and spend…`);
+    await nextPaint();
     const {rows,skipped,dates,undated,spend}=buildRows(matrix);
 
     state.rows=rows;
@@ -2007,21 +2073,31 @@ async function handleFile(file){
     for(const r of rows){
       if(!(r[F.AGENT] in state.settings.targets)) state.settings.targets[r[F.AGENT]]='';
     }
-    save();
+    loader.step(65,`Working out the league table, charts and commission for ${fmt(rows.length)} registrations…`);
+    await nextPaint();
+    const saving=save();
     render();
     const q=$('#search'); if(q) q.value=state.filters.q;
-    let msg=fmt(rows.length)+' registrations loaded'+(skipped?' \u00b7 '+fmt(skipped)+' rows skipped':'');
+    loader.step(88,'Saving the report on this device so it is here next time…');
+    await nextPaint();
+    await saving;
+    loader.step(100,'Done');
+    await new Promise(r=>setTimeout(r,250));
+    msg=fmt(rows.length)+' registrations loaded'+(skipped?' \u00b7 '+fmt(skipped)+' rows skipped':'');
     msg+=' \u00b7 dates read as '+(dates.order==='dmy'?'day/month/year':'month/day/year');
     if(filterCount()) msg+=' \u00b7 filters still applied';
     if(adjusted.length) msg+=' ('+[...new Set(adjusted)].join(' and ')+' adjusted)';
     msg+=(spend.o30&&spend.o90)?' · commission uses 30 and 90-day spend'
         :(spend.o30||spend.o90)?' · only one of F30d_ops and F90d_ops found'
         :' · no F30d_ops or F90d_ops column, so commission uses total net OPS';
-    toast(msg, dates.mixed);
+    msgErr=dates.mixed;
   }catch(err){
     console.error(err);
-    toast(err.message||'That file could not be read.',true);
+    msg=err.message||'That file could not be read.'; msgErr=true;
+  }finally{
+    loader.hide();
   }
+  if(msg) toast(msg,msgErr);
 }
 
 /* =======================================================================
@@ -2175,7 +2251,7 @@ function save(){
   // Settings changes call this too; the rows are only written when they changed.
   if(state._savedRows===state.rows) return;
   const rows=state.rows, seq=++saveSeq;
-  packRows(rows).then(packed=>{
+  return packRows(rows).then(packed=>{
     if(seq!==saveSeq) return;          // a newer report has replaced this one
     const res=store.set(K_DATA,packed);
     state._savedRows=rows;
@@ -4652,23 +4728,34 @@ $('#crmInput').onchange=async e=>{
   if(/\.numbers$/i.test(f.name)){
     return toast('Apple Numbers files cannot be read directly. In Numbers, use File then Export To then CSV or Excel, and upload that.',true);
   }
+  loader.show('Loading Celero report',`${f.name} · ${loader.mb(f.size)}`);
   try{
-    const sheets = /\.(xlsx|xlsm)$/i.test(f.name)
-      ? await parseXLSXSheets(await f.arrayBuffer())
-      : [{name:f.name, matrix:parseCSV(await f.text(), /\.tsv$/i.test(f.name)?'\t':null)}];
+    await nextPaint();
+    const {xlsx,data}=await readUpload(f,0,40);
+    const sheets = xlsx
+      ? await parseXLSXSheets(data)
+      : [{name:f.name, matrix:parseCSV(data, /\.tsv$/i.test(f.name)?'\t':null)}];
+    loader.step(60,`Reading ${fmt(sheets.reduce((n,s)=>n+Math.max(0,s.matrix.length-1),0))} visits and their Business IDs…`);
+    await nextPaint();
     const info=buildCrm(sheets);
+    loader.step(85,'Matching them against the AB report…');
+    await nextPaint();
     state.crm={file:f.name,at:Date.now(),...info};
     state.auditLimit=150; state.auditQ='';
     // A new report has its own earliest visit, so go back to that default.
     state.auditFrom=null; saveView();
     store.set(K_CRM,JSON.stringify(state.crm));
     render();
+    loader.step(100,'Done');
+    await new Promise(r=>setTimeout(r,200));
     toast(`${fmt(info.sheets.length)} sheet${info.sheets.length===1?'':'s'} read \u00b7 ${fmt(info.read)} rows \u00b7 `+
       `${fmt(info.rows.length)} businesses with an ID`+
       (info.blank?` \u00b7 ${fmt(info.blank)} without one`:''));
   }catch(err){
     console.error(err);
     toast(err.message||'That Celero file could not be read.',true);
+  }finally{
+    loader.hide();
   }
 };
 
