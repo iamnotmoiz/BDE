@@ -6066,7 +6066,11 @@ function askCode(){
    again, so anything later changed in Settings stays changed. Start dates
    already entered are kept. */
 const LONDON_EAST={'101':'Eram','102':'Esiri','119':'Yaqoob','121':'Tahawar','123':'Muhaad',
-  '129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie','147':'Darius'};
+  '129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie','147':'Darius',
+  '140':'Damola','153':'Martan'};
+/* New to London East since it was first set up: added once to settings
+   already saved. Someone already put in another team by hand stays there. */
+const JOINED_LONDON_EAST=['140','153'];
 /* People who have since left London East, applied once to settings already
    set up. 'keep' leaves the name (still with the business, no team for now);
    a name means they left the business, so that name comes off the code. A
@@ -6089,7 +6093,17 @@ function seedLondonEast(){
       }
       done.add(id); changed=true;
     }
-    if(changed){ S.leftLE=[...done]; clearStints(); store.set(K_SET,JSON.stringify(S)); }
+    const joined=new Set(S.joinedLE||[]);
+    for(const id of JOINED_LONDON_EAST){
+      if(joined.has(id)) continue;
+      S.teams=Object.assign({},S.teams||{}); S.names=Object.assign({},S.names||{}); S.employment=Object.assign({},S.employment||{});
+      if(!S.teams[id]||S.teams[id]==='Inactive') S.teams[id]='Team 1';
+      if(!(S.names[id]||'').trim()) S.names[id]=LONDON_EAST[id];
+      const cur=(S.employment[id]&&S.employment[id][0])||{};
+      if(!(cur.n||'').trim()) S.employment[id]=[{n:LONDON_EAST[id],s:cur.s||'',e:''}];
+      joined.add(id); changed=true;
+    }
+    if(changed){ S.leftLE=[...done]; S.joinedLE=[...joined]; clearStints(); store.set(K_SET,JSON.stringify(S)); }
     return;
   }
   S.teamNames=Object.assign({},S.teamNames||{},{'Team 1':'London East'});
@@ -6102,7 +6116,7 @@ function seedLondonEast(){
     const cur=(S.employment[id]&&S.employment[id][0])||{};
     S.employment[id]=[{n:name,s:cur.s||'',e:''}];
   }
-  S.seededLondonEast=true; S.leftLE=Object.keys(LEFT_LONDON_EAST);
+  S.seededLondonEast=true; S.leftLE=Object.keys(LEFT_LONDON_EAST); S.joinedLE=JOINED_LONDON_EAST.slice();
   clearStints();
   store.set(K_SET,JSON.stringify(S));
 }
