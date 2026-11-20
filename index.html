@@ -2169,7 +2169,9 @@ function loadView(){
         top:{dir:tp.dir==='bottom'?'bottom':'top', n:Number.isInteger(tp.n)&&tp.n>=1&&tp.n<=500?tp.n:20,
           by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
         xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
-        norm:['total','wd','worked'].includes(c.norm)?c.norm:'worked',
+        // Counts always open on Per day worked, the fair comparison; another
+        // choice lasts until the page is closed.
+        norm:'worked',
         metric:['act','comm','reg','target'].includes(c.metric)?c.metric:'act'};
     }
   }catch(e){ console.warn('Saved filters could not be read',e); }
