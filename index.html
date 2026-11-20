@@ -1589,7 +1589,7 @@ const teamOf=id=>(state.settings.teams||{})[id]||(autoInactive(id)?'Inactive':''
 /* Teams keep a fixed internal key ("Team 1") and carry a display name on top.
    Renaming therefore never breaks saved assignments or filters. */
 const teamLabel=t=>{
-  if(!t) return 'No team';
+  if(!t) return 'Remaining team';
   const n=((state.settings.teamNames||{})[t]||'').trim();
   return n||t;
 };
@@ -4468,7 +4468,7 @@ function openSettings(){
         <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
       <label class="setswitch">
         <input type="checkbox" id="aiOn"${aiCfg().on?' checked':''}>
-        <span>Put BDEs with no team into Inactive when they have fewer than
+        <span>Put BDEs in the Remaining team into Inactive when they have fewer than
           <input type="number" id="aiMin" class="inl" min="0" step="1" value="${esc(aiCfg().min)}" aria-label="Fewest registrations">
           registrations in the last
           <input type="number" id="aiWeeks" class="inl" min="1" max="52" step="1" value="${esc(aiCfg().weeks)}" aria-label="Weeks">
@@ -4487,7 +4487,7 @@ function openSettings(){
           <input type="text" data-emp-name="${esc(a)}|0" value="${esc(x.n||'')}" placeholder="Agent ${esc(a)}">
           <input type="date" data-emp-start="${esc(a)}|0" value="${esc(x.s||'')}">
           <select data-emp-team="${esc(a)}">
-            <option value="">${autoInactive(a)?'Inactive (auto)':'No team'}</option>
+            <option value="">${autoInactive(a)?'Inactive (auto)':'Remaining team'}</option>
             ${TEAMS.map(t=>`<option value="${esc(t)}"${(state.settings.teams||{})[a]===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
           </select>
           <button class="btn act iconly hovername dlbtn" data-export="${esc(a)}" data-name="Download AB rows" aria-label="Download this BDE's AB report rows as CSV">
@@ -5718,7 +5718,7 @@ function renderTeams(){
     <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Per day worked</b> divides them by the days the team’s BDEs signed anyone up, which takes out holidays, sickness and people joining or leaving.</p>
     <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
     <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
-    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from anyone Inactive (set in Settings, or no team and too few sign-ups lately). The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
+    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from anyone Inactive (set in Settings, or in the Remaining team with too few sign-ups lately). The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
   body.innerHTML=h;
   hint.textContent=`${labA} against ${labB} · ${PB.name} → ${PA.name}`;
   fitSoon();
@@ -5936,7 +5936,7 @@ function seedLondonEast(){
 
 /* A team that no longer exists (Team 5, after the list was cut to four) would
    leave its members unreachable: not offered in the filter and not choosable
-   in Settings. Anyone left on one is moved to No team, and filters and names
+   in Settings. Anyone left on one is moved to the Remaining team, and filters and names
    that mention it are tidied. Safe to run on every load. */
 function normaliseTeams(){
   const S=state.settings, known=new Set(TEAMS);
@@ -5979,7 +5979,7 @@ if(state.rows.length) reconcileFilters();
 })();
 render();
 if(swept.n) setTimeout(()=>toast(`Cleared ${mb(swept.freed)} left behind by older versions of the dashboard`),300);
-if(teamsMoved) setTimeout(()=>toast(`${teamsMoved} BDE${teamsMoved===1?' was':'s were'} on a team that no longer exists and ${teamsMoved===1?'has':'have'} been moved to No team. Reassign ${teamsMoved===1?'them':'them'} in Settings.`,true),600);
+if(teamsMoved) setTimeout(()=>toast(`${teamsMoved} BDE${teamsMoved===1?' was':'s were'} on a team that no longer exists and ${teamsMoved===1?'has':'have'} been moved to the Remaining team. Reassign ${teamsMoved===1?'them':'them'} in Settings.`,true),600);
 if(state.rows.length && state.meta){
   const n=filterCount();
   toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:''));
