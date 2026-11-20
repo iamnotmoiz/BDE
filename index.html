@@ -963,7 +963,6 @@ ul.insights li.warn::before{content:'!';background:var(--near-bg);color:var(--ne
 #tcMatrix td:nth-child(4),#tcMatrix th:nth-child(3){border-right:1px solid var(--rule-2)}
 #tcMatrix tbody td:nth-child(7){border-right:1px solid var(--rule-2)}
 #tcMatrix tbody tr{cursor:pointer}
-#tcMatrix tbody tr.nolead{cursor:default}
 #tcMatrix tbody tr.sel td{background:var(--detail-bg)}
 #tcMatrix tbody tr.sel td.agentcell{box-shadow:inset 3px 0 0 var(--reg)}
 #tcMatrix .cnum,#tcPeople .cnum{font-weight:600;font-variant-numeric:tabular-nums}
@@ -5828,7 +5827,7 @@ function renderTeams(){
   h+=`<h3 class="cmph">Every measure</h3><div class="tablewrap"><table id="tcMatrix"><thead>
     <tr><th class="no-sort" rowspan="2">Measure</th><th class="no-sort c grp a" colspan="3"><span class="tsw a"></span>${esc(labA)}</th><th class="no-sort c grp b" colspan="3"><span class="tsw b"></span>${esc(labB)}</th><th class="no-sort r grp" rowspan="2">${esc(labA)}<br>against ${esc(labB)}</th></tr>
     <tr><th class="no-sort r">Before</th><th class="no-sort r">After</th><th class="no-sort r">Change</th><th class="no-sort r">Before</th><th class="no-sort r">After</th><th class="no-sort r">Change</th></tr></thead><tbody>`;
-  for(const k of CMP_ORDER){
+  for(const k of TC_LEAD){
     const x0=v(k,A0,SB), x1=v(k,A1,SA), y0=v(k,B0,SB), y1=v(k,B1,SA);
     const e=tcEffect(k,x0,x1,y0,y1), M=CMP_METRICS[k];
     let ec='<span class="was">—</span>';
@@ -5838,7 +5837,7 @@ function renderTeams(){
       if(M.kind==='n'){ const ch=tcChance({a0:M.v(A0),a1:M.v(A1),b0:M.v(B0),b1:M.v(B1)},phi[k],e.rel);
         ec+=`<small class="was">${!ch?'too few':ch.lo>0||ch.hi<0?'beyond chance':'could be chance'}</small>`; }
     }
-    h+=`<tr${TC_LEAD.includes(k)?` data-tm="${k}"`:' class="nolead"'}${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
+    h+=`<tr data-tm="${k}"${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
       <td class="r">${tcFmt(k,x0)}</td><td class="r cnum">${tcFmt(k,x1)}</td><td class="r">${tcChip(k,tcGrowth(k,x0,x1))}</td>
       <td class="r">${tcFmt(k,y0)}</td><td class="r cnum">${tcFmt(k,y1)}</td><td class="r">${tcChip(k,tcGrowth(k,y0,y1))}</td>
       <td class="r">${ec}</td></tr>`;
