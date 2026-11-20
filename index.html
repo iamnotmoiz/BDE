@@ -921,6 +921,8 @@ ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(
 :root{--tc-a:var(--ver);--tc-b:var(--act)}
 .tcbar{margin-bottom:12px}
 .tcbar+.tcbar{margin-top:-2px}
+.tcbar input.nsm{width:84px;min-width:0}
+.tcnote{font-size:12.5px;color:var(--ink-3);line-height:1.5;margin:-4px 0 14px;max-width:110ch}
 .tcbar .vs{align-self:flex-end;line-height:var(--ctl);font-size:12px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
 .tcbar .rng{display:flex;align-items:center;gap:6px}
 .tcbar .rng span{color:var(--ink-3)}
@@ -1390,7 +1392,7 @@ const state={
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1},
   cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1},
-  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'act'}
+  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
 };
 
 /* =======================================================================
@@ -1604,6 +1606,7 @@ const teamOf=id=>(state.settings.teams||{})[id]||(autoInactive(id)?'Inactive':''
    Renaming therefore never breaks saved assignments or filters. */
 const teamLabel=t=>{
   if(!t) return 'Remaining team';
+  if(t==='Inactive') return 'Inactive codes';
   const n=((state.settings.teamNames||{})[t]||'').trim();
   return n||t;
 };
@@ -2160,7 +2163,10 @@ function loadView(){
       const isD=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)?x:null;
       const isM=n=>Number.isInteger(n)&&n%100>=1&&n%100<=12&&n>200000&&n<300000?n:null;
       const isT=x=>typeof x==='string'&&(x==='*'||x===''||TEAMS.includes(x))?x:null;
-      state.tcmp={a:isT(c.a), b:isT(c.b), mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
+      const tp=c.top&&typeof c.top==='object'?c.top:{};
+      state.tcmp={a:isT(c.a), b:c.b==='top'?'top':isT(c.b),
+        top:{dir:tp.dir==='bottom'?'bottom':'top', n:Number.isInteger(tp.n)&&tp.n>=1&&tp.n<=500?tp.n:20,
+          by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
         xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
         norm:['total','wd','worked'].includes(c.norm)?c.norm:'auto',
         metric:['reg','perDay','target','act','comm','a14','spendPer'].includes(c.metric)?c.metric:'act'};
@@ -4544,12 +4550,12 @@ function openSettings(){
         <i class="info" tabindex="0" data-tip="A start date limits commission to businesses that both registered and spent on or after that day, so a new starter does not inherit anyone else's back catalogue. Leave it empty if the person has held the code throughout. The team decides who appears under the Teams filter.">i</i></h4>
       <label class="setswitch">
         <input type="checkbox" id="aiOn"${aiCfg().on?' checked':''}>
-        <span>Put BDEs in the Remaining team into Inactive when they have fewer than
+        <span>Put BDEs in the Remaining team into Inactive codes when they have fewer than
           <input type="number" id="aiMin" class="inl" min="0" step="1" value="${esc(aiCfg().min)}" aria-label="Fewest registrations">
           registrations in the last
           <input type="number" id="aiWeeks" class="inl" min="1" max="52" step="1" value="${esc(aiCfg().weeks)}" aria-label="Weeks">
           weeks of the report
-          <i class="info" tabindex="0" data-tip="Checked again with every report, counting back from its latest sign-up, so someone who picks up again comes out of Inactive by themselves. Anyone you have put in a team stays in it. Inactive is not a team: it is left out of Everyone else and of the teams offered under Team growth.">i</i></span>
+          <i class="info" tabindex="0" data-tip="Checked again with every report, counting back from its latest sign-up, so someone who picks up again comes out of Inactive codes by themselves. Anyone you have put in a team stays in it. Inactive codes are left out of Everyone else and of the top and bottom groups in Team growth, and can be compared there on their own.">i</i></span>
       </label>
       <div class="teamnames">
         ${TEAMS.filter(t=>t!=='Inactive').map(t=>`<div class="field"><label for="tn-${esc(t.replace(/\s/g,''))}">${esc(t)} name</label>
@@ -4563,7 +4569,7 @@ function openSettings(){
           <input type="text" data-emp-name="${esc(a)}|0" value="${esc(x.n||'')}" placeholder="Agent ${esc(a)}">
           <input type="date" data-emp-start="${esc(a)}|0" value="${esc(x.s||'')}">
           <select data-emp-team="${esc(a)}">
-            <option value="">${autoInactive(a)?'Inactive (auto)':'Remaining team'}</option>
+            <option value="">${autoInactive(a)?'Inactive codes (auto)':'Remaining team'}</option>
             ${TEAMS.map(t=>`<option value="${esc(t)}"${(state.settings.teams||{})[a]===t?' selected':''}>${esc(teamLabel(t))}</option>`).join('')}
           </select>
           <button class="btn act iconly hovername dlbtn" data-export="${esc(a)}" data-name="Download AB rows" aria-label="Download this BDE's AB report rows as CSV">
@@ -5361,7 +5367,10 @@ window.addEventListener('resize',()=>{
 const TC_OTHERS='*';
 const TC_NOUN={reg:'registrations',perDay:'sign-ups per day worked',target:'days on target',act:'activations',
   comm:'commission-qualified activations',a14:'the share spending within 14 days',spendPer:'spend per activation'};
-const tcLabel=k=>k===TC_OTHERS?'Everyone else':teamLabel(k);
+const TC_TOP='top';
+const TC_BY={act:'activations',reg:'registrations',comm:'commission qualified'};
+const tcTopCfg=()=>Object.assign({dir:'top',n:20,by:'act',on:'before'},state.tcmp.top||{});
+const tcLabel=k=>k===TC_OTHERS?'Everyone else':k===TC_TOP?(()=>{ const t=tcTopCfg(); return `Other ${t.dir} ${t.n} by ${TC_BY[t.by]}`; })():teamLabel(k);
 function tcGroups(){
   const ags=allAgents(), by={};
   for(const a of ags){ const t=teamOf(a); (by[t]=by[t]||[]).push(a); }
@@ -5379,8 +5388,28 @@ function tcPick(G){
   const real=keys.filter(k=>k);
   const a=keys.includes(c.a)?c.a:(real[0]??keys[0]);
   let b=c.b;
-  if(!(b===TC_OTHERS||(keys.includes(b)&&b!==a))) b=real.find(k=>k!==a)??TC_OTHERS;
+  const ok=b===TC_OTHERS||b===TC_TOP||(b==='Inactive'&&(G.by.Inactive||[]).length)||(keys.includes(b)&&b!==a);
+  if(!ok) b=real.find(k=>k!==a)??TC_OTHERS;
   return {a,b};
+}
+/* The top or bottom few of everyone outside the first team (Inactive codes
+   left out), ranked on a count in the Before period, the After period or
+   both. Only BDEs who signed anyone up in that time are ranked. */
+function tcTop(aKey,G,PB,PA,span){
+  const t=tcTopCfg();
+  const pool=G.ags.filter(id=>teamOf(id)!==aKey&&teamOf(id)!=='Inactive'), set=new Set(pool), inc=id=>set.has(id);
+  const per=t.on==='before'?[PB]:t.on==='after'?[PA]:[PB,PA];
+  const score=new Map();
+  for(const P of per){
+    const src=state.rows.filter(r=>set.has(r[F.AGENT])&&((r[F.REGD]>=P.from&&r[F.REGD]<=P.to)||(r[F.ACTD]>=P.from&&r[F.ACTD]<=P.to)));
+    for(const [id,a] of cmpStats(P,span,inc,src).per){
+      const o=score.get(id)||{reg:0,act:0,comm:0};
+      o.reg+=a.reg; o.act+=a.act; o.comm+=a.comm; score.set(id,o);
+    }
+  }
+  const ranked=[...score.entries()].filter(([,o])=>o.reg>0)
+    .sort((p,q)=>(t.dir==='top'?q[1][t.by]-p[1][t.by]:p[1][t.by]-q[1][t.by])||(q[1].reg-p[1].reg)||String(p[0]).localeCompare(String(q[0]),undefined,{numeric:true}));
+  return {ids:ranked.slice(0,t.n).map(x=>x[0]), pool:ranked.length, scores:new Map(ranked), t};
 }
 function tcSum(S,ids){
   const t={reg:0,nDays:0,act:0,comm:0,open:0,ops:0,m14:0,a14:0,hit:0,active:0,heads:0};
@@ -5609,9 +5638,10 @@ function renderTeams(){
   if(!P){ body.innerHTML='<p class="auditempty">Upload a report to compare teams.</p>'; hint.textContent=''; return; }
   const G=tcGroups();
   const {a,b}=tcPick(G);
-  const idsA=a==null?[]:tcMembers(a,a,G), idsB=a==null?[]:tcMembers(b,a,G);
-  const labA=tcLabel(a), labB=tcLabel(b);
   const [PA,PB]=P;  // After (the later period), Before
+  const top=b===TC_TOP&&a!=null?tcTop(a,G,PB,PA,span):null;
+  const idsA=a==null?[]:tcMembers(a,a,G), idsB=a==null?[]:top?top.ids:tcMembers(b,a,G);
+  const labA=tcLabel(a), labB=tcLabel(b);
   // Controls.
   const teamOpt=(sel,skip)=>G.list.filter(g=>g.key!==skip).map(g=>`<option value="${esc(g.key)}"${g.key===sel?' selected':''}>${esc(teamLabel(g.key))} (${g.ids.length})</option>`).join('');
   const months=dataMonths(span);
@@ -5619,8 +5649,27 @@ function renderTeams(){
   let h=`<div class="toolbar tcbar">
     <div class="field"><label for="tcA"><span class="tsw a"></span>Team</label><select id="tcA">${teamOpt(a)}</select></div>
     <span class="vs" aria-hidden="true">vs</span>
-    <div class="field"><label for="tcB"><span class="tsw b"></span>Against</label><select id="tcB">${teamOpt(b,a)}<option value="${TC_OTHERS}"${b===TC_OTHERS?' selected':''}>Everyone else (${tcMembers(TC_OTHERS,a,G).length})</option></select></div>
-  </div><div class="toolbar tcbar">`;
+    <div class="field"><label for="tcB"><span class="tsw b"></span>Against</label><select id="tcB">
+      <optgroup label="Teams">${teamOpt(b,a)}</optgroup>
+      <optgroup label="Other groups">
+        ${(G.by.Inactive||[]).length?`<option value="Inactive"${b==='Inactive'?' selected':''}>Inactive codes (${G.by.Inactive.length})</option>`:''}
+        <option value="${TC_OTHERS}"${b===TC_OTHERS?' selected':''}>Everyone else (${tcMembers(TC_OTHERS,a,G).length})</option>
+        <option value="${TC_TOP}"${b===TC_TOP?' selected':''}>Top or bottom performers…</option>
+      </optgroup></select></div>`;
+  if(top){
+    const t=top.t;
+    h+=`<div class="field"><label>Pick the</label><div class="seg" id="tcTopDir"><button data-k="top" aria-pressed="${t.dir==='top'}">Top</button><button data-k="bottom" aria-pressed="${t.dir==='bottom'}">Bottom</button></div></div>
+      <div class="field"><label for="tcTopN">How many</label><input type="number" id="tcTopN" class="nsm" min="1" max="500" step="1" value="${t.n}"></div>
+      <div class="field"><label for="tcTopBy">By</label><select id="tcTopBy">${Object.entries(TC_BY).map(([k,l])=>`<option value="${k}"${t.by===k?' selected':''}>${l[0].toUpperCase()+l.slice(1)}</option>`).join('')}</select></div>
+      <div class="field"><label for="tcTopOn">Ranked on</label><select id="tcTopOn"><option value="before"${t.on==='before'?' selected':''}>The Before period</option><option value="after"${t.on==='after'?' selected':''}>The After period</option><option value="both"${t.on==='both'?' selected':''}>Both periods</option></select></div>`;
+  }
+  h+=`</div>`;
+  if(top){
+    const on=top.t.on==='before'?'the Before period':top.t.on==='after'?'the After period':'both periods';
+    const who=top.ids.slice(0,8).map(id=>`${esc(agentName(id))} ${fmt(top.scores.get(id)[top.t.by])}`).join(', ')+(top.ids.length>8?`, and ${top.ids.length-8} more`:'');
+    h+=`<p class="tcnote">${top.pool<top.t.n?`Only ${top.pool} BDE${top.pool===1?'':'s'} outside ${esc(labA)} signed anyone up in ${on}, so all of them are used.`:`The ${top.t.dir} ${top.t.n} of ${top.pool} BDEs outside ${esc(labA)}, by ${TC_BY[top.t.by]} in ${on}.`}${who?` ${who}.`:''}</p>`;
+  }
+  h+=`<div class="toolbar tcbar">`;
   if(c.mode==='month'){
     const yExtra=months.includes(PB.m)?'':`<option value="${PB.m}" selected>${monthLabel(PB.m)}</option>`;
     h+=`<div class="field"><label for="tcYm">Before</label><select id="tcYm">${yExtra}${mOpts(PB.m,PA.m)}</select></div>
@@ -5759,6 +5808,11 @@ function renderTeams(){
     if(dA!=null&&dB!=null&&Math.abs(dA-dB)>0.1)
       notes.push(['amber',`<b>Days worked changed unevenly:</b> ${esc(labA)} ${dA>=0?'+':'−'}${Math.abs(Math.round(dA*100))}%, ${esc(labB)} ${dB>=0?'+':'−'}${Math.abs(Math.round(dB*100))}% (a working day). Choose <b>Per day worked</b> to compare output with holidays and headcount taken out.`]);
   }
+  if(top&&top.ids.length){
+    const t=top.t;
+    if(t.on==='after') notes.push(['amber',`<b>${esc(labB)} were picked for how they did After,</b> so they are partly chosen for doing ${t.dir==='top'?'well':'badly'} after the change. Rank on <b>The Before period</b> for a fairer test.`]);
+    else notes.push(['flat',`<b>${t.dir==='top'?'Top':'Bottom'} performers tend to ${t.dir==='top'?'slip back':'pick up'} a little</b> in the next period even when nothing changes, because some of a ${t.dir==='top'?'very good':'very poor'} spell is luck. Keep that in mind when reading ${esc(labB)}’s change.`]);
+  }
   if(key==='comm'&&(A1.open||B1.open)) notes.push(['flat',`Not final yet: ${fmt(A1.open+B1.open)} activations in the After period have not qualified but are still inside their spending window.`]);
   if(key==='a14'&&(va1==null||vb1==null)) notes.push(['flat','Spent within 14 days needs sign-ups at least 14 days old; the After period is too recent for it.']);
   if(notes.length) h+=`<h3 class="cmph">Worth knowing</h3><ul class="insights">${notes.map(([t,s])=>`<li class="${t==='amber'?'warn':t}">${s}</li>`).join('')}</ul>`;
@@ -5805,7 +5859,7 @@ function renderTeams(){
     <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Per day worked</b> divides them by the days the team’s BDEs signed anyone up, which takes out holidays, sickness and people joining or leaving.</p>
     <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
     <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
-    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from anyone Inactive (set in Settings, or in the Remaining team with too few sign-ups lately). The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
+    <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from <b>Inactive codes</b> (set in Settings, or in the Remaining team with too few sign-ups lately), which can be chosen on their own. <b>Top or bottom performers</b> ranks everyone outside the first team (Inactive codes left out) by activations, registrations or commission qualified, in the period you choose, and takes the top or bottom few. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
   body.innerHTML=h;
   hint.textContent=`${labA} against ${labB} · ${PB.name} → ${PA.name}`;
   fitSoon();
@@ -5814,6 +5868,7 @@ $('#sec-teams').addEventListener('click',e=>{
   const c=state.tcmp, b=e.target.closest('button[data-k]'), tr=e.target.closest('tr[data-tm]');
   if(b&&b.closest('#tcMode')){ if(c.mode===b.dataset.k) return; c.mode=b.dataset.k; }
   else if(b&&b.closest('#tcNorm')){ c.norm=b.dataset.k; }
+  else if(b&&b.closest('#tcTopDir')){ c.top=Object.assign(tcTopCfg(),{dir:b.dataset.k}); }
   else if(b&&b.closest('#tcMetric')){ if(c.metric===b.dataset.k) return; c.metric=b.dataset.k; }
   else if(tr){ if(c.metric===tr.dataset.tm) return; c.metric=tr.dataset.tm; }
   else return;
@@ -5823,6 +5878,9 @@ $('#sec-teams').addEventListener('change',e=>{
   const c=state.tcmp, t=e.target, span=dataSpan(); if(!span) return;
   if(t.id==='tcA'){ c.a=t.value; if(c.b===c.a) c.b=null; }
   else if(t.id==='tcB'){ c.b=t.value; }
+  else if(t.id==='tcTopN'){ const n=Math.round(+t.value); if(!(n>=1)) return; c.top=Object.assign(tcTopCfg(),{n:Math.min(500,n)}); }
+  else if(t.id==='tcTopBy'){ c.top=Object.assign(tcTopCfg(),{by:t.value}); }
+  else if(t.id==='tcTopOn'){ c.top=Object.assign(tcTopCfg(),{on:t.value}); }
   else if(!periodInput(c,t,'tc',span)) return;
   saveView(); renderTeams();
 });
