@@ -30,6 +30,7 @@
   --s-good:#2E6B57;
   --s-mid:#C89A3C;
   --s-none:#DFE4DD;
+  --s-open:#B9C7BF;
   --ease:cubic-bezier(.22,.8,.3,1);
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -82,6 +83,7 @@
   --s-good:#3C8E72;
   --s-mid:#BE9647;
   --s-none:#313B36;
+  --s-open:#4C5E55;
   --shadow:0 1px 2px rgba(0,0,0,.45),0 8px 24px -16px rgba(0,0,0,.8);
   --shadow-hover:0 1px 2px rgba(0,0,0,.45),0 14px 30px -24px rgba(0,0,0,.9);
   --shadow-card:0 10px 24px -18px rgba(0,0,0,.9);
@@ -2115,7 +2117,7 @@ function saveView(){
     wFrom:f.wFrom, wTo:f.wTo,
     agents:f.agents?[...f.agents]:null,
     teams:f.teams?[...f.teams]:null, q:f.q, mode:f.mode||'week', dFrom:f.dFrom||null, dTo:f.dTo||null,
-    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom, cmp:state.cmp, tcmp:state.tcmp
+    sort:state.sort, grain:state.grain, trendMode:state.trendMode, salaryMonths:state.salaryMonths, view:state.view, auditTill:state.auditTill, salarySort:state.salarySort, auditSort:state.auditSort, drawerGrain:state.drawerGrain, detailShow:state.detailShow, trendOff:state.trendOff||[], showWeekends:state.showWeekends, auditAgent:state.auditAgent, indSort:state.indSort, auditFrom:state.auditFrom, cmp:state.cmp, tcmp:state.tcmp, qualSort:state.qualSort
   }));
   paintFilterState();
 }
@@ -2148,6 +2150,7 @@ function loadView(){
     if(typeof v.auditAgent==='string') state.auditAgent=v.auditAgent;
     if(v.indSort&&v.indSort.key) state.indSort=v.indSort;
     if(typeof v.auditFrom==='string') state.auditFrom=v.auditFrom;
+    if(v.qualSort&&QSORTS[v.qualSort.key]&&(v.qualSort.dir===1||v.qualSort.dir===-1)) state.qualSort=v.qualSort;
     if(v.cmp&&typeof v.cmp==='object'){
       const c=v.cmp;
       const isD=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)?x:null;
@@ -3680,38 +3683,102 @@ function renderTrend(rows,keys){
   bindCharts(body);
 }
 
+/* From registration to spend. Two different questions, kept apart:
+   - Conversion is the league table's own figure, so the two always agree:
+     activations in these weeks (by the date the customer spent, whenever they
+     registered) divided by registrations in these weeks.
+   - The bar and the shares follow only the businesses registered in these
+     weeks, to where each one has got to. A business whose commission window
+     is still open and has not spent is "Not spent yet", not "Never spent". */
+const QSORTS={
+  name:d=>agentName(d.id).toLowerCase(), reg:d=>d.reg, conv:d=>d.conv??-1, spent:d=>d.p(d.act),
+  comm:d=>d.p(d.comm), open:d=>d.p(d.open), never:d=>d.p(d.never), opr:d=>d.reg?d.ops/d.reg:0
+};
+function qualityData(rows){
+  const c=commCfg(), cut=new Date(c.cutover+'T00:00:00').getTime(), asAt=reportDate();
+  const isOpen=r=>windowEnd(r[F.REGD],r[F.REGD]>=cut?c.newMonths:c.oldMonths)>asAt;
+  const aw=byRegBasis()?null:actAgg(activationRows());
+  const per=new Map();
+  const tot={id:null,reg:0,act:0,comm:0,low:0,lowOpen:0,open:0,never:0,ops:0,lact:0};
+  for(const r of rows){
+    if(!r[F.POST]) continue;
+    const id=r[F.AGENT];
+    let d=per.get(id); if(!d){ d={id,reg:0,act:0,comm:0,low:0,lowOpen:0,open:0,never:0,ops:0}; per.set(id,d); }
+    const open=r[F.REGD]&&isOpen(r);
+    d.reg++; d.ops+=r[F.OPS];
+    if(r[F.ACTD]){ d.act++; if(qualifies(r)) d.comm++; else{ d.low++; if(open) d.lowOpen++; } }
+    else if(open) d.open++; else d.never++;
+  }
+  const list=[...per.values()].map(d=>{
+    d.lact=aw?((aw.get(d.id)||{}).act||0):d.act;
+    d.conv=d.reg?d.lact/d.reg*100:null;
+    d.p=v=>d.reg?v/d.reg*100:0;
+    for(const k of ['reg','act','comm','low','lowOpen','open','never','ops','lact']) tot[k]+=d[k];
+    return d;
+  });
+  tot.p=v=>tot.reg?v/tot.reg*100:0; tot.conv=tot.reg?tot.lact/tot.reg*100:null;
+  return {list,tot};
+}
 function renderQuality(rows){
-  const m=byAgent(rows);
-  const ids=[...m.keys()].sort((a,b)=>pct(m.get(b).comm,m.get(b).reg)-pct(m.get(a).comm,m.get(a).reg));
-  const tot=blank(); for(const r of rows) add(tot,r);
-
+  const {list,tot}=qualityData(rows);
+  const s=state.qualSort&&QSORTS[state.qualSort.key]?state.qualSort:{key:'comm',dir:-1};
+  const k=s.key, dir=s.dir;
+  list.sort((a,b)=>{ const x=QSORTS[k](a), y=QSORTS[k](b);
+    if(x===y) return agentName(a.id).localeCompare(agentName(b.id));
+    return typeof x==='string'?dir*x.localeCompare(y):dir*(x-y); });
+  const anyOpen=tot.open>0||tot.lowOpen>0;
+  const r0=v=>Math.round(v)+'%';
+  const regBasis=byRegBasis();
+  const cols=[
+    {k:'name',l:'BDE'},
+    {k:null,l:'Where the registrations end up',cls:'no-sort'},
+    {k:'reg',l:'Registrations',cls:'r'},
+    {k:'conv',l:'Conversion',cls:'r',tip:regBasis?'Registrations in these weeks that have since spent, divided by registrations in these weeks. The same figure as the league table.'
+      :'Activations in these weeks (by the date the customer spent, whenever they registered) divided by registrations in these weeks. The same figure as the league table.'},
+    {k:'spent',l:'Spent so far',cls:'r',tip:'Of the businesses registered in these weeks, the share that have spent by the end of the report'},
+    {k:'comm',l:'Commission qualified',cls:'r',tip:'Of the businesses registered in these weeks, the share that earn commission'},
+    ...(anyOpen?[{k:'open',l:'Not spent yet',cls:'r',tip:'Registered in these weeks, not spent, and still inside the commission window, so they can still count'}]:[]),
+    {k:'never',l:'Never spent',cls:'r',tip:'Registered in these weeks, not spent, and the commission window has closed'},
+    {k:'opr',l:'Net OPS per registration',cls:'r'}
+  ];
   let h=`<div class="legend" style="margin-bottom:16px">
     <span><i class="sq" style="background:var(--s-good)"></i>Commission qualified</span>
-    <span><i class="sq" style="background:var(--s-mid)"></i>Spent, no commission</span>
+    <span><i class="sq" style="background:var(--s-mid)"></i>Spent, no commission${anyOpen?' so far':''}</span>
+    ${anyOpen?'<span><i class="sq" style="background:var(--s-open)"></i>Not spent yet, still in the window</span>':''}
     <span><i class="sq" style="background:var(--s-none)"></i>Never spent</span>
   </div>`;
-  h+='<div class="tablewrap"><table><thead><tr><th class="no-sort">BDE</th><th class="no-sort">Where the registrations end up</th><th class="r no-sort">Registrations</th><th class="r no-sort">Activated</th><th class="r no-sort">Commission qualified</th><th class="r no-sort">Net OPS per registration</th></tr></thead><tbody>';
-  for(const id of ids){
-    const a=m.get(id);
-    h+=`<tr><td class="agentcell">${esc(agentName(id))}</td>
+  h+='<div class="tablewrap"><table id="qualTable"><thead><tr>'+cols.map(c=>{
+    const arrow=c.k&&c.k===k?`<span class="arrow">${dir<0?'▼':'▲'}</span>`:'';
+    return `<th class="${c.cls||''}"${c.k?` data-qsort="${c.k}"`:''}${c.tip?` title="${esc(c.tip)}"`:''}>${c.l}${arrow}</th>`;
+  }).join('')+'</tr></thead><tbody>';
+  for(const d of list){
+    const cv=d.conv, ccls=cv==null?'none':(cv>50?'hit':cv>=25?'near':'miss');
+    h+=`<tr><td class="agentcell">${esc(agentName(d.id))}</td>
       <td>${stackBar([
-        {k:'Commission qualified',v:a.comm,c:'var(--s-good)'},
-        {k:'Spent, no commission',v:a.actLow,c:'var(--s-mid)'},
-        {k:'Never spent',v:a.dead,c:'var(--s-none)',t:'var(--ink-2)'}
-      ],a.reg,300)}</td>
-      <td class="r num">${fmt(a.reg)}</td>
-      <td class="r num">${pct(a.act,a.reg)}%</td>
-      <td class="r num">${pct(a.comm,a.reg)}%</td>
-      <td class="r num">${fmtOps(a.reg?a.ops/a.reg:0)}</td></tr>`;
+        {k:'Commission qualified',v:d.comm,c:'var(--s-good)'},
+        {k:d.lowOpen?`Spent, no commission so far (${fmt(d.lowOpen)} can still qualify)`:'Spent, no commission',v:d.low,c:'var(--s-mid)'},
+        {k:'Not spent yet, still in the window',v:d.open,c:'var(--s-open)',t:'var(--ink-2)'},
+        {k:'Never spent',v:d.never,c:'var(--s-none)',t:'var(--ink-2)'}
+      ],d.reg,300)}</td>
+      <td class="r num">${fmt(d.reg)}</td>
+      <td class="r"><span class="pill ${ccls}" title="${esc(`${fmt(d.lact)} activations ÷ ${fmt(d.reg)} registrations`)}">${cv==null?'—':r0(cv)}</span></td>
+      <td class="r num" title="${esc(`${fmt(d.act)} of ${fmt(d.reg)}`)}">${r0(d.p(d.act))}</td>
+      <td class="r num" title="${esc(`${fmt(d.comm)} of ${fmt(d.reg)}`)}">${r0(d.p(d.comm))}</td>
+      ${anyOpen?`<td class="r num" title="${esc(`${fmt(d.open)} of ${fmt(d.reg)}`)}">${r0(d.p(d.open))}</td>`:''}
+      <td class="r num" title="${esc(`${fmt(d.never)} of ${fmt(d.reg)}`)}">${r0(d.p(d.never))}</td>
+      <td class="r num">${fmtOps(d.reg?d.ops/d.reg:0)}</td></tr>`;
   }
   h+='</tbody></table></div>';
+  const diff=!regBasis&&list.some(d=>d.reg&&Math.round(d.conv)!==Math.round(d.p(d.act)));
+  if(diff) h+=notesList([['',`<b>Conversion</b> is the league table’s figure: all activations in these weeks, including businesses that registered earlier, divided by registrations in these weeks. <b>Spent so far</b> follows only the businesses registered in these weeks, so for recent weeks it is lower: many have not had time to spend yet.`]]);
 
-  h+='<div class="minitiles">'+
-  [
-    {k:'Commission qualified',v:tot.comm,s:`${pct(tot.comm,tot.reg)}% of registrations`,c:'var(--s-good)'},
-    {k:'Spent, no commission',v:tot.actLow,s:`${pct(tot.actLow,tot.reg)}% spent but earned nothing: too little, or outside the window`,c:'var(--s-mid)'},
-    {k:'Never spent',v:tot.dead,s:`${pct(tot.dead,tot.reg)}% of registrations`,c:'var(--s-none)'}
-  ].map(c=>`<div class="minitile">
+  const tiles=[
+    {k:'Commission qualified',v:tot.comm,s:`${r0(tot.p(tot.comm))} of registrations`,c:'var(--s-good)'},
+    {k:'Spent, no commission'+(anyOpen?' so far':''),v:tot.low,s:tot.lowOpen?`${r0(tot.p(tot.low))} spent below the line; ${fmt(tot.lowOpen)} of them are still in their window and can still qualify`:`${r0(tot.p(tot.low))} spent but earned nothing: too little, or outside the window`,c:'var(--s-mid)'},
+    ...(anyOpen?[{k:'Not spent yet',v:tot.open,s:`${r0(tot.p(tot.open))} still inside their commission window`,c:'var(--s-open)'}]:[]),
+    {k:'Never spent',v:tot.never,s:`${r0(tot.p(tot.never))} of registrations, window closed`,c:'var(--s-none)'}
+  ];
+  h+='<div class="minitiles">'+tiles.map(c=>`<div class="minitile">
       <div class="mk"><i class="sw" style="background:${c.c}"></i>${esc(c.k)}</div>
       <div class="mv num">${fmt(c.v)}</div>
       <div class="ms">${esc(c.s)}</div>
@@ -3719,6 +3786,12 @@ function renderQuality(rows){
   $('#qualityBody').innerHTML=h;
   fitSoon();
 }
+$('#qualityBody').addEventListener('click',e=>{
+  const th=e.target.closest('th[data-qsort]'); if(!th) return;
+  const key=th.dataset.qsort, cur=state.qualSort||{key:'comm',dir:-1};
+  state.qualSort=cur.key===key?{key,dir:-cur.dir}:{key,dir:key==='name'?1:-1};
+  saveView(); renderQuality(filtered());
+});
 
 function renderAudit(){
   const body=$('#auditBody'), hint=$('#auditHint');
