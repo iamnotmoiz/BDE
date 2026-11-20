@@ -6066,29 +6066,43 @@ function askCode(){
    again, so anything later changed in Settings stays changed. Start dates
    already entered are kept. */
 const LONDON_EAST={'101':'Eram','102':'Esiri','119':'Yaqoob','121':'Tahawar','123':'Muhaad',
-  '127':'Mamnur','129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie',
-  '147':'Darius','149':'Jagdish'};
-const LEFT_LONDON_EAST=['139'];   // Ameeta, from November 2026
+  '129':'Tejal','130':'Moiz','134':'Brendan','139':'Ameeta','142':'Katie','147':'Darius'};
+/* People who have since left London East, applied once to settings already
+   set up. 'keep' leaves the name (still with the business, no team for now);
+   a name means they left the business, so that name comes off the code. A
+   name or team typed in by hand since is left alone. */
+const LEFT_LONDON_EAST={'139':'keep','127':'Mamnur','149':'Jagdish'};
 function seedLondonEast(){
   const S=state.settings;
-  if(S.seededLondonEast&&!S.ameetaLeftLE){
-    S.teams=Object.assign({},S.teams||{});
-    for(const id of LEFT_LONDON_EAST) if(S.teams[id]==='Team 1') delete S.teams[id];
-    S.ameetaLeftLE=true;
-    store.set(K_SET,JSON.stringify(S));
+  if(S.seededLondonEast){
+    const done=new Set(S.leftLE||(S.ameetaLeftLE?['139']:[]));
+    let changed=false;
+    for(const [id,how] of Object.entries(LEFT_LONDON_EAST)){
+      if(done.has(id)) continue;
+      S.teams=Object.assign({},S.teams||{});
+      if(S.teams[id]==='Team 1') delete S.teams[id];
+      if(how!=='keep'){
+        S.names=Object.assign({},S.names||{}); S.employment=Object.assign({},S.employment||{});
+        if((S.names[id]||'').trim()===how) delete S.names[id];
+        const e=S.employment[id];
+        if(Array.isArray(e)&&e.every(x=>!x.n||x.n.trim()===how)) delete S.employment[id];
+      }
+      done.add(id); changed=true;
+    }
+    if(changed){ S.leftLE=[...done]; clearStints(); store.set(K_SET,JSON.stringify(S)); }
+    return;
   }
-  if(S.seededLondonEast) return;
   S.teamNames=Object.assign({},S.teamNames||{},{'Team 1':'London East'});
   S.teams=Object.assign({},S.teams||{});
   S.names=Object.assign({},S.names||{});
   S.employment=Object.assign({},S.employment||{});
   for(const [id,name] of Object.entries(LONDON_EAST)){
-    if(!LEFT_LONDON_EAST.includes(id)) S.teams[id]='Team 1';
+    if(!(id in LEFT_LONDON_EAST)) S.teams[id]='Team 1';
     S.names[id]=name;
     const cur=(S.employment[id]&&S.employment[id][0])||{};
     S.employment[id]=[{n:name,s:cur.s||'',e:''}];
   }
-  S.seededLondonEast=true; S.ameetaLeftLE=true;
+  S.seededLondonEast=true; S.leftLE=Object.keys(LEFT_LONDON_EAST);
   clearStints();
   store.set(K_SET,JSON.stringify(S));
 }
