@@ -1377,6 +1377,9 @@ function sweepOldVersions(){
 const F={WEEK:0,YEAR:1,AGENT:2,NAME:3,POST:4,REGD:5,ACTD:6,OPS:7,MU:8,CAMP:9,GID:10,O30:11,O90:12};
 const NF=13;
 
+/* Team growth compares from this day (the start of the trial) to the end of
+   the report, against the same number of days just before it. */
+const TC_FROM='2026-10-19';
 const state={
   rows:[], meta:null,
   settings:{names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,actTarget:3,
@@ -1394,7 +1397,7 @@ const state={
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1},
   cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1},
-  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'worked',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
+  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:TC_FROM,xt:null,yf:null,yt:null,from:TC_FROM,norm:'worked',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
 };
 
 /* =======================================================================
@@ -2170,11 +2173,12 @@ function loadView(){
       state.tcmp={a:isT(c.a), b:c.b==='top'?'top':isT(c.b),
         top:{dir:tp.dir==='bottom'?'bottom':'top', n:Number.isInteger(tp.n)&&tp.n>=1&&tp.n<=500?tp.n:20,
           by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
-        xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt),
+        xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt), from:TC_FROM,
         // Counts always open on Per day worked, the fair comparison; another
         // choice lasts until the page is closed.
         norm:'worked',
         metric:['act','comm','reg','target'].includes(c.metric)?c.metric:'act'};
+      if(c.from!==TC_FROM) Object.assign(state.tcmp,{mode:'range',xf:TC_FROM,xt:null,yf:null,yt:null});
     }
   }catch(e){ console.warn('Saved filters could not be read',e); }
 }
@@ -5078,6 +5082,8 @@ function cmpPeriods(span,c=state.cmp){
   // four before; a comparison range left unset is the same length, just before.
   const end=midnight(span[1]);
   let xf=parseYmd(c.xf), xt=parseYmd(c.xt), yf=parseYmd(c.yf), yt=parseYmd(c.yt);
+  // A start with no end runs to the last day of the report.
+  if(xf!=null&&xt==null&&xf<=end) xt=end;
   if(xf==null||xt==null||xf>xt){ xt=end; xf=addDays(end,-27); }
   if(yf==null||yt==null||yf>yt){ const len=Math.round((xt-xf)/86400000); yt=addDays(xf,-1); yf=addDays(yt,-len); }
   const yr=new Date(end).getFullYear();
@@ -5408,6 +5414,8 @@ function periodInput(c,t,pre,span){
     const f=$('#'+pre+'Yf').value, to=$('#'+pre+'Yt').value;
     if(!parseYmd(f)||!parseYmd(to)) return false;
     c.yf=f<=to?f:to; c.yt=f<=to?to:f;
+  }else if(id===pre+'Quick'&&t.value==='from'){
+    c.xf=TC_FROM; c.xt=null; c.yf=null; c.yt=null;
   }else if(id===pre+'Quick'){
     const n=Number(t.value); if(!n) return false;
     const end=midnight(span[1]);
@@ -5596,11 +5604,18 @@ function tcChunks(P,span){
     const days=Math.round((midnight(hi)-midnight(lo))/864e5)+1;
     const step=days<=21?1:7;
     const part=[];
+    // Day by day, a weekend joins the Friday before it (or the Monday after,
+    // at the start of a period), so weekend sign-ups are not left out.
+    let pend=null;
     for(let d=midnight(lo);d<=hi;d=addDays(d,step)){
       const to=Math.min(addDays(d,step)-1,hi);
-      if(step===1){ const w=new Date(d).getDay(); if(w===0||w===6) continue; }
-      part.push({from:d,to,side});
+      if(step===1){
+        const w=new Date(d).getDay();
+        if(w===0||w===6){ if(part.length) part[part.length-1].to=to; else if(pend==null) pend=d; continue; }
+      }
+      part.push({from:pend??d,to,side}); pend=null;
     }
+    if(pend!=null) part.push({from:pend,to:hi,side});
     // A short last week joins the one before it.
     if(step===7&&part.length>1){
       const l=part[part.length-1];
@@ -5754,7 +5769,7 @@ function renderTeams(){
     h+=`<div class="field"><label for="tcYf">Before</label><div class="rng"><input type="date" id="tcYf" aria-label="Before, from" value="${ymd(PB.from)}"><span aria-hidden="true">–</span><input type="date" id="tcYt" aria-label="Before, to" value="${ymd(PB.to)}"></div></div>
       <span class="vs" aria-hidden="true">→</span>
       <div class="field"><label for="tcXf">After</label><div class="rng"><input type="date" id="tcXf" aria-label="After, from" value="${ymd(PA.from)}"><span aria-hidden="true">–</span><input type="date" id="tcXt" aria-label="After, to" value="${ymd(PA.to)}"></div></div>
-      <div class="field"><label for="tcQuick">Quick pick</label><select id="tcQuick"><option value="">Choose…</option><option value="7">Last 7 days and the 7 before</option><option value="14">Last 14 days and the 14 before</option><option value="28">Last 4 weeks and the 4 before</option><option value="56">Last 8 weeks and the 8 before</option><option value="91">Last 13 weeks and the 13 before</option></select></div>`;
+      <div class="field"><label for="tcQuick">Quick pick</label><select id="tcQuick"><option value="">Choose…</option><option value="from">From ${dShort(parseYmd(TC_FROM))} and the same length before</option><option value="7">Last 7 days and the 7 before</option><option value="14">Last 14 days and the 14 before</option><option value="28">Last 4 weeks and the 4 before</option><option value="56">Last 8 weeks and the 8 before</option><option value="91">Last 13 weeks and the 13 before</option></select></div>`;
   }
   if(!idsA.length||!idsB.length){
     body.innerHTML=h+`</div><div class="notice info"><span class="ni" aria-hidden="true">${ICON_WARN}</span><div><p>${!idsA.length?'No BDEs are in a team yet.':`No one to compare ${esc(labA)} with.`} Put BDEs into teams in Settings to compare one team with another.</p></div></div>`;
