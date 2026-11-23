@@ -955,6 +955,60 @@ ul.insights li.down::before{content:'\2193';background:var(--miss-bg);color:var(
 .tcverdict .chance b{color:var(--ink)}
 ul.insights li.warn::before{content:'!';background:var(--near-bg);color:var(--near-fg)}
 .tcchart{display:block}
+#tcChart{overflow:visible}
+.tcwrap{position:relative;outline:none;border-radius:8px;width:max-content;max-width:100%}
+.tcwrap:focus-visible{box-shadow:0 0 0 3px var(--accent-soft)}
+.tcwrap .tchit{cursor:pointer}
+.tchband,.tcselband{pointer-events:none;opacity:0;transition:opacity .12s var(--ease)}
+.tchband{fill:var(--ink)}
+.tchband.on{opacity:.07}
+.tcselband{fill:var(--reg)}
+.tcselband.on{opacity:.14}
+.tcguide{pointer-events:none}
+.tcwrap .tip{
+  position:absolute;top:6px;z-index:5;pointer-events:none;width:300px;max-width:calc(100vw - 48px);
+  background:var(--tip-bg);color:var(--tip-fg);border-radius:10px;padding:10px 12px;
+  font-size:12px;line-height:1.45;box-shadow:var(--shadow-pop);
+}
+.tcwrap .tip[hidden]{display:none}
+.tcwrap .tip strong{display:block;font-weight:600;font-size:13px}
+.tcwrap .tip .so{display:block;font-size:11px;opacity:.72;margin-top:2px}
+.tcwrap .tip .so.gap{opacity:.95;margin-top:8px;font-weight:600}
+.tcwrap .tip .tt{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.14)}
+.tcwrap .tip .tth{display:flex;align-items:center;gap:6px;font-weight:600}
+.tcwrap .tip .tth .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tcwrap .tip .tth b{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13.5px}
+.tcwrap .tip .ttm{font-size:11px;opacity:.78;margin-top:2px}
+.tcwrap .tip .dchip{font-size:10.5px;padding:0 6px}
+.tchint{font-size:12px;color:var(--ink-3);margin:-10px 0 14px}
+.tcpin{border:1px solid var(--rule);border-left:3px solid var(--reg);border-radius:var(--r-md);padding:14px 16px;margin:0 0 18px;background:var(--surface);animation:riseIn .18s var(--ease) both}
+.tcpin[hidden]{display:none}
+.tcpin-h{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+.tcpin-h b{font-family:var(--serif);font-size:17px;font-weight:600;margin-right:8px}
+.tcpin-h span{font-size:12.5px;color:var(--ink-3)}
+.tcpin-nav{display:flex;gap:6px}
+.tcpin-nav .btn{min-height:30px;padding:0 10px;font-size:12.5px}
+.tcpin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin:12px 0}
+.tcpin-card{background:var(--surface-2);border-radius:var(--r-sm);padding:10px 12px}
+.tcpin-card .tvn{margin-bottom:4px}
+.tcpin-card .tvn .sub{margin-left:auto;font-weight:400;color:var(--ink-3)}
+.tcpin-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;border-top:1px solid var(--rule-2)}
+.tcpin-row:first-of-type{border-top:0}
+.tcpin-row .l{flex:1;color:var(--ink-2);min-width:0}
+.tcpin-row .l i{font-style:normal;color:var(--ink-3);font-size:11.5px}
+.tcpin-row small{color:var(--ink-3);font-size:11.5px}
+.tcpin-row b{font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+.tcpin-row .dchip{min-width:44px;text-align:center}
+.tcpin-row.on .l{color:var(--ink);font-weight:600}
+table.tcslice th.on{color:var(--ink)}
+table.tcslice td small{color:var(--ink-3);font-size:11px}
+table.tcslice .tsw{vertical-align:0}
+@media (max-width:560px){
+  .tcpin{padding:12px}
+  .tcpin-nav{width:100%}
+  .tcpin-nav .btn{flex:1}
+  .tcpin-row small{display:none}
+}
 #tcMatrix thead th{position:static;cursor:default}
 #tcMatrix thead th.c{text-align:center}
 #tcMatrix thead th.grp{font-size:12.5px;color:var(--ink)}
@@ -5666,6 +5720,9 @@ function tcChart(key,chunks,ref,lab,W){
     g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--rule-2)"/>`;
     g+=`<text x="${L-6}" y="${(+y+3.5).toFixed(1)}" text-anchor="end" font-size="10.5" fill="var(--ink-3)">${idx?Math.round(v):Math.round(v)+'%'}</text>`;
   }
+  // Bands for the slice under the pointer and the pinned one, beneath the lines.
+  g+=`<rect class="tcselband" x="0" y="${T-4}" width="${slot.toFixed(1)}" height="${ih+4}" rx="4"/>`;
+  g+=`<rect class="tchband" x="0" y="${T-4}" width="${slot.toFixed(1)}" height="${ih+4}" rx="4"/>`;
   g+=`<line x1="${div.toFixed(1)}" x2="${div.toFixed(1)}" y1="${T-12}" y2="${T+ih}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
   g+=`<text x="${(div-6).toFixed(1)}" y="${T-14}" text-anchor="end" font-size="10.5" font-weight="600" fill="var(--ink-2)">Before</text>`;
   g+=`<text x="${(div+6).toFixed(1)}" y="${T-14}" font-size="10.5" font-weight="600" fill="var(--ink-2)">After</text>`;
@@ -5689,7 +5746,7 @@ function tcChart(key,chunks,ref,lab,W){
       if(seg.length>1) g+=`<path d="${seg.map((o,n)=>(n?'L':'M')+X(o.j).toFixed(1)+' '+Y(o.p[k]).toFixed(1)).join(' ')}" fill="none" stroke="${cols[i]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
       for(const o of seg){
         const rng=o.p.from===midnight(o.p.to)?dShort(o.p.from):`${dShort(o.p.from)} – ${dShort(o.p.to)}`;
-        g+=`<circle cx="${X(o.j).toFixed(1)}" cy="${Y(o.p[k]).toFixed(1)}" r="3.4" fill="${cols[i]}" stroke="var(--surface)" stroke-width="1.2"><title>${esc(`${lab[i]}, ${rng}: ${fmtV(k==='a'?o.p.ra:o.p.rb)}${idx?` (${Math.round(o.p[k])} against Before = 100)`:''}`)}</title></circle>`;
+        g+=`<circle cx="${X(o.j).toFixed(1)}" cy="${Y(o.p[k]).toFixed(1)}" r="3.4" fill="${cols[i]}" stroke="var(--surface)" stroke-width="1.2"/>`;
       }
     }
   });
@@ -5707,8 +5764,157 @@ function tcChart(key,chunks,ref,lab,W){
   const every=Math.max(1,Math.ceil(54/slot));
   pts.forEach((p,j)=>{ if(j%every&&j!==nb) return;
     g+=`<text x="${X(j).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${dShort(p.from)}</text>`; });
-  return `<svg class="tcchart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(m.l)} for ${esc(lab[0])} and ${esc(lab[1])}, before and after">${g}</svg>`;
+  g+=`<g class="tcguide" opacity="0"><circle class="ga" r="6" fill="${cols[0]}" stroke="var(--surface)" stroke-width="2"/><circle class="gb" r="6" fill="${cols[1]}" stroke="var(--surface)" stroke-width="2"/></g>`;
+  g+=`<rect class="tchit" x="${L}" y="${T-14}" width="${iw.toFixed(1)}" height="${ih+14}" fill="transparent"/>`;
+  tcGeo={W,slot,xs:pts.map((p,j)=>X(j)),ya:pts.map(p=>p.a==null?null:Y(p.a)),yb:pts.map(p=>p.b==null?null:Y(p.b))};
+  return `<div class="tcwrap" tabindex="0" role="group" aria-label="${esc(m.l)} for ${esc(lab[0])} and ${esc(lab[1])}, before and after. Use the left and right arrow keys to step through, Enter to pin.">`+
+    `<svg class="tcchart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${g}</svg><div class="tip" hidden></div></div>`;
 }
+/* ---------- hover and pin on the Week by week chart ----------
+   Hovering a week shows both teams' figures for it; clicking pins it, with
+   every measure and each BDE underneath. Arrow keys step through, Enter
+   pins, Escape lets go. */
+let tcGeo=null, tcCD=null, tcPinKey=null, tcCursor=-1;
+const TC_MEASURES=['act','comm','reg','target'];
+const tcSliceName=c=>c.from===midnight(c.to)?dShort(c.from):`${dShort(c.from)} – ${dShort(c.to)}`;
+const tcRateUnit=()=>tcNormEff==='worked'?'per day worked':'a working day';
+// A slice or a whole period on the same footing: counts per day worked (or
+// per working day), rates and percentages as they are.
+function tcRate(k,t,wd){
+  const M=CMP_METRICS[k], v=M.v(t); if(v==null) return null;
+  if(M.kind!=='n') return v;
+  return tcNormEff==='worked'?(t.nDays?v/t.nDays:null):(wd?v/wd:null);
+}
+function tcVs(k,x,base){
+  if(x==null||base==null) return '';
+  if(CMP_METRICS[k].kind==='p'){ const d=Math.round(x)-Math.round(base); return `<span class="dchip ${d>0?'up':d<0?'down':'flat'}">${sgn(d)}${Math.abs(d)} pts</span>`; }
+  if(!base) return '';
+  const g=Math.round((x/base-1)*100);
+  return `<span class="dchip ${g>0?'up':g<0?'down':'flat'}">${sgn(g)}${Math.abs(g)}%</span>`;
+}
+const tcShow=(k,v)=>v==null?'—':CMP_METRICS[k].kind==='p'?Math.round(v)+'%':fmtSmall(v);
+function tcTipHtml(i){
+  const D=tcCD, c=D.chunks[i], k=D.key, M=CMP_METRICS[k];
+  let h=`<strong>${tcSliceName(c)}</strong><span class="so">${c.side?'After':'Before'} · ${c.wd} working day${c.wd===1?'':'s'}${M.kind==='n'?` · ${esc(M.l.toLowerCase())} ${tcRateUnit()}`:''}</span>`;
+  const vals=[];
+  [['a',c.A,D.before.A,D.lab[0]],['b',c.B,D.before.B,D.lab[1]]].forEach(([cls,t,b0,lab])=>{
+    const x=tcRate(k,t,c.wd), base=tcRate(k,b0,D.before.wd); vals.push(x!=null&&base?x/base:null);
+    h+=`<div class="tt"><div class="tth"><span class="tsw ${cls}"></span><span class="nm">${esc(lab)}</span><b>${tcShow(k,x)}</b>${tcVs(k,x,base)}</div>
+      <div class="ttm">${fmt(t.reg)} sign-ups · ${fmt(t.act)} activations · ${fmt(t.comm)} commission${t.active?` · ${Math.round(t.hit/t.active*100)}% days on target`:''} · ${t.heads} BDE${t.heads===1?'':'s'} signing up</div></div>`;
+  });
+  if(M.kind!=='p'&&vals[0]!=null&&vals[1]!=null){
+    const d=Math.round((vals[0]-vals[1])*100);
+    h+=`<span class="so gap">${Math.abs(d)<1?'Both level with their Before':`${esc(D.lab[0])} ${d>0?'ahead':'behind'} by ${Math.abs(d)} points`} against their own Before level</span>`;
+  }
+  h+=`<span class="so">${tcPinKey===tcKeyOf(c)?'Pinned below · click again to let go':'Click to pin and see each BDE'}</span>`;
+  return h;
+}
+const tcKeyOf=c=>c.side+':'+c.from;
+function tcPinHtml(i){
+  const D=tcCD, c=D.chunks[i], key=D.key;
+  let h=`<div class="tcpin-h"><div><b>${tcSliceName(c)}</b><span>${c.side?'After':'Before'} · ${c.wd} working day${c.wd===1?'':'s'}</span></div>
+    <div class="tcpin-nav"><button class="btn btn-quiet" data-tcstep="-1"${i?'':' disabled'} aria-label="Earlier">‹ Earlier</button><button class="btn btn-quiet" data-tcstep="1"${i<D.chunks.length-1?'':' disabled'} aria-label="Later">Later ›</button><button class="btn btn-quiet" data-tcunpin aria-label="Close">Close</button></div></div>`;
+  h+='<div class="tcpin-cards">';
+  [['a',c.A,D.before.A,D.lab[0]],['b',c.B,D.before.B,D.lab[1]]].forEach(([cls,t,b0,lab])=>{
+    h+=`<div class="tcpin-card"><div class="tvn"><span class="tsw ${cls}"></span>${esc(lab)}<span class="sub">${t.heads} BDE${t.heads===1?'':'s'} · ${fmt(t.nDays)} day${t.nDays===1?'':'s'} worked</span></div>`;
+    for(const k of TC_MEASURES){
+      const M=CMP_METRICS[k], x=tcRate(k,t,c.wd), base=tcRate(k,b0,D.before.wd);
+      const raw=M.kind==='n'?`<small>${fmt(M.v(t))} in total</small>`:(k==='target'&&t.active?`<small>${fmt(t.hit)} of ${fmt(t.active)} days</small>`:'');
+      h+=`<div class="tcpin-row${k===key?' on':''}"><span class="l">${M.l}${M.kind==='n'?` <i>${tcRateUnit()}</i>`:''}</span>${raw}<b>${tcShow(k,x)}</b>${tcVs(k,x,base)||'<span class="dchip flat">—</span>'}</div>`;
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  // Each BDE in the slice.
+  const rows=[];
+  for(const [id,a] of c.per){
+    const t=D.inA.has(id)?'a':D.inB.has(id)?'b':null; if(!t) continue;
+    rows.push({id,t,a,v:CMP_METRICS[key].v(a)});
+  }
+  rows.sort((p,q)=>((q.v??-1)-(p.v??-1))||(q.a.reg-p.a.reg)||agentName(p.id).localeCompare(agentName(q.id)));
+  if(rows.length){
+    h+=`<div class="tablewrap"><table class="tcslice"><thead><tr><th class="no-sort">BDE</th><th class="no-sort r">Days worked</th><th class="no-sort r${key==='reg'?' on':''}">Sign-ups</th><th class="no-sort r${key==='act'?' on':''}">Activations</th><th class="no-sort r${key==='comm'?' on':''}">Commission qualified</th><th class="no-sort r${key==='target'?' on':''}">Days on target</th></tr></thead><tbody>`;
+    for(const r of rows){
+      const a=r.a;
+      h+=`<tr><td class="agentcell"><span class="tsw ${r.t}"></span>${esc(agentName(r.id))}</td><td class="r num">${fmt(a.nDays)}</td><td class="r num">${fmt(a.reg)}</td><td class="r num">${fmt(a.act)}</td><td class="r num">${fmt(a.comm)}</td><td class="r num">${a.active?`${Math.round(a.hit/a.active*100)}% <small>${a.hit}/${a.active}</small>`:'—'}</td></tr>`;
+    }
+    h+='</tbody></table></div>';
+  }else h+='<p class="auditempty">No sign-ups or activations from either team in this slice.</p>';
+  return h;
+}
+function tcPoint(i,showTip){
+  const w=$('#tcChart .tcwrap'); if(!w||!tcGeo||!tcCD) return;
+  const G=tcGeo, svg=w.querySelector('svg'), tip=w.querySelector('.tip');
+  const band=svg.querySelector('.tchband'), gd=svg.querySelector('.tcguide');
+  if(i<0||i>=G.xs.length){ band.style.opacity=0; gd.setAttribute('opacity','0'); tip.hidden=true; return; }
+  band.setAttribute('x',(G.xs[i]-G.slot/2).toFixed(1)); band.style.opacity='';
+  band.classList.add('on');
+  gd.setAttribute('opacity','1');
+  [['.ga',G.ya[i]],['.gb',G.yb[i]]].forEach(([sel,y])=>{ const c=gd.querySelector(sel); if(y==null){ c.setAttribute('opacity','0'); } else { c.setAttribute('opacity','1'); c.setAttribute('cx',G.xs[i].toFixed(1)); c.setAttribute('cy',y.toFixed(1)); } });
+  if(!showTip){ tip.hidden=true; return; }
+  tip.innerHTML=tcTipHtml(i); tip.hidden=false;
+  const frac=G.xs[i]/G.W;
+  tip.style.left=(frac*100)+'%';
+  tip.style.transform=frac>0.62?'translate(calc(-100% - 14px),0)':'translate(14px,0)';
+}
+function tcHover(off){
+  const w=$('#tcChart .tcwrap'); if(!w) return;
+  w.querySelector('.tchband').classList.remove('on');
+  w.querySelector('.tcguide').setAttribute('opacity','0');
+  w.querySelector('.tip').hidden=true;
+  if(!off) tcCursor=-1;
+}
+function tcPin(i){
+  const pin=$('#tcPin'), w=$('#tcChart .tcwrap'); if(!pin||!w||!tcCD) return;
+  const sel=w.querySelector('.tcselband');
+  if(i==null||i<0){ tcPinKey=null; pin.hidden=true; pin.innerHTML=''; sel.classList.remove('on'); return; }
+  tcPinKey=tcKeyOf(tcCD.chunks[i]);
+  sel.setAttribute('x',(tcGeo.xs[i]-tcGeo.slot/2).toFixed(1)); sel.classList.add('on');
+  pin.innerHTML=tcPinHtml(i); pin.hidden=false;
+  fitSoon();
+}
+function tcIndexAt(clientX){
+  const svg=$('#tcChart svg'); if(!svg||!tcGeo) return -1;
+  const r=svg.getBoundingClientRect(), vx=(clientX-r.left)/r.width*tcGeo.W;
+  let best=-1, bd=Infinity;
+  tcGeo.xs.forEach((x,j)=>{ const d=Math.abs(x-vx); if(d<bd){ bd=d; best=j; } });
+  return bd<=tcGeo.slot*0.75?best:-1;
+}
+$('#tcBody').addEventListener('pointermove',e=>{
+  if(e.pointerType==='touch') return;
+  if(!e.target.closest||!e.target.closest('#tcChart .tcwrap')) return tcHover();
+  const i=tcIndexAt(e.clientX);
+  if(i<0) return tcHover();
+  tcCursor=i; tcPoint(i,true);
+});
+$('#tcBody').addEventListener('pointerleave',()=>tcHover());
+$('#tcBody').addEventListener('click',e=>{
+  if(!tcCD) return;
+  const step=e.target.closest('[data-tcstep]');
+  if(step){
+    const cur=tcCD.chunks.findIndex(c=>tcKeyOf(c)===tcPinKey);
+    const n=Math.max(0,Math.min(tcCD.chunks.length-1,cur+Number(step.dataset.tcstep)));
+    tcPin(n); tcCursor=n; tcPoint(n,false); return;
+  }
+  if(e.target.closest('[data-tcunpin]')){ tcPin(null); return; }
+  if(!e.target.closest('#tcChart .tcwrap')) return;
+  const i=tcIndexAt(e.clientX); if(i<0) return;
+  if(tcPinKey===tcKeyOf(tcCD.chunks[i])) tcPin(null); else tcPin(i);
+  tcPoint(i,e.pointerType!=='touch');
+});
+$('#tcBody').addEventListener('keydown',e=>{
+  if(!e.target.classList||!e.target.classList.contains('tcwrap')||!tcCD) return;
+  const n=tcCD.chunks.length;
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+    e.preventDefault();
+    tcCursor=tcCursor<0?(e.key==='ArrowRight'?0:n-1):Math.max(0,Math.min(n-1,tcCursor+(e.key==='ArrowRight'?1:-1)));
+    tcPoint(tcCursor,true);
+    if(tcPinKey) tcPin(tcCursor);
+  }else if((e.key==='Enter'||e.key===' ')&&tcCursor>=0){
+    e.preventDefault(); tcPin(tcPinKey===tcKeyOf(tcCD.chunks[tcCursor])?null:tcCursor); tcPoint(tcCursor,true);
+  }else if(e.key==='Escape'){ tcPin(null); tcHover(); }
+});
+$('#tcBody').addEventListener('focusout',e=>{ if(e.target.classList&&e.target.classList.contains('tcwrap')) tcHover(); });
 function tcW(){
   const b=$('#tcBody'); if(!b||!b.clientWidth) return 900;
   const cs=getComputedStyle(b);
@@ -5846,14 +6052,17 @@ function renderTeams(){
   const chunks=tcChunks([PB,PA],span).map(ch=>{
     const S=cmpStats(ch,span,inc,part(ch));
     const wd=workingDays(ch.from,ch.to);
-    return {...ch,wd,A:tcSum(S,idsA),B:tcSum(S,idsB)};
+    return {...ch,wd,A:tcSum(S,idsA),B:tcSum(S,idsB),per:S.per};
   });
   const ref={};
   const refVal=(t,S)=>{ const x=m.v(t); if(x==null) return null; if(m.kind!=='n') return x; return tcNormEff==='worked'?(t.nDays?x/t.nDays:null):(S.wd?x/S.wd:null); };
   ref.a0=refVal(A0,SB); ref.a1=refVal(A1,SA); ref.b0=refVal(B0,SB); ref.b1=refVal(B1,SA);
   h+=`<div class="cmph-row"><h3 class="cmph">Week by week</h3><span class="cmpkey"><span class="tsw a"></span>${esc(labA)}<span class="tsw b"></span>${esc(labB)}<span class="dash"></span>${m.kind==='p'?'average':'average After · Before = 100'}</span></div>
     <div class="seg mchips" id="tcMetric" role="group" aria-label="Measure">${TC_LEAD.map(k=>`<button data-k="${k}" aria-pressed="${k===key}">${CMP_METRICS[k].l}</button>`).join('')}</div>
-    <div class="dbwrap" id="tcChart">${tcChart(key,chunks,ref,[labA,labB],tcW())}</div>`;
+    <div class="dbwrap" id="tcChart">${tcChart(key,chunks,ref,[labA,labB],tcW())}</div>
+    <p class="tchint">Hover over a ${chunks.length&&chunks.some(c=>c.to-c.from>2*864e5)?'week':'day'} for both teams’ figures; click or tap it to see every measure and each BDE underneath.</p>
+    <div class="tcpin" id="tcPin" hidden></div>`;
+  tcCD={chunks,key,lab:[labA,labB],before:{A:A0,B:B0,wd:SB.wd},inA,inB};
   state._tcW=tcW();
 
   // What else to know.
@@ -5956,6 +6165,9 @@ function renderTeams(){
     <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from <b>Inactive codes</b> (set in Settings, or in the Remaining team with too few sign-ups lately), which can be chosen on their own. <b>Top or bottom performers</b> ranks everyone outside the first team (Inactive codes left out) by activations, registrations or commission qualified, in the period you choose, and takes the top or bottom few. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
   body.innerHTML=h;
   hint.textContent=`${labA} against ${labB} · ${PB.name} → ${PA.name}`;
+  // Keep a pinned slice pinned through a redraw, if it is still there.
+  tcCursor=-1;
+  if(tcPinKey){ const i=chunks.findIndex(c=>tcKeyOf(c)===tcPinKey); if(i>=0) tcPin(i); else tcPinKey=null; }
   fitSoon();
 }
 $('#sec-teams').addEventListener('click',e=>{
