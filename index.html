@@ -1451,7 +1451,7 @@ const state={
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1},
   cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1},
-  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:TC_FROM,xt:null,yf:null,yt:null,from:TC_FROM,norm:'worked',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
+  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:TC_FROM,xt:null,yf:null,yt:null,from:TC_FROM,norm:'wd',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
 };
 
 /* =======================================================================
@@ -2228,9 +2228,9 @@ function loadView(){
         top:{dir:tp.dir==='bottom'?'bottom':'top', n:Number.isInteger(tp.n)&&tp.n>=1&&tp.n<=500?tp.n:20,
           by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
         xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt), from:TC_FROM,
-        // Counts always open on Per day worked, the fair comparison; another
-        // choice lasts until the page is closed.
-        norm:'worked',
+        // Counts always open on Per working day; Totals, if chosen, lasts
+        // until the page is closed.
+        norm:'wd',
         metric:['act','comm','reg','target'].includes(c.metric)?c.metric:'act'};
       if(c.from!==TC_FROM) Object.assign(state.tcmp,{mode:'range',xf:TC_FROM,xt:null,yf:null,yt:null});
     }
@@ -5989,9 +5989,8 @@ function renderTeams(){
   const part=Q=>src.filter(r=>(r[F.REGD]>=Q.from&&r[F.REGD]<=Q.to)||(r[F.ACTD]>=Q.from&&r[F.ACTD]<=Q.to));
   const SA=cmpStats(PA,span,inc,part(PA)), SB=cmpStats(PB,span,inc,part(PB));
   const A0=tcSum(SB,idsA), A1=tcSum(SA,idsA), B0=tcSum(SB,idsB), B1=tcSum(SA,idsB);
-  tcNormEff=c.norm==='wd'||c.norm==='total'?c.norm:'worked';
-  h+=`<div class="field"><label for="tcNorm">Counts</label><select id="tcNorm" title="Per day worked divides each count by the days the team's BDEs signed anyone up, which takes out holidays and changes in headcount">
-      <option value="worked"${tcNormEff==='worked'?' selected':''}>Per day worked</option>
+  tcNormEff=c.norm==='total'?'total':'wd';
+  h+=`<div class="field"><label for="tcNorm">Counts</label><select id="tcNorm" title="Per working day divides each count by the weekdays the period covers, so periods of different length compare fairly">
       <option value="wd"${tcNormEff==='wd'?' selected':''}>Per working day</option>
       <option value="total"${tcNormEff==='total'?' selected':''}>Totals</option></select></div></div>`;
   const cover=S=>S.cut?`${S.wd} of ${S.full} working days in the report`:`${S.wd} working day${S.wd===1?'':'s'}`;
@@ -6109,7 +6108,7 @@ function renderTeams(){
   if(tcNormEff!=='worked'&&m.kind==='n'){
     const dA=A0.nDays&&SB.wd&&SA.wd?(A1.nDays/SA.wd)/(A0.nDays/SB.wd)-1:null, dB=B0.nDays&&SB.wd&&SA.wd?(B1.nDays/SA.wd)/(B0.nDays/SB.wd)-1:null;
     if(dA!=null&&dB!=null&&Math.abs(dA-dB)>0.1)
-      notes.push(['amber',`<b>Days worked changed unevenly:</b> ${esc(labA)} ${dA>=0?'+':'−'}${Math.abs(Math.round(dA*100))}%, ${esc(labB)} ${dB>=0?'+':'−'}${Math.abs(Math.round(dB*100))}% (a working day). Choose <b>Per day worked</b> to compare output with holidays and headcount taken out.`]);
+      notes.push(['amber',`<b>Days worked changed unevenly:</b> ${esc(labA)} ${dA>=0?'+':'−'}${Math.abs(Math.round(dA*100))}%, ${esc(labB)} ${dB>=0?'+':'−'}${Math.abs(Math.round(dB*100))}% (a working day), so part of the difference may be holidays or people joining or leaving rather than output.`]);
   }
   if(top&&top.ids.length){
     const t=top.t;
@@ -6159,7 +6158,7 @@ function renderTeams(){
   h+='</tbody></table></div>';
   h+=explain('teams','How the team comparison works',`
     <p>Each team is measured Before and After, and its change is set against the other team’s change over the same dates. Anything that affected both teams alike, such as a quiet month, a bank holiday or a change to the AB programme, shows up in both and cancels out. What is left is how much better or worse the first team did: the effect of a trial, for example. For counts and rates it is the ratio of the two teams’ growth (so team size does not matter); for percentages it is the difference in points.</p>
-    <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Per day worked</b> divides them by the days the team’s BDEs signed anyone up, which takes out holidays, sickness and people joining or leaving.</p>
+    <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Totals</b> shows the counts as they are.</p>
     <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
     <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
     <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from <b>Inactive codes</b> (set in Settings, or in the Remaining team with too few sign-ups lately), which can be chosen on their own. <b>Top or bottom performers</b> ranks everyone outside the first team (Inactive codes left out) by activations, registrations or commission qualified, in the period you choose, and takes the top or bottom few. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
@@ -6183,7 +6182,7 @@ $('#sec-teams').addEventListener('change',e=>{
   const c=state.tcmp, t=e.target, span=dataSpan(); if(!span) return;
   if(t.id==='tcA'){ c.a=t.value; if(c.b===c.a) c.b=null; }
   else if(t.id==='tcB'){ c.b=t.value; }
-  else if(t.id==='tcNorm'){ c.norm=t.value; }
+  else if(t.id==='tcNorm'){ c.norm=t.value==='total'?'total':'wd'; }
   else if(t.id==='tcTopN'){ const n=Math.round(+t.value); if(!(n>=1)) return; c.top=Object.assign(tcTopCfg(),{n:Math.min(500,n)}); }
   else if(t.id==='tcTopBy'){ c.top=Object.assign(tcTopCfg(),{by:t.value}); }
   else if(t.id==='tcTopOn'){ c.top=Object.assign(tcTopCfg(),{on:t.value}); }
