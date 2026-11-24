@@ -6006,7 +6006,6 @@ function renderTeams(){
   const va0=v(key,A0,SB), va1=v(key,A1,SA), vb0=v(key,B0,SB), vb1=v(key,B1,SA);
   const gA=tcGrowth(key,va0,va1), gB=tcGrowth(key,vb0,vb1);
   const eff=tcEffect(key,va0,va1,vb0,vb1);
-  const phi=tcDispersion(src,[PB,PA],span,[idsA,idsB]);
   // The headline.
   const tone=x=>x==null?'flat':x>0.02?'up':x<-0.02?'down':'flat';
   let vt='flat', head, lines=[];
@@ -6024,16 +6023,6 @@ function renderTeams(){
     }else{
       const what=key==='perDay'?' sign-ups per day worked':' per activation';
       lines.push(`Had ${esc(labA)} changed at the same rate as ${esc(labB)} (${rate}), it would have averaged ${tcFmt(key,eff.expected)}${what}. It averaged ${tcFmt(key,va1)}.`);
-    }
-    if(m.kind==='n'){
-      const cnt={a0:m.v(A0),a1:m.v(A1),b0:m.v(B0),b1:m.v(B1)};
-      const ch=tcChance(cnt,phi[key],eff.rel);
-      if(!ch) lines.push('<span class="chance">Too few to tell whether this is more than chance.</span>');
-      else{
-        const real=ch.lo>0||ch.hi<0;
-        const r=x=>`${x>=0?'+':'−'}${Math.abs(Math.round(x*100))}%`;
-        lines.push(`<span class="chance ${real?'real':'maybe'}"><b>${real?'Larger than normal ups and downs.':'Could still be chance.'}</b> Allowing for how much the daily figures vary, ${esc(labA)}’s real difference is likely between ${r(ch.lo)} and ${r(ch.hi)}${real?'':', a range that includes no difference at all'}.</span>`);
-      }
     }
   }else if(eff&&eff.pts!=null){
     const d=Math.round(eff.pts); vt=d>=2?'up':d<=-2?'down':'flat';
@@ -6130,8 +6119,6 @@ function renderTeams(){
     if(e){
       const s=e.rel!=null?Math.round(e.rel*100):Math.round(e.pts);
       ec=`<span class="dchip ${s>0?'up':s<0?'down':'flat'}">${sgn(s)}${Math.abs(s)}${e.rel!=null?'%':' pts'}</span>`;
-      if(M.kind==='n'){ const ch=tcChance({a0:M.v(A0),a1:M.v(A1),b0:M.v(B0),b1:M.v(B1)},phi[k],e.rel);
-        ec+=`<small class="was">${!ch?'too few':ch.lo>0||ch.hi<0?'beyond chance':'could be chance'}</small>`; }
     }
     h+=`<tr data-tm="${k}"${k===key?' class="sel"':''} title="${esc(M.tip)}"><td class="agentcell">${M.l}${M.kind==='n'&&tcNormEff!=='total'?`<small>${tcNormEff==='wd'?'a working day':'per day worked'}</small>`:''}</td>
       <td class="r">${tcFmt(k,x0)}</td><td class="r cnum">${tcFmt(k,x1)}</td><td class="r">${tcChip(k,tcGrowth(k,x0,x1))}</td>
@@ -6159,7 +6146,6 @@ function renderTeams(){
   h+=explain('teams','How the team comparison works',`
     <p>Each team is measured Before and After, and its change is set against the other team’s change over the same dates. Anything that affected both teams alike, such as a quiet month, a bank holiday or a change to the AB programme, shows up in both and cancels out. What is left is how much better or worse the first team did: the effect of a trial, for example. For counts and rates it is the ratio of the two teams’ growth (so team size does not matter); for percentages it is the difference in points.</p>
     <p><b>Per working day</b> divides counts by the weekdays each period covers in the report, for periods of different length. <b>Totals</b> shows the counts as they are.</p>
-    <p><b>Beyond chance</b> or <b>could be chance</b>: daily figures go up and down even when nothing changes. The range shown uses how much this report’s own daily figures vary, and covers the real difference 19 times out of 20. With small teams or short periods the range is wide, so a difference can look large and still be chance.</p>
     <p><b>Moved in step before</b> splits the Before period in two and checks that the teams were not already pulling apart; if they were, part of the difference may be that trend carrying on.</p>
     <p>Teams are as set in Settings now; someone who moved team counts in their current one. <b>Everyone else</b> is every BDE not in the first team, apart from <b>Inactive codes</b> (set in Settings, or in the Remaining team with too few sign-ups lately), which can be chosen on their own. <b>Top or bottom performers</b> ranks everyone outside the first team (Inactive codes left out) by activations, registrations or commission qualified, in the period you choose, and takes the top or bottom few. The BDE and team filters at the top do not apply here. Registrations count by sign-up date and activations by ${byRegBasis()?'the date the business registered, as set in Settings':'the date the customer spent'}, as in the league table.</p>`);
   body.innerHTML=h;
