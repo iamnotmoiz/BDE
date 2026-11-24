@@ -1451,7 +1451,7 @@ const state={
   auditSort:{key:'date',dir:1}, auditAgent:'130', auditFrom:null, indSort:{key:'spend',dir:-1},
   salarySort:{key:'total',dir:-1},
   cmp:{mode:'month',xm:null,ym:null,xf:null,xt:null,yf:null,yt:null,norm:'auto',metric:'reg',dir:-1},
-  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:TC_FROM,xt:null,yf:null,yt:null,from:TC_FROM,norm:'wd',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
+  tcmp:{a:null,b:null,mode:'range',xm:null,ym:null,xf:TC_FROM,xt:null,yf:null,yt:null,from:TC_FROM,norm:'total',metric:'act',top:{dir:'top',n:20,by:'act',on:'before'}}
 };
 
 /* =======================================================================
@@ -2228,9 +2228,9 @@ function loadView(){
         top:{dir:tp.dir==='bottom'?'bottom':'top', n:Number.isInteger(tp.n)&&tp.n>=1&&tp.n<=500?tp.n:20,
           by:['act','reg','comm'].includes(tp.by)?tp.by:'act', on:['before','after','both'].includes(tp.on)?tp.on:'before'}, mode:c.mode==='month'?'month':'range', xm:isM(c.xm), ym:isM(c.ym),
         xf:isD(c.xf), xt:isD(c.xt), yf:isD(c.yf), yt:isD(c.yt), from:TC_FROM,
-        // Counts always open on Per working day; Totals, if chosen, lasts
+        // Counts always open on Totals; Per working day, if chosen, lasts
         // until the page is closed.
-        norm:'wd',
+        norm:'total',
         metric:['act','comm','reg','target'].includes(c.metric)?c.metric:'act'};
       if(c.from!==TC_FROM) Object.assign(state.tcmp,{mode:'range',xf:TC_FROM,xt:null,yf:null,yt:null});
     }
@@ -5989,10 +5989,10 @@ function renderTeams(){
   const part=Q=>src.filter(r=>(r[F.REGD]>=Q.from&&r[F.REGD]<=Q.to)||(r[F.ACTD]>=Q.from&&r[F.ACTD]<=Q.to));
   const SA=cmpStats(PA,span,inc,part(PA)), SB=cmpStats(PB,span,inc,part(PB));
   const A0=tcSum(SB,idsA), A1=tcSum(SA,idsA), B0=tcSum(SB,idsB), B1=tcSum(SA,idsB);
-  tcNormEff=c.norm==='total'?'total':'wd';
+  tcNormEff=c.norm==='wd'?'wd':'total';
   h+=`<div class="field"><label for="tcNorm">Counts</label><select id="tcNorm" title="Per working day divides each count by the weekdays the period covers, so periods of different length compare fairly">
-      <option value="wd"${tcNormEff==='wd'?' selected':''}>Per working day</option>
-      <option value="total"${tcNormEff==='total'?' selected':''}>Totals</option></select></div></div>`;
+      <option value="total"${tcNormEff==='total'?' selected':''}>Totals</option>
+      <option value="wd"${tcNormEff==='wd'?' selected':''}>Per working day</option></select></div></div>`;
   const cover=S=>S.cut?`${S.wd} of ${S.full} working days in the report`:`${S.wd} working day${S.wd===1?'':'s'}`;
   h+=`<p class="cmpperiods"><span><b>Before</b> ${esc(PB.name)} · ${cover(SB)}</span><span class="vs2">→</span><span><b>After</b> ${esc(PA.name)} · ${cover(SA)}</span></p>`;
   if(!B0.reg&&!B0.act&&!A0.reg&&!A0.act){
@@ -6168,7 +6168,7 @@ $('#sec-teams').addEventListener('change',e=>{
   const c=state.tcmp, t=e.target, span=dataSpan(); if(!span) return;
   if(t.id==='tcA'){ c.a=t.value; if(c.b===c.a) c.b=null; }
   else if(t.id==='tcB'){ c.b=t.value; }
-  else if(t.id==='tcNorm'){ c.norm=t.value==='total'?'total':'wd'; }
+  else if(t.id==='tcNorm'){ c.norm=t.value==='wd'?'wd':'total'; }
   else if(t.id==='tcTopN'){ const n=Math.round(+t.value); if(!(n>=1)) return; c.top=Object.assign(tcTopCfg(),{n:Math.min(500,n)}); }
   else if(t.id==='tcTopBy'){ c.top=Object.assign(tcTopCfg(),{by:t.value}); }
   else if(t.id==='tcTopOn'){ c.top=Object.assign(tcTopCfg(),{on:t.value}); }
