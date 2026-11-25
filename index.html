@@ -606,6 +606,8 @@ svg{display:block;max-width:100%}
 .legend span{display:flex;align-items:center;gap:7px}
 .legend i{width:14px;height:3px;border-radius:2px;display:inline-block;flex:none}
 .legend i.sq{width:10px;height:10px;border-radius:3px}
+.legend .lgh{color:var(--ink-3)}
+#qualTable td small.sub{display:block;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .lgdbar{gap:4px 6px;margin-bottom:12px}
 .lgd{
   display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 8px;border-radius:999px;
@@ -3750,14 +3752,14 @@ function renderTrend(rows,keys){
      is still open and has not spent is "Not spent yet", not "Never spent". */
 const QSORTS={
   name:d=>agentName(d.id).toLowerCase(), reg:d=>d.reg, conv:d=>d.conv??-1, spent:d=>d.p(d.act),
-  comm:d=>d.p(d.comm), open:d=>d.p(d.open), never:d=>d.p(d.never), opr:d=>d.reg?d.ops/d.reg:0
+  comm:d=>d.lcomm, qual:d=>d.p(d.comm), open:d=>d.p(d.open), never:d=>d.p(d.never), opr:d=>d.reg?d.ops/d.reg:0
 };
 function qualityData(rows){
   const c=commCfg(), cut=new Date(c.cutover+'T00:00:00').getTime(), asAt=reportDate();
   const isOpen=r=>windowEnd(r[F.REGD],r[F.REGD]>=cut?c.newMonths:c.oldMonths)>asAt;
   const aw=byRegBasis()?null:actAgg(activationRows());
   const per=new Map();
-  const tot={id:null,reg:0,act:0,comm:0,low:0,lowOpen:0,open:0,never:0,ops:0,lact:0};
+  const tot={id:null,reg:0,act:0,comm:0,low:0,lowOpen:0,open:0,never:0,ops:0,lact:0,lcomm:0};
   for(const r of rows){
     if(!r[F.POST]) continue;
     const id=r[F.AGENT];
@@ -3769,9 +3771,10 @@ function qualityData(rows){
   }
   const list=[...per.values()].map(d=>{
     d.lact=aw?((aw.get(d.id)||{}).act||0):d.act;
+    d.lcomm=aw?((aw.get(d.id)||{}).comm||0):d.comm;
     d.conv=d.reg?d.lact/d.reg*100:null;
     d.p=v=>d.reg?v/d.reg*100:0;
-    for(const k of ['reg','act','comm','low','lowOpen','open','never','ops','lact']) tot[k]+=d[k];
+    for(const k of ['reg','act','comm','low','lowOpen','open','never','ops','lact','lcomm']) tot[k]+=d[k];
     return d;
   });
   tot.p=v=>tot.reg?v/tot.reg*100:0; tot.conv=tot.reg?tot.lact/tot.reg*100:null;
@@ -3789,18 +3792,21 @@ function renderQuality(rows){
   const regBasis=byRegBasis();
   const cols=[
     {k:'name',l:'BDE'},
-    {k:null,l:'Where the registrations end up',cls:'no-sort'},
+    {k:null,l:'Where these weeks’ sign-ups end up',cls:'no-sort'},
     {k:'reg',l:'Registrations',cls:'r'},
     {k:'conv',l:'Conversion',cls:'r',tip:regBasis?'Registrations in these weeks that have since spent, divided by registrations in these weeks. The same figure as the league table.'
       :'Activations in these weeks (by the date the customer spent, whenever they registered) divided by registrations in these weeks. The same figure as the league table.'},
+    {k:'comm',l:'Commission qualified',cls:'r',tip:regBasis?'Registrations in these weeks that earn commission. The same figure as the league table; the percentage is of registrations.'
+      :'Activations in these weeks that earn commission, whenever the business registered. The same figure as the league table; the percentage is of registrations.'},
     {k:'spent',l:'Spent so far',cls:'r',tip:'Of the businesses registered in these weeks, the share that have spent by the end of the report'},
-    {k:'comm',l:'Commission qualified',cls:'r',tip:'Of the businesses registered in these weeks, the share that earn commission'},
+    {k:'qual',l:'Qualified so far',cls:'r',tip:'Of the businesses registered in these weeks, the share that earn commission so far'},
     ...(anyOpen?[{k:'open',l:'Not spent yet',cls:'r',tip:'Registered in these weeks, not spent, and still inside the commission window, so they can still count'}]:[]),
     {k:'never',l:'Never spent',cls:'r',tip:'Registered in these weeks, not spent, and the commission window has closed'},
     {k:'opr',l:'Net OPS per registration',cls:'r'}
   ];
   let h=`<div class="legend" style="margin-bottom:16px">
-    <span><i class="sq" style="background:var(--s-good)"></i>Commission qualified</span>
+    <span class="lgh">These weeks’ sign-ups:</span>
+    <span><i class="sq" style="background:var(--s-good)"></i>Qualified so far</span>
     <span><i class="sq" style="background:var(--s-mid)"></i>Spent, no commission${anyOpen?' so far':''}</span>
     ${anyOpen?'<span><i class="sq" style="background:var(--s-open)"></i>Not spent yet, still in the window</span>':''}
     <span><i class="sq" style="background:var(--s-none)"></i>Never spent</span>
@@ -3813,13 +3819,14 @@ function renderQuality(rows){
     const cv=d.conv, ccls=cv==null?'none':(cv>50?'hit':cv>=25?'near':'miss');
     h+=`<tr><td class="agentcell">${esc(agentName(d.id))}</td>
       <td>${stackBar([
-        {k:'Commission qualified',v:d.comm,c:'var(--s-good)'},
+        {k:'Qualified so far',v:d.comm,c:'var(--s-good)'},
         {k:d.lowOpen?`Spent, no commission so far (${fmt(d.lowOpen)} can still qualify)`:'Spent, no commission',v:d.low,c:'var(--s-mid)'},
         {k:'Not spent yet, still in the window',v:d.open,c:'var(--s-open)',t:'var(--ink-2)'},
         {k:'Never spent',v:d.never,c:'var(--s-none)',t:'var(--ink-2)'}
-      ],d.reg,300)}</td>
+      ],d.reg,230)}</td>
       <td class="r num">${fmt(d.reg)}</td>
       <td class="r"><span class="pill ${ccls}" title="${esc(`${fmt(d.lact)} activations ÷ ${fmt(d.reg)} registrations`)}">${cv==null?'—':r0(cv)}</span></td>
+      <td class="r" title="${esc(`${fmt(d.lcomm)} commission-qualified activations; ${r0(d.p(d.lcomm))} of ${fmt(d.reg)} registrations`)}"><span class="num">${fmt(d.lcomm)}</span><small class="sub">${r0(d.p(d.lcomm))}</small></td>
       <td class="r num" title="${esc(`${fmt(d.act)} of ${fmt(d.reg)}`)}">${r0(d.p(d.act))}</td>
       <td class="r num" title="${esc(`${fmt(d.comm)} of ${fmt(d.reg)}`)}">${r0(d.p(d.comm))}</td>
       ${anyOpen?`<td class="r num" title="${esc(`${fmt(d.open)} of ${fmt(d.reg)}`)}">${r0(d.p(d.open))}</td>`:''}
@@ -3827,16 +3834,16 @@ function renderQuality(rows){
       <td class="r num">${fmtOps(d.reg?d.ops/d.reg:0)}</td></tr>`;
   }
   h+='</tbody></table></div>';
-  const diff=!regBasis&&list.some(d=>d.reg&&Math.round(d.conv)!==Math.round(d.p(d.act)));
-  if(diff) h+=notesList([['',`<b>Conversion</b> is the league table’s figure: all activations in these weeks, including businesses that registered earlier, divided by registrations in these weeks. <b>Spent so far</b> follows only the businesses registered in these weeks, so for recent weeks it is lower: many have not had time to spend yet.`]]);
+  const diff=!regBasis&&list.some(d=>d.reg&&(Math.round(d.conv)!==Math.round(d.p(d.act))||d.lcomm!==d.comm));
+  if(diff) h+=notesList([['',`<b>Conversion</b> and <b>Commission qualified</b> are the league table’s figures: everything that activated or qualified in these weeks, including businesses that registered earlier. <b>Spent so far</b>, <b>Qualified so far</b> and the bar follow only the businesses registered in these weeks, so for recent weeks they are lower: many have not had time to spend yet.`]]);
 
   const tiles=[
-    {k:'Commission qualified',v:tot.comm,s:`${r0(tot.p(tot.comm))} of registrations`,c:'var(--s-good)'},
+    {k:'Qualified so far',v:tot.comm,s:`${r0(tot.p(tot.comm))} of these weeks’ registrations`,c:'var(--s-good)'},
     {k:'Spent, no commission'+(anyOpen?' so far':''),v:tot.low,s:tot.lowOpen?`${r0(tot.p(tot.low))} spent below the line; ${fmt(tot.lowOpen)} of them are still in their window and can still qualify`:`${r0(tot.p(tot.low))} spent but earned nothing: too little, or outside the window`,c:'var(--s-mid)'},
     ...(anyOpen?[{k:'Not spent yet',v:tot.open,s:`${r0(tot.p(tot.open))} still inside their commission window`,c:'var(--s-open)'}]:[]),
     {k:'Never spent',v:tot.never,s:`${r0(tot.p(tot.never))} of registrations, window closed`,c:'var(--s-none)'}
   ];
-  h+='<div class="minitiles">'+tiles.map(c=>`<div class="minitile">
+  h+='<h3 class="cmph">These weeks’ sign-ups so far</h3><div class="minitiles" style="margin-top:0">'+tiles.map(c=>`<div class="minitile">
       <div class="mk"><i class="sw" style="background:${c.c}"></i>${esc(c.k)}</div>
       <div class="mv num">${fmt(c.v)}</div>
       <div class="ms">${esc(c.s)}</div>
