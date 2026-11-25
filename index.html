@@ -3792,7 +3792,7 @@ function renderQuality(rows){
   const regBasis=byRegBasis();
   const cols=[
     {k:'name',l:'BDE'},
-    {k:null,l:'Where these weeks’ sign-ups end up',cls:'no-sort'},
+    {k:null,l:'Where the sign-ups end up',cls:'no-sort'},
     {k:'reg',l:'Registrations',cls:'r'},
     {k:'conv',l:'Conversion',cls:'r',tip:regBasis?'Registrations in these weeks that have since spent, divided by registrations in these weeks. The same figure as the league table.'
       :'Activations in these weeks (by the date the customer spent, whenever they registered) divided by registrations in these weeks. The same figure as the league table.'},
@@ -3802,7 +3802,7 @@ function renderQuality(rows){
     {k:'qual',l:'Qualified so far',cls:'r',tip:'Of the businesses registered in these weeks, the share that earn commission so far'},
     ...(anyOpen?[{k:'open',l:'Not spent yet',cls:'r',tip:'Registered in these weeks, not spent, and still inside the commission window, so they can still count'}]:[]),
     {k:'never',l:'Never spent',cls:'r',tip:'Registered in these weeks, not spent, and the commission window has closed'},
-    {k:'opr',l:'Net OPS per registration',cls:'r'}
+    {k:'opr',l:'Net OPS per sign-up',cls:'r',tip:'Net OPS of these weeks’ sign-ups divided by their number'}
   ];
   let h=`<div class="legend" style="margin-bottom:16px">
     <span class="lgh">These weeks’ sign-ups:</span>
@@ -3823,7 +3823,7 @@ function renderQuality(rows){
         {k:d.lowOpen?`Spent, no commission so far (${fmt(d.lowOpen)} can still qualify)`:'Spent, no commission',v:d.low,c:'var(--s-mid)'},
         {k:'Not spent yet, still in the window',v:d.open,c:'var(--s-open)',t:'var(--ink-2)'},
         {k:'Never spent',v:d.never,c:'var(--s-none)',t:'var(--ink-2)'}
-      ],d.reg,230)}</td>
+      ],d.reg,155)}</td>
       <td class="r num">${fmt(d.reg)}</td>
       <td class="r"><span class="pill ${ccls}" title="${esc(`${fmt(d.lact)} activations ÷ ${fmt(d.reg)} registrations`)}">${cv==null?'—':r0(cv)}</span></td>
       <td class="r" title="${esc(`${fmt(d.lcomm)} commission-qualified activations; ${r0(d.p(d.lcomm))} of ${fmt(d.reg)} registrations`)}"><span class="num">${fmt(d.lcomm)}</span><small class="sub">${r0(d.p(d.lcomm))}</small></td>
