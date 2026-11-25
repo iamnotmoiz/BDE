@@ -1835,24 +1835,78 @@ function isoWeek(d){
 /* =======================================================================
    File reading — CSV and XLSX, both parsed in this page.
    ======================================================================= */
-function parseCSV(text,delim){
+/* A piece cut out of a big string can keep the whole of it in memory; a
+   copy does not. Short pieces are copied by the browser anyway. */
+const flatStr=s=>s.length>12?(' '+s).slice(1):s;
+/* Reads CSV text into rows of cells. Plain cells are sliced straight out of
+   the text; quoted ones are read character by character. With keepCols, the
+   header row decides which columns are kept, and every other cell is read
+   past without being stored: a 70,000-row report then needs a fraction of
+   the memory, which is what lets a phone load it in full. */
+function parseCSV(text,delim,keepCols){
   if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
-  if(!delim) delim = (text.split('\n')[0].split('\t').length > text.split('\n')[0].split(',').length) ? '\t' : ',';
-  const out=[]; let row=[], cell='', q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(q){
-      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; }
-      else cell+=c;
-    }else{
-      if(c==='"') q=true;
-      else if(c===delim){ row.push(cell); cell=''; }
-      else if(c==='\n'){ row.push(cell); out.push(row); row=[]; cell=''; }
-      else if(c!=='\r') cell+=c;
-    }
+  if(!delim){
+    let e=text.indexOf('\n'); if(e<0) e=text.length;
+    const first=text.slice(0,e);
+    delim=(first.split('\t').length>first.split(',').length)?'\t':',';
   }
-  if(cell!==''||row.length){ row.push(cell); out.push(row); }
-  return out.filter(r=>r.some(v=>String(v).trim()!==''));
+  const D=delim.charCodeAt(0), n=text.length, out=[];
+  let kmap=null, width=0, row=[], col=0, any=false, header=!!keepCols;
+  const put=v=>{
+    if(!any&&v.trim()!=='') any=true;
+    if(kmap){ const p=kmap[col]; if(p!==undefined) row[p]=flatStr(v); }
+    else row.push(v);
+    col++;
+  };
+  const endRow=()=>{
+    if(any){
+      if(header){
+        header=false;
+        const keep=keepCols(row); kmap={}; keep.forEach((c,i)=>{ kmap[c]=i; }); width=keep.length;
+        row=keep.map(c=>row[c]===undefined?'':row[c]);
+      }else if(kmap){ for(let k=0;k<width;k++) if(row[k]===undefined) row[k]=''; }
+      out.push(row);
+    }
+    row=kmap?new Array(width):[]; col=0; any=false;
+  };
+  let i=0, cell=null;
+  while(i<n){
+    // A cell with no quotes: slice it out up to the next delimiter or line end.
+    let j=i;
+    while(j<n){ const c=text.charCodeAt(j); if(c===D||c===10||c===34) break; j++; }
+    if(j>=n||text.charCodeAt(j)!==34){
+      let v=text.slice(i,j); if(v.indexOf('\r')>=0) v=v.replace(/\r/g,'');
+      if(j>=n){ if(v!==''||col>0) put(v); break; }
+      put(v); i=j+1;
+      if(text.charCodeAt(j)===10) endRow();
+      continue;
+    }
+    // Quotes somewhere in the cell: read it as before, a character at a time.
+    let q=false; cell=text.slice(i,j).replace(/\r/g,''); i=j;
+    let ended=false;
+    for(;i<n;i++){
+      const c=text[i];
+      if(q){
+        if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; }
+        else cell+=c;
+      }else{
+        if(c==='"') q=true;
+        else if(c===delim){ put(cell); i++; ended=true; break; }
+        else if(c==='\n'){ put(cell); endRow(); i++; ended=true; break; }
+        else if(c!=='\r') cell+=c;
+      }
+    }
+    if(!ended){ put(cell); break; }
+  }
+  if(col>0) endRow();
+  return out;
+}
+/* The columns the AB report is read from, found by their headings in the
+   same way buildRows maps them. */
+function reportCols(header){
+  const keep=[];
+  header.forEach((h,i)=>{ const x=norm(h); if(HMAP[x]||/30d.*ops|ops.*30d|90d.*ops|ops.*90d/.test(x)) keep.push(i); });
+  return keep;
 }
 
 /* Minimal ZIP reader using the browser's own inflate. */
@@ -1901,6 +1955,99 @@ function colIdx(ref){
   }
   return n-1;
 }
+const XML_ENT={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'"};
+function xmlText(s){
+  return flatStr(xmlText0(s));
+}
+function xmlText0(s){
+  if(s.indexOf('<![CDATA[')>=0) s=s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,(m,t)=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+  if(s.indexOf('<')>=0) s=s.replace(/<[^>]*>/g,'');
+  return s.indexOf('&')<0?s:s.replace(/&(#x[0-9a-fA-F]+|#\d+|amp|lt|gt|quot|apos);/g,
+    (m,e)=>e[0]==='#'?String.fromCodePoint(e[1]==='x'||e[1]==='X'?parseInt(e.slice(2),16):parseInt(e.slice(1),10)):XML_ENT[e]);
+}
+const isTagEnd=c=>c===62||c===32||c===47||c===9||c===10||c===13;   // > space / tab newline
+// All the text inside every <t> element of a fragment, joined.
+function allT(x){
+  let out='', p=0;
+  for(;;){
+    p=x.indexOf('<t',p); if(p<0) break;
+    if(!isTagEnd(x.charCodeAt(p+2))){ p+=2; continue; }
+    const gt=x.indexOf('>',p); if(gt<0) break;
+    if(x.charCodeAt(gt-1)===47){ p=gt+1; continue; }          // <t/>
+    const end=x.indexOf('</t>',gt); if(end<0) break;
+    out+=xmlText(x.slice(gt+1,end)); p=end+4;
+  }
+  return out;
+}
+function sharedStrings(xml){
+  const out=[]; let p=0;
+  for(;;){
+    p=xml.indexOf('<si',p); if(p<0) break;
+    if(!isTagEnd(xml.charCodeAt(p+3))){ p+=3; continue; }
+    const gt=xml.indexOf('>',p); if(gt<0) break;
+    if(xml.charCodeAt(gt-1)===47){ out.push(''); p=gt+1; continue; }
+    const end=xml.indexOf('</si>',gt); if(end<0) break;
+    out.push(allT(xml.slice(gt+1,end))); p=end+5;
+  }
+  return out;
+}
+const ATTR_RE={};
+const attr=(tag,name)=>{ const re=ATTR_RE[name]||(ATTR_RE[name]=new RegExp('\\s'+name+'=(["\'])(.*?)\\1')); const m=tag.match(re); return m?m[2]:null; };
+/* Rows of a worksheet. keepCols works as in parseCSV. info collects the
+   sheet's stated size and the last row read, to show a file cut short. */
+function sheetRows(xml,shared,keepCols,info){
+  const rows=[]; let p=0, kmap=null, width=0, header=!!keepCols, lastR=0;
+  const dim=xml.match(/<dimension[^>]*\sref="[A-Z]+\d+:[A-Z]+(\d+)"/);
+  for(;;){
+    p=xml.indexOf('<row',p); if(p<0) break;
+    if(!isTagEnd(xml.charCodeAt(p+4))){ p+=4; continue; }
+    const gt=xml.indexOf('>',p); if(gt<0) break;
+    const rtag=xml.slice(p,gt);
+    const rr=attr(rtag,'r'); if(rr) lastR=+rr;
+    let body='';
+    if(xml.charCodeAt(gt-1)===47) p=gt+1;
+    else{ const end=xml.indexOf('</row>',gt); if(end<0) break; body=xml.slice(gt+1,end); p=end+6; }
+    let arr=kmap?new Array(width):[], any=false, q=0, j=0;
+    for(;;){
+      q=body.indexOf('<c',q); if(q<0) break;
+      if(!isTagEnd(body.charCodeAt(q+2))){ q+=2; continue; }
+      const cg=body.indexOf('>',q); if(cg<0) break;
+      const ctag=body.slice(q,cg);
+      let inner='';
+      if(body.charCodeAt(cg-1)===47) q=cg+1;
+      else{ const ce=body.indexOf('</c>',cg); if(ce<0) break; inner=body.slice(cg+1,ce); q=ce+4; }
+      const ref=attr(ctag,'r')||'';
+      const ci=ref?colIdx(ref):j;
+      j++;
+      const t=attr(ctag,'t');
+      let val='';
+      if(t==='inlineStr') val=allT(inner);
+      else{
+        const vs=inner.indexOf('<v');
+        if(vs>=0&&isTagEnd(inner.charCodeAt(vs+2))){
+          const vg=inner.indexOf('>',vs);
+          const vt=inner.charCodeAt(vg-1)===47?'':xmlText(inner.slice(vg+1,inner.indexOf('</v>',vg)));
+          if(t==='s') val=shared[+vt]||'';
+          else if(t==='b') val=(vt==='1')?'TRUE':'FALSE';
+          else { const num=Number(vt); val=isNaN(num)?vt:num; }
+        }
+      }
+      if(!any&&String(val).trim()!=='') any=true;
+      if(kmap){ const k=kmap[ci]; if(k!==undefined) arr[k]=val; }
+      else arr[ci]=val;
+    }
+    if(!any) continue;
+    for(let k=0;k<arr.length;k++) if(arr[k]===undefined) arr[k]='';
+    if(header){
+      header=false;
+      const keep=keepCols(arr); kmap={}; keep.forEach((c,i)=>{ kmap[c]=i; }); width=keep.length;
+      arr=keep.map(c=>arr[c]===undefined?'':arr[c]);
+    }else if(kmap){ for(let k=0;k<width;k++) if(arr[k]===undefined) arr[k]=''; }
+    rows.push(arr);
+  }
+  if(info){ info.lastRow=lastR; info.dimRows=dim?+dim[1]:0; }
+  return rows;
+}
 function sheetMatrix(P,xml,shared){
   const doc=P.parseFromString(xml,'application/xml');
   const rows=[];
@@ -1934,19 +2081,13 @@ function sheetMatrix(P,xml,shared){
 }
 /* Every worksheet in the workbook, in the order the workbook lists them.
    The Celero export splits first visits and revisits across two sheets. */
-async function parseXLSXSheets(buf){
+async function parseXLSXSheets(buf,opt){
+  opt=opt||{};
   const files=await unzip(buf);
   const P=new DOMParser();
   let shared=[];
   const ss=files['xl/sharedStrings.xml'];
-  if(ss){
-    const doc=P.parseFromString(ss,'application/xml');
-    shared=Array.from(doc.getElementsByTagName('si')).map(si=>{
-      const ts=si.getElementsByTagName('t');
-      let s=''; for(let i=0;i<ts.length;i++) s+=ts[i].textContent;
-      return s;
-    });
-  }
+  if(ss){ shared=sharedStrings(ss); files['xl/sharedStrings.xml']=null; }
   const rels={};
   const rl=files['xl/_rels/workbook.xml.rels'];
   if(rl){
@@ -1976,10 +2117,19 @@ async function parseXLSXSheets(buf){
       .map((k,i)=>({name:'Sheet '+(i+1),path:k}));
   }
   if(!sheets.length) throw new Error('No worksheet found in that workbook.');
-  return sheets.map(o=>({name:o.name,matrix:sheetMatrix(P,files[o.path],shared)}));
+  if(opt.firstOnly) sheets=sheets.slice(0,1);
+  return sheets.map(o=>{
+    const info={};
+    const matrix=sheetRows(files[o.path],shared,opt.keep,info);
+    files[o.path]=null;
+    return {name:o.name,matrix,info};
+  });
 }
+/* The AB report: its first worksheet, only the columns it is read from. */
 async function parseXLSX(buf){
-  return (await parseXLSXSheets(buf))[0].matrix;
+  const s=(await parseXLSXSheets(buf,{firstOnly:true,keep:reportCols}))[0];
+  s.matrix.info=s.info;
+  return s.matrix;
 }
 
 /* =======================================================================
@@ -2122,15 +2272,23 @@ async function handleFile(file){
   loader.show('Loading AB report',`${file.name} · ${loader.mb(file.size)}`);
   try{
     await nextPaint();
-    const {xlsx,data}=await readUpload(file,0,30);
-    const matrix=xlsx?await parseXLSX(data):parseCSV(data, /\.tsv$/i.test(file.name)?'\t':null);
-    loader.step(45,`Reading ${fmt(Math.max(0,matrix.length-1))} rows: agents, dates and spend…`);
+    let {xlsx,data}=await readUpload(file,0,30);
+    let matrix=xlsx?await parseXLSX(data):parseCSV(data, /\.tsv$/i.test(file.name)?'\t':null, reportCols);
+    data=null;                       // the file's text is no longer needed
+    const read=Math.max(0,matrix.length-1), info=matrix.info||{};
+    loader.step(45,`Reading ${fmt(read)} rows: agents, dates and spend…`);
     await nextPaint();
     const {rows,skipped,dates,undated,spend}=buildRows(matrix);
+    matrix=null;
+    // The span of registration dates read, shown so a short read is obvious.
+    let r0=Infinity, r1=-Infinity;
+    for(const r of rows){ const t=r[F.REGD]; if(t&&!isGlitch(r)){ if(t<r0) r0=t; if(t>r1) r1=t; } }
+    const cut=info.dimRows&&info.lastRow&&info.lastRow<info.dimRows;
 
     state.rows=rows;
     state.meta={file:file.name,at:Date.now(),n:rows.length,
-      dateOrder:dates.order, dateEvidence:dates.evidence, dateMixed:dates.mixed, undated};
+      dateOrder:dates.order, dateEvidence:dates.evidence, dateMixed:dates.mixed, undated,
+      regFrom:isFinite(r0)?r0:null, regTo:isFinite(r1)?r1:null};
     state.openAgent=null; state.detailLimit=60;
     const adjusted=reconcileFilters();
     saveView();
@@ -2141,22 +2299,23 @@ async function handleFile(file){
     }
     loader.step(65,`Working out the league table, charts and commission for ${fmt(rows.length)} registrations…`);
     await nextPaint();
-    const saving=save();
     render();
     const q=$('#search'); if(q) q.value=state.filters.q;
     loader.step(88,'Saving the report on this device so it is here next time…');
     await nextPaint();
-    await saving;
+    await save();
     loader.step(100,'Done');
     await new Promise(r=>setTimeout(r,250));
-    msg=fmt(rows.length)+' registrations loaded'+(skipped?' \u00b7 '+fmt(skipped)+' rows skipped':'');
+    const nice=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    msg=fmt(rows.length)+' registrations loaded'+(isFinite(r1)?`, ${nice(r0)} to ${nice(r1)}`:'')+(skipped?' \u00b7 '+fmt(skipped)+' rows skipped':'');
+    if(cut) msg+=` · the workbook says it has ${fmt(info.dimRows)} rows but only ${fmt(info.lastRow)} could be read`;
     msg+=' \u00b7 dates read as '+(dates.order==='dmy'?'day/month/year':'month/day/year');
     if(filterCount()) msg+=' \u00b7 filters still applied';
     if(adjusted.length) msg+=' ('+[...new Set(adjusted)].join(' and ')+' adjusted)';
     msg+=(spend.o30&&spend.o90)?' · commission uses 30 and 90-day spend'
         :(spend.o30||spend.o90)?' · only one of F30d_ops and F90d_ops found'
         :' · no F30d_ops or F90d_ops column, so commission uses total net OPS';
-    msgErr=dates.mixed;
+    msgErr=dates.mixed||cut;
   }catch(err){
     console.error(err);
     msg=err.message||'That file could not be read.'; msgErr=true;
@@ -2319,16 +2478,17 @@ let saveSeq=0;
 function save(){
   clearStints();
   store.set(K_SET,JSON.stringify(state.settings));
-  store.set(K_META,JSON.stringify(state.meta));
   renderFoot();
   // Settings changes call this too; the rows are only written when they changed.
-  if(state._savedRows===state.rows) return;
+  if(state._savedRows===state.rows){ store.set(K_META,JSON.stringify(state.meta)); return; }
+  store.del(K_DATA); store.del(K_META);
   const rows=state.rows, seq=++saveSeq;
   return packRows(rows).then(packed=>{
     if(seq!==saveSeq) return;          // a newer report has replaced this one
     const res=store.set(K_DATA,packed);
     state._savedRows=rows;
     state.quota=(res==='quota');
+    store.set(K_META,JSON.stringify(state.quota?{...state.meta,notKept:true}:state.meta));
     if(state.quota) toast('This report is too large to keep on the device. It will work now but will not survive a refresh.',true);
     renderFoot();
   }).catch(e=>console.error('Saving the report failed',e));
@@ -2356,7 +2516,9 @@ function fileSummary(){
   const d=new Date(state.meta.at);
   const when=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+
     ' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  return `${state.meta.file} \u00b7 ${fmt(state.meta.n||state.rows.length)} rows \u00b7 loaded ${when}`;
+  const nice=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const span=state.meta.regTo?` \u00b7 registrations ${nice(state.meta.regFrom)} to ${nice(state.meta.regTo)}`:'';
+  return `${state.meta.file} \u00b7 ${fmt(state.meta.n||state.rows.length)} rows${span} \u00b7 loaded ${when}`;
 }
 /* =======================================================================
    Celero audit
@@ -6458,6 +6620,10 @@ if(state._packed){
   try{ state.rows=await unpackRows(state._packed); state._savedRows=state.rows; }
   catch(e){ console.warn('Stored report could not be read',e); state.rows=[]; }
   state._packed=null;
+}
+if(!state.rows.length&&state.meta&&state.meta.notKept){
+  const m=state.meta; state.meta=null;
+  setTimeout(()=>toast(`${m.file} was too large to keep on this device after the page closed. Upload it again to see it.`,true),700);
 }
 seedLondonEast();
 const teamsMoved=normaliseTeams();
