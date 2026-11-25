@@ -3117,16 +3117,30 @@ function keyOfTime(t,g){
   return iw.y*100+iw.w;
 }
 /* Registrations sit on the date they registered; activations and the
-   commission they earn sit on the date the customer actually bought. */
-function trendSeries(rows,keys,g){
+   commission they earn sit on the date the customer actually bought.
+   actRows, when given, are the activations to plot: every business that
+   bought in the chosen dates, whenever it registered, exactly as the league
+   table counts them. Without it, only the given registrations' own
+   activations are plotted (the registration-week setting). */
+function trendSeries(rows,keys,g,actRows){
   const idx=new Map(keys.map((k,i)=>[k,i]));
   const reg=keys.map(()=>0), act=keys.map(()=>0), comm=keys.map(()=>0);
-  let offAxis=0, regOff=0;
+  let offAxis=0, regOff=0, actWeekend=0;
+  if(actRows) for(const r of actRows){
+    const ai=idx.get(keyOfTime(r[F.ACTD],g));
+    if(ai===undefined){
+      const w=new Date(r[F.ACTD]).getDay();
+      if(g==='day'&&!state.showWeekends&&(w===0||w===6)) actWeekend++; else offAxis++;
+      continue;
+    }
+    act[ai]++;
+    if(qualifies(r)) comm[ai]++;
+  }
   for(const r of rows){
     if(!r[F.POST]) continue;
     const ri=idx.get(keyOf(r,g));
     if(ri!==undefined) reg[ri]++; else regOff++;
-    if(!r[F.ACTD]) continue;
+    if(actRows||!r[F.ACTD]) continue;
     // Under the registration basis an activation sits on the week the
     // business signed up, not the week it spent.
     const ai=byRegBasis()?ri:idx.get(keyOfTime(r[F.ACTD],g));
@@ -3134,7 +3148,7 @@ function trendSeries(rows,keys,g){
     act[ai]++;
     if(qualifies(r)) comm[ai]++;
   }
-  return {reg,act,comm,offAxis,regOff};
+  return {reg,act,comm,offAxis,regOff,actWeekend};
 }
 /* The Monday of a given ISO week. */
 function isoMonday(year,week){
@@ -3832,7 +3846,12 @@ function renderTrend(rows,keys){
   const off=trendOff();
   const per=g==='day'?'a day':'a week', mult=g==='day'?1:5;
   const grp=groupRows(rows);
-  const anyAct=rows.some(r=>r[F.ACTD]);
+  // Activations as the league table counts them: by the date the customer
+  // bought, whenever the business registered.
+  const aRows=byRegBasis()?null:activationRows();
+  const aBy=new Map();
+  if(aRows) for(const r of aRows){ const id=r[F.AGENT]; if(!aBy.has(id)) aBy.set(id,[]); aBy.get(id).push(r); }
+  const anyAct=rows.some(r=>r[F.ACTD])||!!(aRows&&aRows.length);
   const lines=(s)=>[
     {key:'reg',vals:s.reg},
     ...(anyAct?[{key:'act',vals:s.act},{key:'comm',vals:s.comm}]:[])
@@ -3845,11 +3864,11 @@ function renderTrend(rows,keys){
   const span=dataSpan();
   const upto=span?new Date(span[1]).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
   const partNote=partial?['',`${wkLabel(bk[bk.length-1])} is still in progress: the report runs to ${esc(upto)}, so the dashed end of each line is that week so far.`]:null;
-  const how=`<p>Registrations sit on the date they signed up. Activations and the commission they earn sit on the date the customer actually bought, so they can fall in a later ${g==='day'?'day':'week'}.</p>
+  const how=`<p>Registrations sit on the date they signed up. ${byRegBasis()?`Activations and the commission they earn sit on the ${g==='day'?'day':'week'} the business registered, as set in Settings.`:`Activations and the commission they earn sit on the date the customer actually bought, whenever the business registered, so the lines add up to the league table’s figures for the same dates.`}</p>
     <p>Click a name in the key to hide or show its line. Each dashed line is a target, drawn in the colour of the line it is the target for.${g==='day'?(state.showWeekends?' Saturdays and Sundays are included; switch off Show weekends to leave them out.':' Saturdays and Sundays are left off; switch on Show weekends to include them.'):''}</p>`;
 
   if(state.trendMode==='team'){
-    const s=trendSeries(rows,bk,g);
+    const s=trendSeries(rows,bk,g,aRows);
     // Team targets are each BDE's expectation added up, for one day or week.
     const ids=[...grp.keys()];
     const treg=ids.reduce((n,id)=>n+agentTarget(id),0)*mult;
@@ -3863,6 +3882,7 @@ function renderTrend(rows,keys){
     const notes=[];
     if(partNote) notes.push(partNote);
     if(g==='day'&&!state.showWeekends&&s.regOff) notes.push(['warn',`<b>${fmt(s.regOff)} registration${s.regOff===1?'':'s'} fall on a weekend</b> and are not plotted while weekends are hidden, though they still count everywhere else.`]);
+    if(s.actWeekend) notes.push(['',`${fmt(s.actWeekend)} activation${s.actWeekend===1?' falls':'s fall'} on a weekend and ${s.actWeekend===1?'is':'are'} not plotted while weekends are hidden, though ${s.actWeekend===1?'it still counts':'they still count'} everywhere else.`]);
     if(s.offAxis) notes.push(['',`${fmt(s.offAxis)} activation${s.offAxis===1?'':'s'} fall outside the weeks you have selected and are not on this chart, though they still count in the totals above.`]);
     body.innerHTML=trendLegend(items)+
       timeChart(bk,lines(s),g,{W,H,L:W<560?38:48,R:W<560?36:46,area:!off.has('reg'),targets:dashes(treg,anyAct?tact:0),partial,endLabels:true})+
@@ -3880,7 +3900,7 @@ function renderTrend(rows,keys){
     if(anyAct&&actTargetDay()) items.push({key:'tact',text:`Activations target ${fmt(actTargetDay()*mult)} ${per} each`});
     body.innerHTML=trendLegend(items)+'<div class="smallmults">'+ids.map(id=>{
       const arows=grp.get(id);
-      const s=trendSeries(arows,bk,g);
+      const s=trendSeries(arows,bk,g,aRows?(aBy.get(id)||[]):null);
       const treg = g==='day' ? agentTarget(id) : weeklyTarget(id);
       const tact = anyAct ? actTargetDay()*mult : 0;
       const sum=s.reg.reduce((a,b)=>a+b,0);
