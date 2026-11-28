@@ -1441,7 +1441,7 @@ const TC_FROM='2026-10-19';
 const state={
   rows:[], meta:null,
   settings:{names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,actTarget:3,
-    opsCurrency:true,commMin:40,actBasis:'activation',
+    commMin:40,actBasis:'activation',
     comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
       tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},
     salaryOn:true, baseSalary:40000, periodStartDay:25, payDay:5,
@@ -2143,7 +2143,7 @@ const HMAP={
   activationdate:'actd',
   agentid:'agent', agent:'agent', bdeid:'agent',
   landingrefmarker:'ref',
-  totalnetops:'ops', netops:'ops',
+  totalnetops:'ops', netops:'ops', totalnetopsgbp:'ops', netopsgbp:'ops',
   f30dops:'o30', f30dnetops:'o30', f30daysops:'o30', f30ops:'o30', ops30d:'o30', netops30d:'o30',
   f90dops:'o90', f90dnetops:'o90', f90daysops:'o90', f90ops:'o90', ops90d:'o90', netops90d:'o90',
   ismultiuser:'mu', multiuser:'mu'
@@ -2155,6 +2155,63 @@ function campaignFrom(ref){
   if(ai>0) return parts[ai-1];
   return parts.length>2?parts[parts.length-2]:'';
 }
+/* ---------- US dollars to pounds ----------
+   The AB report's spend (total_net_ops, F30d_ops, F90d_ops) is in US dollars.
+   Amazon converts each amount from whole pence at one rate for the whole
+   file and keeps 4 decimal places (£61.23 becomes $82.5001), so the rate is
+   the one that turns the amounts back into whole pence. Every amount is
+   converted once, as the file is read, so commission, tiers, totals, charts,
+   payslips and exports all work in pounds. */
+const USD_FALLBACK=1.34738;   // the rate in the 1 Nov 2026 report
+function findUsdRate(values){
+  const xs=values.filter(v=>v>=1&&v<=200).sort((a,b)=>a-b).slice(0,300);
+  if(xs.length<30) return null;
+  // Whole cents everywhere means no 4-decimal conversion to undo.
+  const whole=xs.filter(v=>Math.abs(v*100-Math.round(v*100))<1e-6).length;
+  if(whole*2>=xs.length) return null;
+  const n=xs.length, head=Math.min(12,n);
+  const fits=(v,r)=>{ const p=v/r*100; return Math.abs(p-Math.round(p))<=0.03; };
+  let best=0, bestFits=-1;
+  for(let i=1050000;i<=1800000;i++){
+    const r=i/1e6;
+    let miss=0;
+    for(let j=0;j<head;j++) if(!fits(xs[j],r)&&++miss>5) break;
+    if(miss>5) continue;
+    let f=0;
+    for(let j=0;j<n;j++) if(fits(xs[j],r)) f++;
+    if(f>bestFits){ bestFits=f; best=r; }
+  }
+  if(bestFits<0.6*n) return null;
+  // Refine: the exact rate each fitting amount implies, and the middle one.
+  const imp=[];
+  for(const v of xs){ const p=v/best*100, q=Math.round(p); if(q>0&&Math.abs(p-q)<=0.03) imp.push(v/(q/100)); }
+  if(!imp.length) return null;
+  imp.sort((a,b)=>a-b);
+  const m=imp.length>>1;
+  return imp.length%2?imp[m]:(imp[m-1]+imp[m])/2;
+}
+const toGbp=(usd,rate)=>(Math.round(usd/rate*100)/100)||0;
+/* Converts the spend of every row in place. A window column missing from
+   the file stays null, since the rules treat that differently from 0. */
+function convertSpend(rows,rate){
+  for(const r of rows){
+    r[F.OPS]=toGbp(r[F.OPS]||0,rate);
+    if(r[F.O30]!=null) r[F.O30]=toGbp(r[F.O30],rate);
+    if(r[F.O90]!=null) r[F.O90]=toGbp(r[F.O90],rate);
+  }
+}
+/* Finds the rate in the rows' own amounts (or uses the standard one) and
+   converts them. Returns what was used, for the report's saved details. */
+function rowsToGbp(rows){
+  const rate=findUsdRate(rows.map(r=>r[F.OPS]).filter(v=>v>0));
+  const used=rate||USD_FALLBACK;
+  convertSpend(rows,used);
+  return {usdPerGbp:used,rateFoundInFile:!!rate,spendCurrency:'usd'};
+}
+const fxNote=m=>m&&m.spendCurrency==='usd'&&m.usdPerGbp
+  ?`Spend converted from US dollars at $${m.usdPerGbp.toFixed(4)} = £1 (${m.rateFoundInFile?'rate found in the file':'standard rate used'})`
+  :(m&&m.spendCurrency==='gbp'?'Spend already in pounds':'');
+
 function buildRows(matrix){
   if(!matrix.length) throw new Error('That file has no rows in it.');
   const header=matrix[0].map(norm);
@@ -2213,7 +2270,11 @@ function buildRows(matrix){
     out.push(row);
   }
   if(!out.length) throw new Error('No usable rows found. Every row needs an agent_id and a week or registration date.');
-  return {rows:out,skipped,dates:dt,undated,spend:{o30:idx.o30!==undefined,o90:idx.o90!==undefined}};
+  // The AB report's spend is in US dollars; a file this dashboard exported
+  // is already in pounds and says so in its column names.
+  const inGbp=['ops','o30','o90'].some(k=>idx[k]!==undefined&&/gbp$/.test(header[idx[k]]));
+  const fx=inGbp?{usdPerGbp:null,rateFoundInFile:null,spendCurrency:'gbp'}:rowsToGbp(out);
+  return {rows:out,skipped,dates:dt,undated,spend:{o30:idx.o30!==undefined,o90:idx.o90!==undefined},fx};
 }
 
 /* ---------- upload progress ----------
@@ -2278,7 +2339,7 @@ async function handleFile(file){
     const read=Math.max(0,matrix.length-1), info=matrix.info||{};
     loader.step(45,`Reading ${fmt(read)} rows: agents, dates and spend…`);
     await nextPaint();
-    const {rows,skipped,dates,undated,spend}=buildRows(matrix);
+    const {rows,skipped,dates,undated,spend,fx}=buildRows(matrix);
     matrix=null;
     // The span of registration dates read, shown so a short read is obvious.
     let r0=Infinity, r1=-Infinity;
@@ -2288,7 +2349,7 @@ async function handleFile(file){
     state.rows=rows;
     state.meta={file:file.name,at:Date.now(),n:rows.length,
       dateOrder:dates.order, dateEvidence:dates.evidence, dateMixed:dates.mixed, undated,
-      regFrom:isFinite(r0)?r0:null, regTo:isFinite(r1)?r1:null};
+      regFrom:isFinite(r0)?r0:null, regTo:isFinite(r1)?r1:null, ...fx};
     state.openAgent=null; state.detailLimit=60;
     const adjusted=reconcileFilters();
     saveView();
@@ -2315,6 +2376,7 @@ async function handleFile(file){
     msg+=(spend.o30&&spend.o90)?' · commission uses 30 and 90-day spend'
         :(spend.o30||spend.o90)?' · only one of F30d_ops and F90d_ops found'
         :' · no F30d_ops or F90d_ops column, so commission uses total net OPS';
+    if(fxNote(fx)) msg+=' · '+fxNote(fx).replace(/^Spend/,'spend');
     msgErr=dates.mixed||cut;
   }catch(err){
     console.error(err);
@@ -2499,6 +2561,7 @@ function load(){
     if(s){
       const saved=JSON.parse(s);
       delete saved.commissionPer;   // the rate is fixed in code, not stored
+      delete saved.opsCurrency;     // an old setting that never did anything
       Object.assign(state.settings,saved);
     }
     const m=store.get(K_META); if(m) state.meta=JSON.parse(m);
@@ -4461,7 +4524,7 @@ function renderSalaries(){
     <p>Base salary is a whole calendar month. A part month is paid for the working days actually worked out of that month's working days, so starting on 17 August 2026 pays 11 of 21 days.</p>
     <p>Commission runs on a separate cycle: day ${startDay()} of one month to day ${startDay()-1} of the next, paid on day ${Math.min(28,Math.max(1,Number(state.settings.payDay)||5))} of the month after. Activations count in the cycle their <b>activation_date</b> falls in, not when the business registered.</p>
     <p>Businesses registered before ${cutShort} earn ${money(COMMISSION_PER)} for spending ${money(commMin())} or more, if they activate within ${commCfg().oldMonths} month${commCfg().oldMonths===1?'':'s'} of registering. Those registered on or after it earn a tiered amount by spend, if they activate within ${commCfg().newMonths} month${commCfg().newMonths===1?'':'s'}. Commission goes to whoever held the agent code when the business both registered and spent.</p>
-    <p>Spend is the AB report's own figure for each window: <b>F30d_ops</b>, the first 30 days, for the new rule and <b>F90d_ops</b>, the first 90 days, for the old rule. Money spent after the deadline never counts towards commission. While a business's window is still open and the report has no figure for it yet, its spend so far is used.</p>
+    <p>Spend is the AB report's own figure for each window: <b>F30d_ops</b>, the first 30 days, for the new rule and <b>F90d_ops</b>, the first 90 days, for the old rule. Money spent after the deadline never counts towards commission. While a business's window is still open and the report has no figure for it yet, its spend so far is used.${state.meta&&state.meta.spendCurrency==='usd'&&state.meta.usdPerGbp?` The AB report gives spend in US dollars, so every amount is converted to pounds as the file is read, at $${state.meta.usdPerGbp.toFixed(4)} = £1, before any threshold is checked.`:''}</p>
     <p>New-rule commission is paid in the period its one-month window closes, not the period the customer first spent, since spend keeps counting until then.</p>
     <p><b>${monthName(current)}</b> is the pay period running now: commission from ${dshort(periodRange(current).start)} to ${dshort(periodRange(current).end)}, ${payWhen(current)} ${periodRange(current).pay.getFullYear()}. From day ${startDay()} of each month the next month's period takes over. The report runs to ${asAt?new Date(asAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}, so anything after that is not known yet.</p>
     <p>Each month shows what the BDE will be paid for it: commission already confirmed, plus new-rule commission from businesses that have already qualified and are confirmed when their first month closes in that period, counted at the spend so far. It can rise if those customers spend more; nothing is included that has not qualified. Qualifying, Commission and Total take-home add up the months shown.</p>
@@ -4588,6 +4651,8 @@ function renderFoot(){
     parts.push('Everything on this page is read and stored on this device. No file, row or figure is transmitted anywhere, and the page works with no network connection.');
   }
   f.textContent=parts.join(' \u2014 ');
+  const fx=fxNote(state.meta);
+  if(fx){ const s=document.createElement('span'); s.className='foot-fx'; s.textContent=fx; f.append(document.createElement('br'),s); }
 }
 
 /* =======================================================================
@@ -4697,7 +4762,7 @@ function exportAgent(id){
   }
   const sc=spendCols();
   const head=['week_num','group_id','business_name','postal_code','registered_date','agent_id',
-              'activation_date','total_net_ops',...(sc.o30?['F30d_ops']:[]),...(sc.o90?['F90d_ops']:[]),'is_multi_user','bde_name'];
+              'activation_date','total_net_ops_gbp',...(sc.o30?['F30d_ops_gbp']:[]),...(sc.o90?['F90d_ops_gbp']:[]),'is_multi_user','bde_name'];
   const lines=[head.join(',')];
   for(const r of rows){
     // An activation date that could not be read is kept as a note, not left
@@ -4833,7 +4898,7 @@ function openSettings(){
             <input type="number" id="cmNew" min="0" max="24" step="1" value="${esc(commCfg().newMonths)}"></div>
         </div>
         <h4 class="seth" style="margin-top:16px"><span class="emo">&#128202;</span>New rule tiers
-          <i class="info" tabindex="0" data-tip="A business earns the amount for the highest tier its spend reaches. Spend is what it spent in its first 30 days, the F30d_ops column in the AB report, so money spent later does not count.">i</i></h4>
+          <i class="info" tabindex="0" data-tip="A business earns the amount for the highest tier its spend reaches. Spend is what it spent in its first 30 days, the F30d_ops column in the AB report converted from US dollars to pounds, so money spent later does not count.">i</i></h4>
         <div class="tiergrid">
           <span class="tierhead">Spend from (£)</span><span class="tierhead">Commission (£)</span>
           ${commCfg().tiers.map((t,i)=>`
@@ -5008,7 +5073,7 @@ function openSettings(){
         state.crm=null; state.fixes={}; state.view='dashboard';
         state.rows=[]; state.meta=null; state.quota=false;
         state.settings={names:{},targets:{},salaries:{},employment:{},teams:{},dailyTarget:6,actTarget:3,
-          opsCurrency:true,commMin:40,actBasis:'activation',salaryOn:true,baseSalary:40000,
+          commMin:40,actBasis:'activation',salaryOn:true,baseSalary:40000,
           comm:{cutover:'2026-10-05', oldMonths:3, newMonths:1, testAll:false,
             tiers:[{from:0,amt:0},{from:76,amt:20},{from:226,amt:30},{from:376,amt:40},{from:561,amt:50},{from:741,amt:60}]},periodStartDay:25,payDay:5,
           tax:{personalAllowance:12570,taperFrom:100000,higherFrom:50270,additionalFrom:125140,
@@ -6648,6 +6713,23 @@ if(state._packed){
   catch(e){ console.warn('Stored report could not be read',e); state.rows=[]; }
   state._packed=null;
 }
+/* A report saved before the spend was converted is still in US dollars. It is
+   converted once, the same way as a new upload, and saved again; its saved
+   details then say so, which stops it being converted a second time. */
+if(state.rows.length&&!(state.meta&&state.meta.spendCurrency)){
+  const rate=findUsdRate(state.rows.map(r=>r[F.OPS]).filter(v=>v>0));
+  // Without saved details there is no telling when it was saved, so it is only
+  // converted if its amounts still carry Amazon's dollar conversion.
+  if(state.meta||rate){
+    const used=rate||USD_FALLBACK;
+    convertSpend(state.rows,used);
+    state.meta=Object.assign(state.meta||{file:'Saved report',at:Date.now(),n:state.rows.length},
+      {usdPerGbp:used,rateFoundInFile:!!rate,spendCurrency:'usd'});
+    state._savedRows=null;
+    state._fxMigrated=true;
+    save();
+  }
+}
 if(!state.rows.length&&state.meta&&state.meta.notKept){
   const m=state.meta; state.meta=null;
   setTimeout(()=>toast(`${m.file} was too large to keep on this device after the page closed. Upload it again to see it.`,true),700);
@@ -6670,7 +6752,8 @@ if(swept.n) setTimeout(()=>toast(`Cleared ${mb(swept.freed)} left behind by olde
 if(teamsMoved) setTimeout(()=>toast(`${teamsMoved} BDE${teamsMoved===1?' was':'s were'} on a team that no longer exists and ${teamsMoved===1?'has':'have'} been moved to the Remaining team. Reassign ${teamsMoved===1?'them':'them'} in Settings.`,true),600);
 if(state.rows.length && state.meta){
   const n=filterCount();
-  toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:''));
+  toast(`Reloaded ${fmt(state.meta.n||state.rows.length)} registrations from ${state.meta.file}`+(n?` \u00b7 ${n} filter${n===1?'':'s'} still applied`:'')+
+    (state._fxMigrated?` \u00b7 its spend has now been converted from US dollars at $${state.meta.usdPerGbp.toFixed(4)} = £1`:''));
 }
 })();
 </script>
